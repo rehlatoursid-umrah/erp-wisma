@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Sidebar from '@/components/layout/Sidebar'
 import Header from '@/components/layout/Header'
 import LiveCalendar from '@/components/calendar/LiveCalendar'
@@ -103,9 +103,9 @@ export default function DashboardPage() {
   }
 
   // Load bookings on mount
-  useState(() => {
+  useEffect(() => {
     fetchAuditoriumBookings()
-  })
+  }, [])
 
   const handleBooking = (data: any) => {
     // Generate invoice

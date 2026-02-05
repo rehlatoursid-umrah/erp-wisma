@@ -278,7 +278,7 @@ export default function HotelBookingForm() {
                     <p className="subtitle">Select the number of rooms you need</p>
 
                     <div className="room-grid">
-                        {(Object.entries(ROOM_TYPES) as [string, typeof ROOM_TYPES.single][]).map(([key, room]) => {
+                        {(Object.entries(ROOM_TYPES) as [string, (typeof ROOM_TYPES)[keyof typeof ROOM_TYPES]][]).map(([key, room]) => {
                             const qtyField = `${key}Qty` as keyof FormData
                             const extraBedField = `${key}ExtraBed` as keyof FormData
                             const qty = formData[qtyField] as number

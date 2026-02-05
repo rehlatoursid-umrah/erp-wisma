@@ -24,8 +24,8 @@ export default buildConfig({
         user: Users.slug,
         meta: {
             titleSuffix: '- WIN-OS',
-            favicon: '/favicon.ico',
-            ogImage: '/og-image.png',
+            // favicon: '/favicon.ico',
+            // ogImage: '/og-image.png',
         },
     },
     collections: [
