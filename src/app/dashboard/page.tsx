@@ -102,9 +102,43 @@ export default function DashboardPage() {
     }
   }
 
+  const [stats, setStats] = useState({
+    hotel: 0,
+    aula: 0,
+    visa: 0,
+    rental: 0
+  })
+
+  const [dashboardData, setDashboardData] = useState<{
+    hotel: any[],
+    aula: any[],
+    visa: any[],
+    rental: any[]
+  }>({
+    hotel: [],
+    aula: [],
+    visa: [],
+    rental: []
+  })
+
+  // Fetch dashboard stats from API
+  const fetchDashboardStats = async () => {
+    try {
+      const res = await fetch('/api/dashboard/stats')
+      if (res.ok) {
+        const data = await res.json()
+        setStats(data.stats)
+        setDashboardData(data.data)
+      }
+    } catch (error) {
+      console.error('Failed to fetch dashboard stats:', error)
+    }
+  }
+
   // Load bookings on mount
   useEffect(() => {
     fetchAuditoriumBookings()
+    fetchDashboardStats()
   }, [])
 
   const handleBooking = (data: any) => {
@@ -177,28 +211,28 @@ export default function DashboardPage() {
               <div className="stat-card">
                 <span className="stat-icon">🏨</span>
                 <div className="stat-info">
-                  <span className="stat-value">4/6</span>
+                  <span className="stat-value">{stats.hotel}/20</span>
                   <span className="stat-label">Kamar Terisi</span>
                 </div>
               </div>
               <div className="stat-card">
                 <span className="stat-icon">🏢</span>
                 <div className="stat-info">
-                  <span className="stat-value">2</span>
+                  <span className="stat-value">{stats.aula}</span>
                   <span className="stat-label">Booking Aula</span>
                 </div>
               </div>
               <div className="stat-card">
                 <span className="stat-icon">✈️</span>
                 <div className="stat-info">
-                  <span className="stat-value">5</span>
+                  <span className="stat-value">{stats.visa}</span>
                   <span className="stat-label">Visa Inquiry</span>
                 </div>
               </div>
               <div className="stat-card">
                 <span className="stat-icon">📦</span>
                 <div className="stat-info">
-                  <span className="stat-value">3</span>
+                  <span className="stat-value">{stats.rental}</span>
                   <span className="stat-label">Rental Aktif</span>
                 </div>
               </div>
@@ -208,12 +242,15 @@ export default function DashboardPage() {
             <div className="mini-calendars">
               <div className="mini-calendar-card" onClick={() => setActiveTab('hotel')}>
                 <h4>🏨 Hotel - Hari Ini</h4>
-                <div className="mini-rooms">
-                  {mockHotelRooms.slice(0, 4).map(room => (
-                    <div key={room.id} className={`mini-room ${room.bookings.some(b => b.date === '2026-02-02') ? 'booked' : 'available'}`}>
-                      {room.name.split(' ')[1]}
-                    </div>
-                  ))}
+                <div className="mini-events">
+                  {dashboardData.hotel.length === 0 ? <div className="text-muted" style={{ padding: 10, color: '#888' }}>Tidak ada tamu hari ini</div> :
+                    dashboardData.hotel.map((booking: any, idx) => (
+                      <div key={idx} className="mini-event booked">
+                        <span style={{ fontWeight: 'bold', minWidth: 30 }}>{booking.assignedRooms?.[0] || '?'}</span>
+                        <span>{booking.guest?.fullName}</span>
+                      </div>
+                    ))
+                  }
                 </div>
                 <span className="view-more">Lihat Detail →</span>
               </div>
@@ -221,12 +258,13 @@ export default function DashboardPage() {
               <div className="mini-calendar-card" onClick={() => setActiveTab('aula')}>
                 <h4>🏢 Auditorium - Minggu Ini</h4>
                 <div className="mini-events">
-                  {mockAulaBookings.slice(0, 2).map((booking, idx) => (
-                    <div key={idx} className={`mini-event ${booking.type}`}>
-                      <span>{booking.date.split('-')[2]}</span>
-                      <span>{booking.title}</span>
-                    </div>
-                  ))}
+                  {dashboardData.aula.length === 0 ? <div className="text-muted" style={{ padding: 10, color: '#888' }}>Tidak ada event minggu ini</div> :
+                    dashboardData.aula.slice(0, 3).map((booking: any, idx) => (
+                      <div key={idx} className="mini-event booked">
+                        <span style={{ whiteSpace: 'nowrap' }}>{new Date(booking.date).getDate()} {new Date(booking.date).toLocaleDateString('id-ID', { month: 'short' })}</span>
+                        <span>{booking.eventName}</span>
+                      </div>
+                    ))}
                 </div>
                 <span className="view-more">Lihat Kalender →</span>
               </div>
@@ -234,12 +272,13 @@ export default function DashboardPage() {
               <div className="mini-calendar-card" onClick={() => setActiveTab('visa')}>
                 <h4>✈️ Visa Inquiries</h4>
                 <div className="mini-list">
-                  {mockVisaInquiries.slice(0, 3).map((item, idx) => (
-                    <div key={idx} className="mini-list-item">
-                      <span className={`dot ${item.type}`}></span>
-                      <span>{item.title}</span>
-                    </div>
-                  ))}
+                  {dashboardData.visa.length === 0 ? <div className="text-muted" style={{ padding: 10, color: '#888' }}>Tidak ada inquiry baru</div> :
+                    dashboardData.visa.map((item: any, idx) => (
+                      <div key={idx} className="mini-list-item">
+                        <span className={`dot inquiry`}></span>
+                        <span>{item.passengerName} - {item.visaStatus === 'pending_docs' ? 'Pending' : 'Process'}</span>
+                      </div>
+                    ))}
                 </div>
                 <span className="view-more">Lihat Semua →</span>
               </div>
@@ -247,12 +286,13 @@ export default function DashboardPage() {
               <div className="mini-calendar-card" onClick={() => setActiveTab('rental')}>
                 <h4>📦 Equipment Rental</h4>
                 <div className="mini-list">
-                  {mockRentalBookings.map((item, idx) => (
-                    <div key={idx} className="mini-list-item">
-                      <span className="dot rental"></span>
-                      <span>{item.title} - {item.date.split('-')[2]}/{item.date.split('-')[1]}</span>
-                    </div>
-                  ))}
+                  {dashboardData.rental.length === 0 ? <div className="text-muted" style={{ padding: 10, color: '#888' }}>Tidak ada rental aktif</div> :
+                    dashboardData.rental.slice(0, 3).map((item: any, idx) => (
+                      <div key={idx} className="mini-list-item">
+                        <span className="dot rental"></span>
+                        <span>{item.customerName} - {item.invoiceNo}</span>
+                      </div>
+                    ))}
                 </div>
                 <span className="view-more">Lihat Semua →</span>
               </div>

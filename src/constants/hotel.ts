@@ -9,8 +9,8 @@ export const ROOM_TYPES = {
 
 export const AIRPORT_PICKUP = [
     { value: 'none', label: 'No Pickup Needed', price: 0 },
-    { value: 'medium', label: 'Medium Private Vehicle (2-4 passengers)', price: 35 },
-    { value: 'hiace', label: 'Hiace Van (up to 10 passengers)', price: 50 },
+    { value: 'medium', label: 'Medium Private Vehicle - For 2-4 passengers with luggage', price: 35 },
+    { value: 'hiace', label: 'Hiace Van - Up to 10 passengers with large luggage', price: 50 },
 ]
 
 export const MEAL_PACKAGES = [

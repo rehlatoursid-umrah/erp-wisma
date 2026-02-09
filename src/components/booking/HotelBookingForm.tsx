@@ -40,11 +40,26 @@ interface FormData {
     }
 }
 
-export default function HotelBookingForm() {
+interface HotelBookingFormProps {
+    initialDate?: Date
+    onClose?: () => void
+    isModal?: boolean
+}
+
+export default function HotelBookingForm({ initialDate, onClose, isModal = false }: HotelBookingFormProps) {
     const [step, setStep] = useState(1)
     const [isSubmitting, setIsSubmitting] = useState(false)
     const [submitSuccess, setSubmitSuccess] = useState(false)
     const [bookingId, setBookingId] = useState('')
+
+    useEffect(() => {
+        if (initialDate) {
+            setFormData(prev => ({
+                ...prev,
+                checkInDate: initialDate.toISOString().split('T')[0]
+            }))
+        }
+    }, [initialDate])
 
     const [formData, setFormData] = useState<FormData>({
         fullName: '',
@@ -194,8 +209,14 @@ export default function HotelBookingForm() {
                         <p>📧 Konfirmasi akan dikirim ke WhatsApp Anda</p>
                         <p>💰 Total: <strong>${pricing.totalUSD} USD</strong> + <strong>{pricing.totalEGP} EGP</strong></p>
                     </div>
-                    <button className="btn btn-primary" onClick={() => window.location.href = '/booking/hotel'}>
-                        Booking Lagi
+                    <button className="btn btn-primary" onClick={() => {
+                        if (onClose) {
+                            onClose()
+                        } else {
+                            window.location.href = '/booking/hotel'
+                        }
+                    }}>
+                        {onClose ? 'Tutup' : 'Booking Lagi'}
                     </button>
                 </div>
                 <style jsx>{successStyles}</style>
@@ -250,21 +271,21 @@ export default function HotelBookingForm() {
                     </div>
                     <div className="form-row">
                         <div className="form-group">
-                            <label>WhatsApp Number *</label>
+                            <label>WhatsApp Number (start with country code) *</label>
                             <input
                                 type="tel"
                                 value={formData.whatsapp}
                                 onChange={e => updateField('whatsapp', e.target.value)}
-                                placeholder="+62812XXXXXXXX"
+                                placeholder="+62..."
                             />
                         </div>
                         <div className="form-group">
-                            <label>Phone Number *</label>
+                            <label>Phone Number (start with country code) *</label>
                             <input
                                 type="tel"
                                 value={formData.phone}
                                 onChange={e => updateField('phone', e.target.value)}
-                                placeholder="+62812XXXXXXXX"
+                                placeholder="+62..."
                             />
                         </div>
                     </div>

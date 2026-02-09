@@ -32,9 +32,36 @@ export const Cashflow: CollectionConfig = {
             ],
         },
         {
+            name: 'quantity',
+            type: 'number',
+            admin: {
+                description: 'Jumlah barang/jasa (opsional)',
+            },
+        },
+        {
+            name: 'unitPrice',
+            type: 'number',
+            admin: {
+                description: 'Harga satuan (opsional)',
+            },
+        },
+        {
             name: 'amount',
             type: 'number',
             required: true,
+            admin: {
+                description: 'Total (Otomatis atau Manual)',
+            },
+        },
+        {
+            name: 'transactionDate',
+            type: 'date',
+            required: true,
+            defaultValue: () => new Date().toISOString(),
+            admin: {
+                date: { pickerAppearance: 'dayAndTime' },
+                description: 'Tanggal transaksi (bisa diubah sesuai waktu kejadian nyata)',
+            },
         },
         {
             name: 'currency',
@@ -42,6 +69,7 @@ export const Cashflow: CollectionConfig = {
             options: [
                 { label: 'EGP', value: 'EGP' },
                 { label: 'USD', value: 'USD' },
+                { label: 'IDR', value: 'IDR' },
             ],
             defaultValue: 'EGP',
         },
@@ -49,12 +77,20 @@ export const Cashflow: CollectionConfig = {
             name: 'category',
             type: 'select',
             options: [
-                { label: 'Setoran Piket', value: 'piket' },
-                { label: 'Petty Cash', value: 'petty' },
-                { label: 'Gaji', value: 'salary' },
-                { label: 'Operasional', value: 'operational' },
-                { label: 'Maintenance', value: 'maintenance' },
-                { label: 'Lainnya', value: 'other' },
+                // Pendapatan
+                { label: '🏨 Hotel (Income)', value: 'hotel' },
+                { label: '🏛️ Auditorium (Income)', value: 'auditorium' },
+                { label: '✈️ Visa On Arrival', value: 'visa_arrival' },
+                { label: '🚗 Rental/Services', value: 'rental' },
+                // Dana Taktis
+                { label: '💰 Dana dari Bendahara (Debit)', value: 'treasurer_funding' },
+                // Pengeluaran
+                { label: '📦 Stok Hotel', value: 'stock_hotel' },
+                { label: '📦 Stok Aula', value: 'stock_aula' },
+                { label: '📦 Stok Visa', value: 'stock_visa' },
+                { label: '🛠️ Operasional Umum', value: 'operational' },
+                { label: '💵 Gaji / Honor', value: 'salary' },
+                { label: '🔹 Lainnya', value: 'other' },
             ],
         },
         {

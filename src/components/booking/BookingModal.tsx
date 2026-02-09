@@ -1,6 +1,8 @@
+
 'use client'
 
 import { useState, useEffect } from 'react'
+import HotelBookingForm from './HotelBookingForm'
 
 interface BookingModalProps {
     isOpen: boolean
@@ -85,6 +87,40 @@ export default function BookingModal({
 
     if (!isOpen) return null
 
+    // Use specific form logic for Hotel bookings
+    if (type === 'hotel') {
+        return (
+            <div className="modal-overlay open" onClick={onClose}>
+                <div className="modal booking-modal wide" onClick={e => e.stopPropagation()}>
+                    <div className="modal-header">
+                        <h3>🛏️ Book Hotel Room</h3>
+                        <button className="btn btn-icon" onClick={onClose}>✕</button>
+                    </div>
+                    <div className="modal-body-scroll">
+                        <HotelBookingForm
+                            isModal={true}
+                            initialDate={selectedDate}
+                            onClose={onClose}
+                        />
+                    </div>
+                </div>
+                <style jsx>{`
+                    .booking-modal.wide {
+                        max-width: 900px;
+                        width: 95%;
+                        max-height: 90vh;
+                        display: flex;
+                        flex-direction: column;
+                    }
+                    .modal-body-scroll {
+                        overflow-y: auto;
+                        padding: 1rem;
+                    }
+                `}</style>
+            </div>
+        )
+    }
+
     return (
         <div className="modal-overlay open" onClick={onClose}>
             <div className="modal booking-modal" onClick={e => e.stopPropagation()}>
@@ -130,7 +166,7 @@ export default function BookingModal({
                                 required
                             />
                         </div>
-                        {(type === 'hotel' || type === 'aula' || type === 'rental') && (
+                        {(type === 'aula' || type === 'rental') && (
                             <div className="form-group">
                                 <label className="form-label">Tanggal Selesai</label>
                                 <input
@@ -142,23 +178,6 @@ export default function BookingModal({
                             </div>
                         )}
                     </div>
-
-                    {type === 'hotel' && (
-                        <div className="form-group">
-                            <label className="form-label">Pilih Kamar</label>
-                            <select
-                                className="form-input"
-                                value={formData.roomId}
-                                onChange={e => setFormData({ ...formData, roomId: e.target.value })}
-                            >
-                                <option value="">-- Pilih Kamar --</option>
-                                <option value="101">101 - Standard (EGP 300/night)</option>
-                                <option value="102">102 - Standard (EGP 300/night)</option>
-                                <option value="103">103 - Deluxe (EGP 450/night)</option>
-                                <option value="104">104 - Suite (EGP 600/night)</option>
-                            </select>
-                        </div>
-                    )}
 
                     {type === 'rental' && (
                         <div className="form-group">

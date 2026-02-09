@@ -122,6 +122,34 @@ export default function HotelCalendar({ onBookRoom }: HotelCalendarProps) {
     }
   }
 
+  /* Color Palette for Bookings */
+  const BOOKING_COLORS = [
+    '#EF4444', // Red
+    '#F97316', // Orange
+    '#F59E0B', // Amber
+    '#84CC16', // Lime
+    '#10B981', // Emerald
+    '#06B6D4', // Cyan
+    '#3B82F6', // Blue
+    '#6366F1', // Indigo
+    '#8B5CF6', // Violet
+    '#D946EF', // Fuchsia
+    '#F43F5E', // Rose
+    '#64748B', // Slate
+    '#A855F7', // Purple
+    '#EC4899', // Pink
+  ]
+
+  const getColorByName = (name: string) => {
+    if (!name) return '#22c55e'
+    let hash = 0
+    for (let i = 0; i < name.length; i++) {
+      hash = name.charCodeAt(i) + ((hash << 5) - hash)
+    }
+    const index = Math.abs(hash) % BOOKING_COLORS.length
+    return BOOKING_COLORS[index]
+  }
+
   const getRoomTypeIcon = (type: string) => {
     switch (type) {
       case 'single': return '🛏️'
@@ -219,10 +247,10 @@ export default function HotelCalendar({ onBookRoom }: HotelCalendarProps) {
                         className={`day-cell ${booking ? 'booked' : 'available'} ${isToday(day) ? 'today' : ''}`}
                         onClick={() => booking ? setSelectedBooking(booking) : onBookRoom?.(room.number, day)}
                         title={booking ? `${booking.guestName} (${booking.status})` : 'Tersedia'}
-                        style={booking ? { backgroundColor: getStatusColor(booking.status) + '30' } : {}}
+                        style={booking ? { backgroundColor: getColorByName(booking.guestName) + '30' } : {}}
                       >
                         {booking && (
-                          <span className="booking-indicator" style={{ backgroundColor: getStatusColor(booking.status) }}></span>
+                          <span className="booking-indicator" style={{ backgroundColor: getColorByName(booking.guestName) }}></span>
                         )}
                       </td>
                     )
@@ -249,10 +277,10 @@ export default function HotelCalendar({ onBookRoom }: HotelCalendarProps) {
                         className={`day-cell ${booking ? 'booked' : 'available'} ${isToday(day) ? 'today' : ''}`}
                         onClick={() => booking ? setSelectedBooking(booking) : onBookRoom?.(room.number, day)}
                         title={booking ? `${booking.guestName} (${booking.status})` : 'Tersedia'}
-                        style={booking ? { backgroundColor: getStatusColor(booking.status) + '30' } : {}}
+                        style={booking ? { backgroundColor: getColorByName(booking.guestName) + '30' } : {}}
                       >
                         {booking && (
-                          <span className="booking-indicator" style={{ backgroundColor: getStatusColor(booking.status) }}></span>
+                          <span className="booking-indicator" style={{ backgroundColor: getColorByName(booking.guestName) }}></span>
                         )}
                       </td>
                     )
