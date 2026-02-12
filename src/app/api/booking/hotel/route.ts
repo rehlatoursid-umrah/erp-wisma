@@ -179,7 +179,7 @@ export async function POST(request: NextRequest) {
 
         const pickupPrice = airportPickup === 'medium' ? 35 : airportPickup === 'hiace' ? 50 : 0
 
-        const mealsTotal = Object.values(meals || {}).reduce((sum, meal: any) => {
+        const mealsTotal = Object.values(meals || {}).reduce((sum: number, meal: any) => {
             if (!meal.menuId || !meal.qty) return sum
             const mealConfig = MEAL_PACKAGES.find(m => m.id === meal.menuId)
             if (!mealConfig) return sum
