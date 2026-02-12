@@ -1,60 +1,115 @@
 'use client'
 
+import { useState, useEffect } from 'react'
+
 interface HeaderProps {
-    onMenuClick: () => void
+  onMenuClick: () => void
 }
 
-export default function Header({ onMenuClick }: HeaderProps) {
-    // Mock data - akan diganti dengan data real
-    const user = {
-        name: 'Ahmad Fauzi',
-        role: 'Staff Piket',
-        avatar: null,
+export default function Header({ onMenuClick, balances }: HeaderProps & {
+  balances?: {
+    EGP: number
+    USD: number
+    IDR: number
+  }
+}) {
+  // Mock data - akan diganti dengan data real
+  const user = {
+    name: 'Ahmad Fauzi',
+    role: 'Staff Piket',
+    avatar: null,
+  }
+
+  const [time, setTime] = useState<string>('')
+  const [internalBalances, setInternalBalances] = useState<{ EGP: number, USD: number, IDR: number } | null>(null)
+
+  // Use props if available, otherwise use internal state
+  const displayBalances = balances || internalBalances
+
+  useEffect(() => {
+    // Hydration fix: only set time on client
+    setTime(new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', second: '2-digit' }))
+
+    const timerInterval = setInterval(() => {
+      setTime(new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', second: '2-digit' }))
+    }, 1000)
+
+    return () => clearInterval(timerInterval)
+  }, [])
+
+  // Fetch balances if not provided via props (or to keep updated)
+  useEffect(() => {
+    if (balances) return // If controlled by parent, don't fetch internally? 
+    // Actually user wants "always active" so maybe just fetch anyway for other pages?
+    // If on Dashboard, Dashboard passes props. If on BPUPD, it does NOT pass props.
+    // So this effect will run on BPUPD.
+
+    const fetchBalances = async () => {
+      try {
+        const res = await fetch('/api/stats/balance')
+        if (res.ok) {
+          const data = await res.json()
+          setInternalBalances(data)
+        }
+      } catch (e) {
+        console.error('Failed to fetch header balances', e)
+      }
     }
 
-    const tickerData = {
-        saldoLaci: 'EGP 2,400',
-        statusListrik: 'Aman',
-        time: new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }),
-    }
+    fetchBalances() // Initial fetch
+    const balanceInterval = setInterval(fetchBalances, 10000) // Poll every 10s
 
-    return (
-        <header className="header">
-            <div className="header-left">
-                <button className="menu-btn" onClick={onMenuClick}>
-                    <span>☰</span>
-                </button>
-                <div className="header-ticker">
-                    <div className="ticker-item">
-                        <span>💰</span>
-                        <span>Saldo Laci: <strong>{tickerData.saldoLaci}</strong></span>
-                    </div>
-                    <div className="ticker-item">
-                        <span>⚡</span>
-                        <span>Listrik: <strong className="status-ok">{tickerData.statusListrik}</strong></span>
-                    </div>
-                    <div className="ticker-item">
-                        <span>🕐</span>
-                        <span>{tickerData.time}</span>
-                    </div>
-                </div>
-            </div>
+    return () => clearInterval(balanceInterval)
+  }, [balances])
 
-            <div className="user-profile">
-                <div className="user-info">
-                    <div className="user-name">{user.name}</div>
-                    <div className="user-role">{user.role}</div>
-                </div>
-                <div className="user-avatar">
-                    {user.avatar ? (
-                        <img src={user.avatar} alt={user.name} />
-                    ) : (
-                        <span>{user.name.charAt(0)}</span>
-                    )}
-                </div>
-            </div>
+  return (
+    <header className="header">
+      <div className="header-left">
+        <button className="menu-btn" onClick={onMenuClick}>
+          <span>☰</span>
+        </button>
+        <div className="header-ticker">
+          {/* USD Balance */}
+          <div className="ticker-item">
+            <span>💵</span>
+            <span>USD: <strong>{displayBalances?.USD?.toLocaleString() || '0'}</strong></span>
+          </div>
+          {/* EGP Balance */}
+          <div className="ticker-item">
+            <span>💷</span>
+            <span>EGP: <strong>{displayBalances?.EGP?.toLocaleString() || '0'}</strong></span>
+          </div>
+          {/* IDR Balance */}
+          <div className="ticker-item">
+            <span>💰</span>
+            <span>IDR: <strong>{displayBalances?.IDR?.toLocaleString() || '0'}</strong></span>
+          </div>
 
-            <style jsx>{`
+          <div className="ticker-divider">|</div>
+
+          {/* Clock */}
+          <div className="ticker-item clock">
+            <span>🕐</span>
+            <span style={{ minWidth: '80px', display: 'inline-block' }}>{time}</span>
+          </div>
+        </div>
+      </div>
+
+      <div className="user-profile">
+        <div className="user-info">
+          <div className="user-name">{user.name}</div>
+          <div className="user-role">{user.role}</div>
+        </div>
+        <div className="user-avatar">
+          {user.avatar ? (
+            <img src={user.avatar} alt={user.name} />
+          ) : (
+            <span>{user.name.charAt(0)}</span>
+          )}
+        </div>
+      </div>
+
+      <style jsx>{`
         .header {
           display: flex;
           align-items: center;
@@ -70,6 +125,8 @@ export default function Header({ onMenuClick }: HeaderProps) {
           display: flex;
           align-items: center;
           gap: var(--spacing-lg);
+          flex: 1;
+          overflow: hidden; /* Prevent overflow on small screens */
         }
 
         .menu-btn {
@@ -85,7 +142,15 @@ export default function Header({ onMenuClick }: HeaderProps) {
 
         .header-ticker {
           display: flex;
-          gap: var(--spacing-xl);
+          gap: var(--spacing-lg);
+          align-items: center;
+          overflow-x: auto; /* Allow horizontal scroll if needed */
+          padding-bottom: 4px; /* Space for scrollbar */
+          scrollbar-width: none; /* Hide scrollbar Firefox */
+        }
+
+        .header-ticker::-webkit-scrollbar {
+          display: none; /* Hide scrollbar Chrome/Safari */
         }
 
         .ticker-item {
@@ -94,6 +159,19 @@ export default function Header({ onMenuClick }: HeaderProps) {
           gap: var(--spacing-xs);
           font-size: 0.9375rem;
           color: var(--color-text-secondary);
+          white-space: nowrap;
+        }
+
+        .ticker-divider {
+            color: var(--color-text-muted);
+            opacity: 0.5;
+            font-size: 1.2rem;
+        }
+
+        .clock {
+            font-family: monospace;
+            font-weight: 600;
+            color: var(--color-primary);
         }
 
         .status-ok {
@@ -104,6 +182,8 @@ export default function Header({ onMenuClick }: HeaderProps) {
           display: flex;
           align-items: center;
           gap: var(--spacing-md);
+          margin-left: var(--spacing-lg);
+          flex-shrink: 0;
         }
 
         .user-info {
@@ -148,10 +228,10 @@ export default function Header({ onMenuClick }: HeaderProps) {
           }
 
           .header-ticker {
-            display: none;
+            display: none; /* Hide ticker on very small screens or make it scrollable */
           }
         }
       `}</style>
-        </header>
-    )
+    </header>
+  )
 }

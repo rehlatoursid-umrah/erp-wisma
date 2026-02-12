@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
-import { createPortal } from 'react-dom'
+import AuditoriumBookingForm, { AuditoriumBookingData } from '../booking/AuditoriumBookingForm'
 
 interface AuditoriumBooking {
   id: string
@@ -45,6 +45,10 @@ export default function AuditoriumCalendar({
   const [isLoading, setIsLoading] = useState(true)
   const [selectedBooking, setSelectedBooking] = useState<AuditoriumBooking | null>(null)
   const [isMounted, setIsMounted] = useState(false)
+
+  // New State for Booking Form Modal
+  const [isBookingModalOpen, setIsBookingModalOpen] = useState(false)
+  const [selectedDateForBooking, setSelectedDateForBooking] = useState<string>('')
 
   // Track component mount status
   useEffect(() => {
@@ -176,6 +180,41 @@ export default function AuditoriumCalendar({
     })
   }
 
+  // Handle clicking on a calendar day
+  const handleDayClick = (date: Date) => {
+    // Format date as YYYY-MM-DD for the form
+    const year = date.getFullYear()
+    const month = String(date.getMonth() + 1).padStart(2, '0')
+    const day = String(date.getDate()).padStart(2, '0')
+    const formattedDate = `${year}-${month}-${day}`
+
+    setSelectedDateForBooking(formattedDate)
+    setIsBookingModalOpen(true)
+  }
+
+  // Handle form submission
+  const handleBookingSubmit = async (data: AuditoriumBookingData) => {
+    try {
+      const response = await fetch('/api/booking/auditorium', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+      })
+
+      if (response.ok) {
+        alert('✅ Booking Berhasil Dibuat!')
+        setIsBookingModalOpen(false)
+        fetchBookings() // Refresh calendar
+      } else {
+        const errorData = await response.json()
+        alert('❌ Gagal membuat booking: ' + (errorData.error || 'Unknown error'))
+      }
+    } catch (error) {
+      console.error('Booking submission error:', error)
+      alert('❌ Terjadi kesalahan sistem. Silakan coba lagi.')
+    }
+  }
+
   const calendarDays = getCalendarDays()
 
   const getStatusBadge = (status: string) => {
@@ -215,6 +254,7 @@ export default function AuditoriumCalendar({
           <div
             key={idx}
             className={`calendar-day ${!day.isCurrentMonth ? 'other-month' : ''} ${day.isToday ? 'today' : ''} ${day.bookings.length > 0 ? 'booked' : 'available'}`}
+            onClick={() => handleDayClick(day.date)}
           >
             <span className="day-number">{day.date.getDate()}</span>
             {day.bookings.length > 0 ? (
@@ -267,6 +307,62 @@ export default function AuditoriumCalendar({
           <span>Pending</span>
         </div>
       </div>
+
+      {/* Booking Form Modal */}
+      {isBookingModalOpen && (
+        <div
+          className="modal-overlay"
+          onClick={() => setIsBookingModalOpen(false)}
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            background: 'rgba(0, 0, 0, 0.6)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 2147483647,
+            visibility: 'visible',
+            opacity: 1,
+            animation: 'fadeIn 0.3s ease-out'
+          }}
+        >
+          <div
+            className="modal"
+            onClick={e => e.stopPropagation()}
+            style={{
+              background: '#ffffff',
+              borderRadius: '24px',
+              width: '90%',
+              maxWidth: '800px',
+              maxHeight: '90vh',
+              overflow: 'auto',
+              boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)',
+              padding: '24px',
+              animation: 'slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1)'
+            }}
+          >
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+              <h2 style={{ margin: 0, color: '#111827' }}>Buat Booking Auditorium</h2>
+              <button
+                onClick={() => setIsBookingModalOpen(false)}
+                style={{ background: 'none', border: 'none', fontSize: '1.5rem', cursor: 'pointer' }}
+              >
+                ✕
+              </button>
+            </div>
+
+            <AuditoriumBookingForm
+              isModal={true}
+              initialDate={selectedDateForBooking}
+              onSubmit={handleBookingSubmit}
+              onCancel={() => setIsBookingModalOpen(false)}
+            />
+          </div>
+        </div>
+      )}
 
       {/* Booking Detail Modal - Portal for guaranteed z-index */}
       {/* Booking Detail Modal - Direct Fixed Overlay (No Portal) */}
@@ -513,6 +609,51 @@ export default function AuditoriumCalendar({
                   >
                     🧾 Buat Invoice
                   </button>
+
+                  <button
+                    onClick={async () => {
+                      if (!confirm('Tandai sebagai LUNAS? Data akan masuk ke Laporan Keuangan.')) return;
+
+                      try {
+                        const res = await fetch('/api/finance/invoice', {
+                          method: 'POST',
+                          headers: { 'Content-Type': 'application/json' },
+                          body: JSON.stringify({
+                            customerName: selectedBooking.bookerName,
+                            customerWA: selectedBooking.whatsapp,
+                            items: [{
+                              itemName: `Sewa Aula: ${selectedBooking.eventName}`,
+                              quantity: 1,
+                              priceUnit: selectedBooking.totalPrice,
+                              subtotal: selectedBooking.totalPrice
+                            }],
+                            totalAmount: selectedBooking.totalPrice,
+                            currency: 'EGP',
+                            bookingType: 'auditorium',
+                            relatedBooking: selectedBooking.id, // Ensure this maps correctly to ID
+                            paymentStatus: 'paid',
+                            paymentMethod: 'cash',
+                            notes: `Auto-generated from Auditorium Calendar`
+                          })
+                        })
+
+                        if (res.ok) {
+                          alert('✅ Pembayaran berhasil dicatat!');
+                          setSelectedBooking(null);
+                          fetchBookings();
+                        } else {
+                          const errData = await res.json();
+                          alert('❌ Gagal memproses pembayaran: ' + (errData.error || 'Unknown error'));
+                        }
+                      } catch (err: any) {
+                        console.error(err);
+                        alert('❌ Terjadi kesalahan sistem: ' + (err.message || JSON.stringify(err)));
+                      }
+                    }}
+                    style={{ padding: '10px', borderRadius: '8px', border: 'none', background: '#3b82f6', color: 'white', cursor: 'pointer', fontWeight: 500 }}
+                  >
+                    ✅ Mark Paid
+                  </button>
                 </div>
 
                 <button
@@ -754,233 +895,25 @@ export default function AuditoriumCalendar({
         }
 
         .legend-dot {
-          width: 12px;
-          height: 12px;
-          border-radius: 50%;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
         }
 
-        .legend-dot.booked {
-          background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
-        }
-
-        .legend-dot.available {
-          background: var(--color-bg-card);
-          border: 2px solid rgba(139, 69, 19, 0.3);
-        }
-
-        .legend-dot.pending {
-          background: #f59e0b;
-        }
-
-        /* Modal Styles */
-        .modal-overlay {
-          position: fixed !important;
-          top: 0 !important;
-          left: 0 !important;
-          right: 0 !important;
-          bottom: 0 !important;
-          background: rgba(0, 0, 0, 0.6) !important;
-          display: flex !important;
-          align-items: center !important;
-          justify-content: center !important;
-          z-index: 9999 !important;
-          animation: fadeIn 0.2s ease;
-        }
-
-        .modal {
-          background: #ffffff !important;
-          border-radius: 16px !important;
-          width: 90% !important;
-          max-width: 500px !important;
-          max-height: 90vh !important;
-          overflow: auto !important;
-          animation: slideUp 0.3s ease;
-          box-shadow: 0 25px 50px rgba(0, 0, 0, 0.25) !important;
-        }
-
-        .modal-header {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          padding: var(--spacing-lg);
-          border-bottom: 1px solid rgba(139, 69, 19, 0.1);
-        }
-
-        .modal-header h3 {
-          margin: 0;
-          font-size: 1.25rem;
-        }
-
-        .modal-close {
-          width: 32px;
-          height: 32px;
-          border: none;
-          background: rgba(139, 69, 19, 0.1);
-          border-radius: 50%;
-          cursor: pointer;
-          font-size: 1rem;
-          transition: all 0.2s ease;
-        }
-
-        .modal-close:hover {
-          background: var(--color-primary);
-          color: white;
-        }
-
-        .booking-detail-content {
-          padding: var(--spacing-lg);
-        }
-
-        .detail-row {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          padding: var(--spacing-sm) 0;
-        }
-
-        .detail-label {
-          color: var(--color-text-secondary);
-          font-size: 0.9375rem;
-        }
-
-        .detail-value {
-          font-weight: 600;
-          color: var(--color-text-primary);
-        }
-
-        .detail-row.total {
-          margin-top: var(--spacing-md);
-          padding-top: var(--spacing-md);
-        }
-
-        .detail-value.price {
-          font-size: 1.25rem;
-          color: var(--color-primary);
-        }
-
-        .status-badge {
-          padding: 4px 12px;
-          border-radius: 999px;
-          color: white;
-          font-size: 0.75rem;
-          font-weight: 600;
-        }
-
-        hr {
-          border: none;
-          border-top: 1px solid rgba(139, 69, 19, 0.1);
-          margin: var(--spacing-md) 0;
-        }
-
-        .detail-section {
-          padding: var(--spacing-md) 0;
-          border-bottom: 1px solid rgba(139, 69, 19, 0.1);
-        }
-
-        .detail-section:last-of-type {
-          border-bottom: none;
-        }
-
-        .detail-section h4 {
-          margin: 0 0 var(--spacing-sm) 0;
-          font-size: 0.9375rem;
-          color: var(--color-primary);
-        }
-
-        .total-section {
-          background: rgba(139, 69, 19, 0.05);
-          margin: var(--spacing-md) calc(-1 * var(--spacing-lg));
-          padding: var(--spacing-md) var(--spacing-lg);
-          border-bottom: none;
-        }
-
-        .booking-id {
-          font-family: monospace;
-          background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%);
-          -webkit-background-clip: text;
-          -webkit-text-fill-color: transparent;
-          background-clip: text;
-        }
-
-        .detail-value a {
-          color: #25D366;
-          text-decoration: none;
-        }
-
-        .detail-value a:hover {
-          text-decoration: underline;
-        }
-
-        .action-buttons {
-          display: grid;
-          grid-template-columns: repeat(2, 1fr);
-          gap: var(--spacing-sm);
-          padding: var(--spacing-lg) 0 0 0;
-          border-top: 1px solid rgba(139, 69, 19, 0.1);
-          margin-top: var(--spacing-md);
-        }
-
-        .action-btn {
-          padding: var(--spacing-sm) var(--spacing-md);
-          border: none;
-          border-radius: var(--radius-lg);
-          cursor: pointer;
-          font-size: 0.875rem;
-          font-weight: 600;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          gap: var(--spacing-xs);
-          transition: all 0.2s ease;
-        }
-
-        .action-btn:hover {
-          transform: translateY(-2px);
-          box-shadow: var(--shadow-md);
-        }
-
-        .pdf-btn {
-          background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
-          color: white;
-        }
-
-        .send-pdf-btn {
-          background: linear-gradient(135deg, #25D366 0%, #128C7E 100%);
-          color: white;
-        }
-
-        .invoice-btn {
-          background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
-          color: white;
-        }
-
-        .admin-btn {
-          background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
-          color: white;
-        }
+        .legend-dot.booked { background: #22c55e; }
+        .legend-dot.available { background: #e5e7eb; border: 2px solid #d1d5db; }
+        .legend-dot.pending { background: #f59e0b; }
 
         @keyframes fadeIn {
-          from { opacity: 0; }
-          to { opacity: 1; }
+            from { opacity: 0; }
+            to { opacity: 1; }
         }
 
         @keyframes slideUp {
-          from { opacity: 0; transform: translateY(20px) scale(0.95); }
-          to { opacity: 1; transform: translateY(0) scale(1); }
-        }
-
-        @media (max-width: 768px) {
-          .calendar-day {
-            min-height: 100px;
-          }
-          .booking-card {
-            font-size: 0.5625rem;
-          }
-          .booking-name {
-            font-size: 0.625rem;
-          }
+            from { transform: translateY(20px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
         }
       `}</style>
-    </div >
+    </div>
   )
 }

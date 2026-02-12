@@ -39,6 +39,7 @@ export async function GET(request: NextRequest) {
                 assignedRooms.forEach((roomNum: string) => {
                     calendarData.push({
                         id: `${booking.id}-${roomNum}`, // Unique ID for calendar key
+                        originalId: booking.id, // Real DB ID for relationships
                         bookingId: booking.bookingId,
                         roomNumber: roomNum, // Critical for matching row in calendar
                         checkIn: booking.checkIn,
@@ -178,10 +179,13 @@ export async function POST(request: NextRequest) {
 
         const pickupPrice = airportPickup === 'medium' ? 35 : airportPickup === 'hiace' ? 50 : 0
 
-        const mealsTotal = Object.entries(meals || {}).reduce((sum, [mealId, mealData]: [string, any]) => {
-            const mealConfig = MEAL_PACKAGES.find(m => m.id === mealId)
+        const mealsTotal = Object.values(meals || {}).reduce((sum, meal: any) => {
+            if (!meal.menuId || !meal.qty) return sum
+            const mealConfig = MEAL_PACKAGES.find(m => m.id === meal.menuId)
             if (!mealConfig) return sum
-            return sum + (mealData.qty || 0) * mealConfig.price * (mealData.timing?.length || 0)
+
+            const multiplier = meal.isDaily ? nights : 1
+            return sum + (meal.qty * mealConfig.price * multiplier)
         }, 0)
 
         // Create Booking

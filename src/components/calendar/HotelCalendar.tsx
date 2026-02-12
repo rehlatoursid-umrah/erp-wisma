@@ -1,6 +1,7 @@
-'use client'
+﻿'use client'
 
 import { useState, useEffect, useCallback } from 'react'
+import { MEAL_PACKAGES, EXTRA_BED_PRICE } from '@/constants/hotel'
 
 // Room configuration (synced with HotelBookings collection)
 const HOTEL_ROOMS = [
@@ -24,6 +25,7 @@ const HOTEL_ROOMS = [
 
 interface HotelBooking {
   id: string
+  originalId?: string
   bookingId: string
   roomNumber: string
   roomType: string
@@ -41,9 +43,11 @@ interface HotelBooking {
 
 interface HotelCalendarProps {
   onBookRoom?: (roomNumber: string, date: Date) => void
+  refreshTrigger?: number
+  onUpdate?: () => void
 }
 
-export default function HotelCalendar({ onBookRoom }: HotelCalendarProps) {
+export default function HotelCalendar({ onBookRoom, refreshTrigger = 0, onUpdate }: HotelCalendarProps) {
   const [currentDate, setCurrentDate] = useState(new Date())
   const [bookings, setBookings] = useState<HotelBooking[]>([])
   const [selectedBooking, setSelectedBooking] = useState<HotelBooking | null>(null)
@@ -72,7 +76,7 @@ export default function HotelCalendar({ onBookRoom }: HotelCalendarProps) {
 
   useEffect(() => {
     fetchBookings()
-  }, [fetchBookings])
+  }, [fetchBookings, refreshTrigger])
 
   // Generate days of the month
   const getDaysInMonth = () => {
@@ -113,11 +117,11 @@ export default function HotelCalendar({ onBookRoom }: HotelCalendarProps) {
 
   const getStatusLabel = (status: string) => {
     switch (status) {
-      case 'pending': return '⏳ Pending'
-      case 'confirmed': return '✅ Confirmed'
-      case 'checked-in': return '🏨 Checked-In'
-      case 'checked-out': return '🚪 Checked-Out'
-      case 'cancelled': return '❌ Cancelled'
+      case 'pending': return 'Pending'
+      case 'confirmed': return 'Confirmed'
+      case 'checked-in': return 'Checked-In'
+      case 'checked-out': return 'Checked-Out'
+      case 'cancelled': return 'Cancelled'
       default: return status
     }
   }
@@ -152,16 +156,16 @@ export default function HotelCalendar({ onBookRoom }: HotelCalendarProps) {
 
   const getRoomTypeIcon = (type: string) => {
     switch (type) {
-      case 'single': return '🛏️'
-      case 'double': return '🛏️🛏️'
-      case 'triple': return '🛏️×3'
-      case 'quadruple': return '🛏️×4'
-      case 'homestay': return '🏠'
-      default: return '🛏️'
+      case 'single': return 'Single'
+      case 'double': return 'Double'
+      case 'triple': return 'Triple'
+      case 'quadruple': return 'Quad'
+      case 'homestay': return 'Home'
+      default: return 'Room'
     }
   }
 
-  const monthName = currentDate.toLocaleDateString('id-ID', { month: 'long', year: 'numeric' })
+  const monthName = currentDate.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })
 
   return (
     <div className="hotel-calendar">
@@ -172,14 +176,14 @@ export default function HotelCalendar({ onBookRoom }: HotelCalendarProps) {
             className="nav-btn"
             onClick={() => setCurrentDate(new Date(year, month - 2, 1))}
           >
-            ◀
+            &lt; Prev
           </button>
           <h3>{monthName}</h3>
           <button
             className="nav-btn"
             onClick={() => setCurrentDate(new Date(year, month, 1))}
           >
-            ▶
+            Next &gt;
           </button>
         </div>
         <div className="header-actions">
@@ -187,40 +191,40 @@ export default function HotelCalendar({ onBookRoom }: HotelCalendarProps) {
             className="today-btn"
             onClick={() => setCurrentDate(new Date())}
           >
-            📅 Hari Ini
+            Today
           </button>
           <button
             className="refresh-btn"
             onClick={fetchBookings}
             disabled={refreshing}
           >
-            {refreshing ? '⏳' : '🔄'}
+            {refreshing ? '...' : 'Refresh'}
           </button>
         </div>
       </div>
 
       {/* Legend */}
       <div className="legend">
-        <span className="legend-item"><span className="dot available"></span> Tersedia</span>
-        <span className="legend-item"><span className="dot booked"></span> Terisi</span>
+        <span className="legend-item"><span className="dot available"></span> Available</span>
+        <span className="legend-item"><span className="dot booked"></span> Booked</span>
       </div>
 
       {/* Calendar Grid */}
       {loading ? (
-        <div className="loading">Memuat data...</div>
+        <div className="loading">Loading data...</div>
       ) : (
         <div className="calendar-scroll">
           <table className="room-table">
             <thead>
               <tr>
-                <th className="room-header">Kamar</th>
+                <th className="room-header">Room</th>
                 {days.map((day, idx) => (
                   <th
                     key={idx}
                     className={`day-header ${isToday(day) ? 'today' : ''}`}
                   >
                     <span className="day-name">
-                      {day.toLocaleDateString('id-ID', { weekday: 'short' }).slice(0, 3)}
+                      {day.toLocaleDateString('en-US', { weekday: 'short' }).slice(0, 3)}
                     </span>
                     <span className="day-date">{day.getDate()}</span>
                   </th>
@@ -230,7 +234,7 @@ export default function HotelCalendar({ onBookRoom }: HotelCalendarProps) {
             <tbody>
               {/* Floor 1 Header */}
               <tr className="floor-header">
-                <td colSpan={days.length + 1}>🏢 Lantai 1</td>
+                <td colSpan={days.length + 1}>Floor 1</td>
               </tr>
               {HOTEL_ROOMS.filter(r => r.floor === 1).map(room => (
                 <tr key={room.number}>
@@ -246,7 +250,7 @@ export default function HotelCalendar({ onBookRoom }: HotelCalendarProps) {
                         key={idx}
                         className={`day-cell ${booking ? 'booked' : 'available'} ${isToday(day) ? 'today' : ''}`}
                         onClick={() => booking ? setSelectedBooking(booking) : onBookRoom?.(room.number, day)}
-                        title={booking ? `${booking.guestName} (${booking.status})` : 'Tersedia'}
+                        title={booking ? `${booking.guestName} (${booking.status})` : 'Available'}
                         style={booking ? { backgroundColor: getColorByName(booking.guestName) + '30' } : {}}
                       >
                         {booking && (
@@ -260,7 +264,7 @@ export default function HotelCalendar({ onBookRoom }: HotelCalendarProps) {
 
               {/* Floor 2 Header */}
               <tr className="floor-header">
-                <td colSpan={days.length + 1}>🏢 Lantai 2</td>
+                <td colSpan={days.length + 1}>Floor 2</td>
               </tr>
               {HOTEL_ROOMS.filter(r => r.floor === 2).map(room => (
                 <tr key={room.number}>
@@ -276,7 +280,7 @@ export default function HotelCalendar({ onBookRoom }: HotelCalendarProps) {
                         key={idx}
                         className={`day-cell ${booking ? 'booked' : 'available'} ${isToday(day) ? 'today' : ''}`}
                         onClick={() => booking ? setSelectedBooking(booking) : onBookRoom?.(room.number, day)}
-                        title={booking ? `${booking.guestName} (${booking.status})` : 'Tersedia'}
+                        title={booking ? `${booking.guestName} (${booking.status})` : 'Available'}
                         style={booking ? { backgroundColor: getColorByName(booking.guestName) + '30' } : {}}
                       >
                         {booking && (
@@ -290,13 +294,13 @@ export default function HotelCalendar({ onBookRoom }: HotelCalendarProps) {
 
               {/* Homestay Header */}
               <tr className="floor-header homestay">
-                <td colSpan={days.length + 1}>🏠 Homestay</td>
+                <td colSpan={days.length + 1}>Homestay</td>
               </tr>
               {HOTEL_ROOMS.filter(r => r.floor === 0).map(room => (
                 <tr key={room.number}>
                   <td className="room-info">
                     <strong>{room.number}</strong>
-                    <span className="room-type">{getRoomTypeIcon(room.type)} 3 Kamar + Fasilitas</span>
+                    <span className="room-type">{getRoomTypeIcon(room.type)} 3 Rooms + Facilities</span>
                     <span className="room-price">${room.price}/night</span>
                   </td>
                   {days.map((day, idx) => {
@@ -306,7 +310,7 @@ export default function HotelCalendar({ onBookRoom }: HotelCalendarProps) {
                         key={idx}
                         className={`day-cell ${booking ? 'booked' : 'available'} ${isToday(day) ? 'today' : ''}`}
                         onClick={() => booking ? setSelectedBooking(booking) : onBookRoom?.(room.number, day)}
-                        title={booking ? `${booking.guestName} (${booking.status})` : 'Tersedia'}
+                        title={booking ? `${booking.guestName} (${booking.status})` : 'Available'}
                         style={booking ? { backgroundColor: getStatusColor(booking.status) + '30' } : {}}
                       >
                         {booking && (
@@ -350,24 +354,29 @@ export default function HotelCalendar({ onBookRoom }: HotelCalendarProps) {
               background: '#ffffff',
               borderRadius: '24px',
               width: '90%',
-              maxWidth: '500px',
+              maxWidth: '900px',
               maxHeight: '85vh',
-              overflow: 'auto',
+              overflow: 'hidden', // Contain scroll
               boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)',
+              zIndex: 1000000000,
+              padding: '0',
+              display: 'flex',
+              flexDirection: 'column',
               animation: 'slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1)'
             }}
           >
             {/* Header */}
-            <div style={{
+            <div className="modal-header" style={{
               padding: '24px',
               borderBottom: '1px solid #f3f4f6',
               display: 'flex',
               justifyContent: 'space-between',
-              alignItems: 'center'
+              alignItems: 'center',
+              background: '#fff'
             }}>
               <div>
-                <h3 style={{ margin: 0, fontSize: '1.25rem', color: '#111827' }}>
-                  🏨 Kamar {selectedBooking.roomNumber}
+                <h3 style={{ margin: 0, fontSize: '1.25rem', color: '#111827', fontWeight: 700 }}>
+                  Room {selectedBooking.roomNumber}
                 </h3>
                 <span style={{ fontSize: '0.875rem', color: '#6b7280' }}>
                   ID: {selectedBooking.bookingId}
@@ -381,16 +390,23 @@ export default function HotelCalendar({ onBookRoom }: HotelCalendarProps) {
                   width: '36px',
                   height: '36px',
                   borderRadius: '50%',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
                   cursor: 'pointer',
-                  fontSize: '1.2rem'
+                  color: '#4b5563',
+                  fontSize: '1.2rem',
+                  transition: 'background 0.2s'
                 }}
+                onMouseOver={(e) => e.currentTarget.style.background = '#e5e7eb'}
+                onMouseOut={(e) => e.currentTarget.style.background = '#f3f4f6'}
               >
-                ✕
+                &times;
               </button>
             </div>
 
-            {/* Content */}
-            <div style={{ padding: '24px' }}>
+            {/* Scrollable Content */}
+            <div className="booking-detail-content" style={{ padding: '24px', overflowY: 'auto' }}>
               {/* Status */}
               <div style={{
                 marginBottom: '24px',
@@ -410,25 +426,25 @@ export default function HotelCalendar({ onBookRoom }: HotelCalendarProps) {
               {/* Guest Info */}
               <div style={{ marginBottom: '24px' }}>
                 <h4 style={{ fontSize: '0.9rem', color: '#9ca3af', textTransform: 'uppercase', marginBottom: '12px' }}>
-                  Informasi Tamu
+                  Guest Information
                 </h4>
                 <div style={{ background: '#f9fafb', borderRadius: '12px', padding: '16px' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
-                    <span style={{ color: '#6b7280' }}>👤 Nama</span>
+                    <span style={{ color: '#6b7280' }}>Name</span>
                     <span style={{ fontWeight: 600 }}>{selectedBooking.guestName}</span>
                   </div>
                   <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
-                    <span style={{ color: '#6b7280' }}>🌍 Negara</span>
+                    <span style={{ color: '#6b7280' }}>Country</span>
                     <span>{selectedBooking.guestCountry}</span>
                   </div>
                   <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                    <span style={{ color: '#6b7280' }}>📱 WhatsApp</span>
+                    <span style={{ color: '#6b7280' }}>WhatsApp</span>
                     <a
                       href={`https://wa.me/${selectedBooking.guestWhatsapp}`}
                       target="_blank"
                       style={{ color: '#25D366', fontWeight: 600, textDecoration: 'none' }}
                     >
-                      {selectedBooking.guestWhatsapp} ↗
+                      {selectedBooking.guestWhatsapp} &rarr;
                     </a>
                   </div>
                 </div>
@@ -437,30 +453,64 @@ export default function HotelCalendar({ onBookRoom }: HotelCalendarProps) {
               {/* Stay Info */}
               <div style={{ marginBottom: '24px' }}>
                 <h4 style={{ fontSize: '0.9rem', color: '#9ca3af', textTransform: 'uppercase', marginBottom: '12px' }}>
-                  Detail Menginap
+                  Stay Details
                 </h4>
                 <div style={{ background: '#f9fafb', borderRadius: '12px', padding: '16px' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
-                    <span style={{ color: '#6b7280' }}>📅 Check-In</span>
+                    <span style={{ color: '#6b7280' }}>Check-In</span>
                     <span style={{ fontWeight: 600 }}>{selectedBooking.checkIn.split('T')[0]}</span>
                   </div>
                   <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
-                    <span style={{ color: '#6b7280' }}>📅 Check-Out</span>
+                    <span style={{ color: '#6b7280' }}>Check-Out</span>
                     <span style={{ fontWeight: 600 }}>{selectedBooking.checkOut.split('T')[0]}</span>
                   </div>
                   <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                    <span style={{ color: '#6b7280' }}>🌙 Malam</span>
-                    <span>{selectedBooking.nights} malam</span>
+                    <span style={{ color: '#6b7280' }}>Nights</span>
+                    <span>{selectedBooking.nights} nights</span>
                   </div>
                 </div>
               </div>
 
-              {/* Pricing */}
+              {/* Pricing Breakdown */}
               <div style={{ borderTop: '2px dashed #e5e7eb', paddingTop: '20px' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px', color: '#6b7280' }}>
-                  <span>Harga/Malam</span>
-                  <span>${selectedBooking.pricePerNight} USD</span>
+                <h4 style={{ fontSize: '0.9rem', color: '#9ca3af', textTransform: 'uppercase', marginBottom: '12px' }}>
+                  Cost Breakdown
+                </h4>
+
+                {/* Rooms */}
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px', fontSize: '0.95rem' }}>
+                  <span>Room ({selectedBooking.nights} nights)</span>
+                  <span style={{ fontWeight: 500 }}>${((selectedBooking as any).pricing?.roomsTotal || selectedBooking.pricePerNight * selectedBooking.nights).toLocaleString()} USD</span>
                 </div>
+
+                {/* Extra Beds */}
+                {((selectedBooking as any).pricing?.extraBedTotal > 0) && (
+                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px', fontSize: '0.95rem' }}>
+                    <span>Extra Bed</span>
+                    <span style={{ fontWeight: 500 }}>${(selectedBooking as any).pricing.extraBedTotal} USD</span>
+                  </div>
+                )}
+
+                {/* Pickup */}
+                {((selectedBooking as any).pricing?.pickupTotal > 0) && (
+                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px', fontSize: '0.95rem' }}>
+                    <span>Airport Pickup</span>
+                    <span style={{ fontWeight: 500 }}>${(selectedBooking as any).pricing.pickupTotal} USD</span>
+                  </div>
+                )}
+
+                {/* Meals (EGP) */}
+                {((selectedBooking as any).pricing?.mealsTotal > 0) && (
+                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px', fontSize: '0.95rem', color: '#ea580c' }}>
+                    <span>Meal Package (Paid Separately)</span>
+                    <span style={{ fontWeight: 600 }}>{(selectedBooking as any).pricing.mealsTotal.toLocaleString()} EGP</span>
+                  </div>
+                )}
+
+                {/* Divider */}
+                <div style={{ height: '1px', background: '#e5e7eb', margin: '12px 0' }}></div>
+
+                {/* Total */}
                 <div style={{
                   display: 'flex',
                   justifyContent: 'space-between',
@@ -469,7 +519,12 @@ export default function HotelCalendar({ onBookRoom }: HotelCalendarProps) {
                   padding: '12px',
                   borderRadius: '8px'
                 }}>
-                  <span style={{ fontWeight: 600 }}>💰 Total</span>
+                  <div>
+                    <span style={{ fontWeight: 600, display: 'block' }}>Total to Pay</span>
+                    {((selectedBooking as any).pricing?.mealsTotal > 0) && (
+                      <span style={{ fontSize: '0.75rem', color: '#ea580c' }}>+ {(selectedBooking as any).pricing.mealsTotal.toLocaleString()} EGP (Meals)</span>
+                    )}
+                  </div>
                   <span style={{ fontSize: '1.25rem', fontWeight: 700, color: '#8B4513' }}>
                     ${selectedBooking.totalPrice} USD
                   </span>
@@ -480,10 +535,10 @@ export default function HotelCalendar({ onBookRoom }: HotelCalendarProps) {
               <div style={{ display: 'flex', gap: '10px', marginTop: '24px' }}>
                 <button
                   onClick={() => {
-                    const message = `📋 *Detail Booking Hotel*\n\n` +
+                    const message = `📋 *Hotel Booking Details*\n\n` +
                       `ID: ${selectedBooking.bookingId}\n` +
-                      `Kamar: ${selectedBooking.roomNumber}\n` +
-                      `Nama: ${selectedBooking.guestName}\n` +
+                      `Room: ${selectedBooking.roomNumber}\n` +
+                      `Name: ${selectedBooking.guestName}\n` +
                       `Check-In: ${selectedBooking.checkIn.split('T')[0]}\n` +
                       `Check-Out: ${selectedBooking.checkOut.split('T')[0]}\n` +
                       `Total: $${selectedBooking.totalPrice} USD`
@@ -500,13 +555,114 @@ export default function HotelCalendar({ onBookRoom }: HotelCalendarProps) {
                     fontWeight: 600
                   }}
                 >
-                  📱 WhatsApp
+                  Send via WA
                 </button>
+
+                {/* Mark as Paid Button */}
+                {selectedBooking.status !== 'confirmed' && selectedBooking.status !== 'checked-in' && (
+                  <button
+                    onClick={async () => {
+                      if (!confirm('Are you sure you want to mark this booking as PAID? An invoice will be created automatically.')) return;
+
+                      try {
+                        const pricing = (selectedBooking as any).pricing || {}
+                        const mealsTotalEGP = pricing.mealsTotal || 0
+                        const extraBedTotalUSD = pricing.extraBedTotal || 0
+                        const pickupTotalUSD = pricing.pickupTotal || 0
+
+                        // Construct Invoice Items (USD ONLY)
+                        const invoiceItems = []
+
+                        // 1. Room Charge
+                        // Use calculated room total or fallback
+                        let roomTotalUSD = pricing.roomsTotal || (selectedBooking.pricePerNight * selectedBooking.nights)
+
+                        invoiceItems.push({
+                          itemName: `Hotel Room ${selectedBooking.roomNumber} (${selectedBooking.nights} nights)`,
+                          quantity: 1,
+                          priceUnit: roomTotalUSD,
+                          subtotal: roomTotalUSD
+                        })
+
+                        // 2. Extra Beds (USD)
+                        if (extraBedTotalUSD > 0) {
+                          invoiceItems.push({
+                            itemName: 'Extra Beds',
+                            quantity: 1,
+                            priceUnit: extraBedTotalUSD,
+                            subtotal: extraBedTotalUSD
+                          })
+                        }
+
+                        // 3. Pickup (USD)
+                        if (pickupTotalUSD > 0) {
+                          invoiceItems.push({
+                            itemName: 'Airport Pickup',
+                            quantity: 1,
+                            priceUnit: pickupTotalUSD,
+                            subtotal: pickupTotalUSD
+                          })
+                        }
+
+                        // NOTE: Meals are in EGP, so we do not add them to the USD invoice items directly.
+                        const notes = `Auto-generated from Hotel Calendar for Booking ${selectedBooking.bookingId}` +
+                          (mealsTotalEGP > 0 ? `\n\n[NOTICE] Includes Meals valued at ${mealsTotalEGP.toLocaleString()} EGP (Paid Separately).` : '')
+
+                        // Calculate USD Total
+                        const totalUSD = roomTotalUSD + extraBedTotalUSD + pickupTotalUSD
+
+                        const res = await fetch('/api/finance/invoice', {
+                          method: 'POST',
+                          headers: { 'Content-Type': 'application/json' },
+                          body: JSON.stringify({
+                            customerName: selectedBooking.guestName,
+                            customerWA: selectedBooking.guestWhatsapp,
+                            items: invoiceItems,
+                            totalAmount: totalUSD,
+                            currency: 'USD',
+                            bookingType: 'hotel',
+                            relatedBooking: selectedBooking.originalId || selectedBooking.id.split('-')[0],
+                            paymentStatus: 'paid',
+                            paymentMethod: 'cash',
+                            notes: notes
+                          })
+                        })
+
+                        if (res.ok) {
+                          alert('✅ Payment recorded & Invoice created!')
+                          setSelectedBooking(null)
+                          fetchBookings()
+                          if (onUpdate) onUpdate()
+                        } else {
+                          const errData = await res.json()
+                          alert('❌ Failed to process payment: ' + (errData.error || 'Unknown error'))
+                        }
+                      } catch (err) {
+                        console.error(err)
+                        alert('❌ System error occurred.')
+                      }
+                    }}
+                    style={{
+                      marginTop: '1rem',
+                      width: '100%',
+                      padding: '0.75rem',
+                      border: 'none',
+                      borderRadius: '0.5rem',
+                      background: '#25D366',
+                      color: 'white',
+                      cursor: 'pointer',
+                      fontWeight: 600
+                    }}
+                  >
+                    Mark as Paid (Create Invoice)
+                  </button>
+                )}
               </div>
             </div>
           </div>
         </div>
-      )}
+      )
+      }
 
       <style jsx>{`
                 .hotel-calendar {
@@ -714,6 +870,6 @@ export default function HotelCalendar({ onBookRoom }: HotelCalendarProps) {
                     to { transform: translateY(0); opacity: 1; }
                 }
             `}</style>
-    </div>
+    </div >
   )
 }

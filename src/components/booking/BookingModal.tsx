@@ -101,6 +101,16 @@ export default function BookingModal({
                             isModal={true}
                             initialDate={selectedDate}
                             onClose={onClose}
+                            onSuccess={() => {
+                                onSubmit({
+                                    customerName: 'Guest',
+                                    customerWA: '',
+                                    type: 'hotel',
+                                    startDate: '',
+                                    notes: 'Booked via Hotel Form'
+                                })
+                                onClose()
+                            }}
                         />
                     </div>
                 </div>

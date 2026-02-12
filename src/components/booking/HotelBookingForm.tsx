@@ -33,10 +33,9 @@ interface FormData {
     airportPickup: string
     // Meals
     meals: {
-        [key: string]: {
-            qty: number
-            timing: string[]
-        }
+        breakfast: { menuId: string, qty: number, isDaily: boolean }
+        lunch: { menuId: string, qty: number, isDaily: boolean }
+        dinner: { menuId: string, qty: number, isDaily: boolean }
     }
 }
 
@@ -44,9 +43,10 @@ interface HotelBookingFormProps {
     initialDate?: Date
     onClose?: () => void
     isModal?: boolean
+    onSuccess?: () => void
 }
 
-export default function HotelBookingForm({ initialDate, onClose, isModal = false }: HotelBookingFormProps) {
+export default function HotelBookingForm({ initialDate, onClose, isModal = false, onSuccess }: HotelBookingFormProps) {
     const [step, setStep] = useState(1)
     const [isSubmitting, setIsSubmitting] = useState(false)
     const [submitSuccess, setSubmitSuccess] = useState(false)
@@ -84,9 +84,9 @@ export default function HotelBookingForm({ initialDate, onClose, isModal = false
         checkOutTime: '12:00',
         airportPickup: 'none',
         meals: {
-            nasiGoreng: { qty: 0, timing: [] },
-            ayamGoreng: { qty: 0, timing: [] },
-            nasiKuning: { qty: 0, timing: [] },
+            breakfast: { menuId: '', qty: 0, isDaily: true },
+            lunch: { menuId: '', qty: 0, isDaily: true },
+            dinner: { menuId: '', qty: 0, isDaily: true },
         },
     })
 
@@ -111,6 +111,16 @@ export default function HotelBookingForm({ initialDate, onClose, isModal = false
             (formData.homestayQty * ROOM_TYPES.homestay.price)
         ) * nights
 
+        const mealsTotal = (Object.keys(formData.meals) as Array<keyof typeof formData.meals>).reduce((sum, key) => {
+            const meal = formData.meals[key]
+            if (!meal.menuId || meal.qty <= 0) return sum
+            const menu = MEAL_PACKAGES.find(m => m.id === meal.menuId)
+            const price = menu ? menu.price : 0
+            const multiplier = meal.isDaily ? nights : 1
+            return sum + (price * meal.qty * multiplier)
+        }, 0)
+
+        // Extra Beds Logic (Confirmed: Qty * Price * Nights)
         const extraBedTotal = (
             formData.doubleExtraBed +
             formData.tripleExtraBed +
@@ -120,11 +130,6 @@ export default function HotelBookingForm({ initialDate, onClose, isModal = false
 
         const pickupOption = AIRPORT_PICKUP.find(p => p.value === formData.airportPickup)
         const pickupTotal = pickupOption?.price || 0
-
-        const mealsTotal = MEAL_PACKAGES.reduce((sum, meal) => {
-            const mealData = formData.meals[meal.id]
-            return sum + (mealData.qty * meal.price * mealData.timing.length)
-        }, 0)
 
         return {
             roomsTotal,
@@ -142,25 +147,17 @@ export default function HotelBookingForm({ initialDate, onClose, isModal = false
         setFormData(prev => ({ ...prev, [field]: value }))
     }
 
-    const updateMeal = (mealId: string, field: 'qty' | 'timing', value: any) => {
+    const updateMealSelection = (time: keyof typeof formData.meals, field: string, value: any) => {
         setFormData(prev => ({
             ...prev,
             meals: {
                 ...prev.meals,
-                [mealId]: {
-                    ...prev.meals[mealId],
-                    [field]: value,
-                },
-            },
+                [time]: {
+                    ...prev.meals[time],
+                    [field]: value
+                }
+            }
         }))
-    }
-
-    const toggleMealTiming = (mealId: string, timing: string) => {
-        const current = formData.meals[mealId].timing
-        const newTiming = current.includes(timing)
-            ? current.filter(t => t !== timing)
-            : [...current, timing]
-        updateMeal(mealId, 'timing', newTiming)
     }
 
     const getTotalRooms = () => {
@@ -183,6 +180,7 @@ export default function HotelBookingForm({ initialDate, onClose, isModal = false
             if (data.success) {
                 setBookingId(data.booking.bookingId)
                 setSubmitSuccess(true)
+                if (onSuccess) onSuccess()
             } else {
                 alert(data.error || 'Booking failed')
             }
@@ -451,43 +449,65 @@ export default function HotelBookingForm({ initialDate, onClose, isModal = false
                     <p className="subtitle">Prices in EGP per portion</p>
 
                     <div className="meal-grid">
-                        {MEAL_PACKAGES.map(meal => {
-                            const mealData = formData.meals[meal.id]
+                        {(['breakfast', 'lunch', 'dinner'] as const).map((time) => {
+                            const mealData = formData.meals[time]
+                            const isSelected = mealData.qty > 0 && !!mealData.menuId
+                            const label = time.charAt(0).toUpperCase() + time.slice(1)
+
                             return (
-                                <div key={meal.id} className={`meal-card ${mealData.qty > 0 ? 'selected' : ''}`}>
+                                <div key={time} className={`meal-card ${isSelected ? 'selected' : ''}`}>
                                     <div className="meal-header">
-                                        <span className="meal-name">{meal.label}</span>
-                                        <span className="meal-price">{meal.price} EGP</span>
+                                        <span className="meal-name">{label}</span>
                                     </div>
 
-                                    <div className="qty-selector">
-                                        <button onClick={() => updateMeal(meal.id, 'qty', Math.max(0, mealData.qty - 1))}>−</button>
-                                        <span>{mealData.qty}</span>
-                                        <button onClick={() => updateMeal(meal.id, 'qty', mealData.qty + 1)}>+</button>
-                                    </div>
+                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginTop: '12px' }}>
+                                        {/* 1. Select Menu */}
+                                        <select
+                                            value={mealData.menuId}
+                                            onChange={e => updateMealSelection(time, 'menuId', e.target.value)}
+                                            style={{ padding: '8px', borderRadius: '8px', border: '1px solid #ccc', width: '100%' }}
+                                        >
+                                            <option value="">-- Select Menu --</option>
+                                            {MEAL_PACKAGES.map(pkg => (
+                                                <option key={pkg.id} value={pkg.id}>
+                                                    {pkg.label} ({pkg.price} EGP)
+                                                </option>
+                                            ))}
+                                        </select>
 
-                                    {mealData.qty > 0 && (
-                                        <div className="meal-timing">
-                                            <label>When to serve:</label>
-                                            <div className="timing-grid">
-                                                {MEAL_TIMES.map(time => (
-                                                    MEAL_DAYS.map(day => {
-                                                        const key = `${time}_${day}`.toLowerCase().replace(/ /g, '_').replace(/-/g, '')
-                                                        return (
-                                                            <label key={key} className="timing-checkbox">
-                                                                <input
-                                                                    type="checkbox"
-                                                                    checked={mealData.timing.includes(key)}
-                                                                    onChange={() => toggleMealTiming(meal.id, key)}
-                                                                />
-                                                                <span>{time} - {day}</span>
-                                                            </label>
-                                                        )
-                                                    })
-                                                ))}
+                                        {/* 2. Quantity */}
+                                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: '8px' }}>
+                                            <label style={{ fontSize: '0.9rem' }}>Qty:</label>
+                                            <div className="qty-selector small">
+                                                <button onClick={() => updateMealSelection(time, 'qty', Math.max(0, mealData.qty - 1))}>−</button>
+                                                <span>{mealData.qty}</span>
+                                                <button onClick={() => updateMealSelection(time, 'qty', mealData.qty + 1)}>+</button>
                                             </div>
                                         </div>
-                                    )}
+
+                                        {/* 3. Daily Toggle */}
+                                        {mealData.qty > 0 && (
+                                            <div style={{
+                                                marginTop: '12px', padding: '8px', background: '#f9fafb',
+                                                borderRadius: '8px', fontSize: '0.85rem'
+                                            }}>
+                                                <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
+                                                    <input
+                                                        type="checkbox"
+                                                        checked={mealData.isDaily}
+                                                        onChange={e => updateMealSelection(time, 'isDaily', e.target.checked)}
+                                                    />
+                                                    During Stay (Daily)
+                                                </label>
+                                                <p style={{ marginTop: '4px', color: '#666' }}>
+                                                    {mealData.isDaily
+                                                        ? `${mealData.qty} x ${nights} nights = ${mealData.qty * nights} total`
+                                                        : `${mealData.qty} portion (One-time)`
+                                                    }
+                                                </p>
+                                            </div>
+                                        )}
+                                    </div>
                                 </div>
                             )
                         })}
@@ -530,26 +550,40 @@ export default function HotelBookingForm({ initialDate, onClose, isModal = false
                         )}
                         {formData.doubleQty > 0 && (
                             <div className="summary-row">
-                                <span>Double × {formData.doubleQty} {formData.doubleExtraBed > 0 ? `(+${formData.doubleExtraBed} extra bed)` : ''}</span>
+                                <span>Double × {formData.doubleQty}</span>
                                 <span>${ROOM_TYPES.double.price * formData.doubleQty * nights}</span>
                             </div>
                         )}
                         {formData.tripleQty > 0 && (
                             <div className="summary-row">
-                                <span>Triple × {formData.tripleQty} {formData.tripleExtraBed > 0 ? `(+${formData.tripleExtraBed} extra bed)` : ''}</span>
+                                <span>Triple × {formData.tripleQty}</span>
                                 <span>${ROOM_TYPES.triple.price * formData.tripleQty * nights}</span>
                             </div>
                         )}
                         {formData.quadrupleQty > 0 && (
                             <div className="summary-row">
-                                <span>Quadruple × {formData.quadrupleQty} {formData.quadrupleExtraBed > 0 ? `(+${formData.quadrupleExtraBed} extra bed)` : ''}</span>
+                                <span>Quadruple × {formData.quadrupleQty}</span>
                                 <span>${ROOM_TYPES.quadruple.price * formData.quadrupleQty * nights}</span>
                             </div>
                         )}
                         {formData.homestayQty > 0 && (
                             <div className="summary-row">
-                                <span>Homestay × {formData.homestayQty} {formData.homestayExtraBed > 0 ? `(+${formData.homestayExtraBed} extra bed)` : ''}</span>
+                                <span>Homestay × {formData.homestayQty}</span>
                                 <span>${ROOM_TYPES.homestay.price * formData.homestayQty * nights}</span>
+                            </div>
+                        )}
+
+                        {/* Extra Beds Summary */}
+                        {pricing.extraBedTotal > 0 && (
+                            <div className="summary-row" style={{ color: '#ea580c', borderTop: '1px dashed #e5e7eb', marginTop: '8px', paddingTop: '8px' }}>
+                                <span>
+                                    Extra Bed ({formData.doubleExtraBed + formData.tripleExtraBed + formData.quadrupleExtraBed + formData.homestayExtraBed} beds)
+                                    <br />
+                                    <span style={{ fontSize: '0.8rem', color: '#666' }}>
+                                        ${EXTRA_BED_PRICE}/night × {nights} nights
+                                    </span>
+                                </span>
+                                <span>${pricing.extraBedTotal}</span>
                             </div>
                         )}
                     </div>
@@ -584,21 +618,32 @@ export default function HotelBookingForm({ initialDate, onClose, isModal = false
                         </div>
                     )}
 
-                    {pricing.mealsTotal > 0 && (
-                        <div className="summary-section">
-                            <h3>🍚 Meals</h3>
-                            {MEAL_PACKAGES.map(meal => {
-                                const mealData = formData.meals[meal.id]
-                                if (mealData.qty === 0) return null
-                                return (
-                                    <div key={meal.id} className="summary-row">
-                                        <span>{meal.label} × {mealData.qty} ({mealData.timing.length} times)</span>
-                                        <span>{meal.price * mealData.qty * mealData.timing.length} EGP</span>
-                                    </div>
-                                )
-                            })}
-                        </div>
-                    )}
+                    <div className="summary-section">
+                        <h3>🍚 Meals (Daily during stay)</h3>
+                        {(['breakfast', 'lunch', 'dinner'] as const).map(time => {
+                            const mealData = formData.meals[time]
+                            if (!mealData.menuId || mealData.qty === 0) return null
+
+                            const menu = MEAL_PACKAGES.find(m => m.id === mealData.menuId)
+                            if (!menu) return null
+
+                            const multiplier = mealData.isDaily ? nights : 1
+                            const label = time.charAt(0).toUpperCase() + time.slice(1)
+                            const totalCost = menu.price * mealData.qty * multiplier
+
+                            return (
+                                <div key={time} className="summary-row">
+                                    <span>
+                                        <strong>{label}</strong>: {menu.label} <br />
+                                        <span style={{ fontSize: '0.85rem', color: '#666' }}>
+                                            {mealData.qty} x {menu.price} EGP {mealData.isDaily ? `x ${nights} nights` : '(One-time)'}
+                                        </span>
+                                    </span>
+                                    <span>{totalCost.toLocaleString()} EGP</span>
+                                </div>
+                            )
+                        })}
+                    </div>
 
                     <div className="summary-total">
                         <div className="total-row">
@@ -906,9 +951,9 @@ const formStyles = `
     }
 
     .meal-grid {
-        display: flex;
-        flex-direction: column;
-        gap: 16px;
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 20px;
     }
 
     .meal-card {

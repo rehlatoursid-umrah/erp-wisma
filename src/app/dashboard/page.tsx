@@ -8,6 +8,9 @@ import HotelCalendar from '@/components/calendar/HotelCalendar'
 import AuditoriumCalendar from '@/components/calendar/AuditoriumCalendar'
 import BookingModal from '@/components/booking/BookingModal'
 import Logbook from '@/components/dashboard/Logbook'
+import ManualInvoiceModal from '@/components/invoice/ManualInvoiceModal'
+import InvoiceView from '@/components/dashboard/InvoiceView'
+import WeeklyOverview from '@/components/dashboard/WeeklyOverview'
 
 // Auditorium booking interface
 interface AuditoriumBooking {
@@ -75,10 +78,12 @@ const mockHotelRooms = [
 ]
 
 type BookingType = 'hotel' | 'aula' | 'visa' | 'rental'
+type TabType = 'overview' | 'invoice' | BookingType
 
 export default function DashboardPage() {
   const [sidebarOpen, setSidebarOpen] = useState(false)
-  const [activeTab, setActiveTab] = useState<'overview' | 'hotel' | 'aula' | 'visa' | 'rental'>('overview')
+  const [activeTab, setActiveTab] = useState<TabType>('overview')
+  const [refreshTrigger, setRefreshTrigger] = useState(0)
   const [bookingModal, setBookingModal] = useState<{ isOpen: boolean; type: BookingType; date?: Date }>({
     isOpen: false,
     type: 'hotel',
@@ -102,23 +107,36 @@ export default function DashboardPage() {
     }
   }
 
-  const [stats, setStats] = useState({
+  const [stats, setStats] = useState<{
+    hotel: number
+    aula: number
+    visa: number
+    rental: number
+    balances?: {
+      EGP: number
+      USD: number
+      IDR: number
+    }
+  }>({
     hotel: 0,
     aula: 0,
     visa: 0,
-    rental: 0
+    rental: 0,
+    balances: { EGP: 0, USD: 0, IDR: 0 }
   })
 
   const [dashboardData, setDashboardData] = useState<{
     hotel: any[],
     aula: any[],
     visa: any[],
-    rental: any[]
+    rental: any[],
+    recentPaidInvoices: any[]
   }>({
     hotel: [],
     aula: [],
     visa: [],
-    rental: []
+    rental: [],
+    recentPaidInvoices: []
   })
 
   // Fetch dashboard stats from API
@@ -154,8 +172,12 @@ export default function DashboardPage() {
       status: 'sent',
     }, ...prev])
 
+    // Refresh Dashboard Data
+    fetchDashboardStats()
+    setRefreshTrigger(prev => prev + 1)
+
     // Show success message
-    alert(`✅ Booking berhasil!\n\n📄 Invoice ${invoiceNo} telah dikirim ke WhatsApp ${data.customerWA}`)
+    // alert(`✅ Booking berhasil!\n\n📄 Invoice ${invoiceNo} telah dikirim ke WhatsApp ${data.customerWA}`)
   }
 
   const openBookingModal = (type: BookingType, date?: Date) => {
@@ -167,89 +189,98 @@ export default function DashboardPage() {
       <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
 
       <main className="main-content">
-        <Header onMenuClick={() => setSidebarOpen(true)} />
+        <Header
+          onMenuClick={() => setSidebarOpen(true)}
+          balances={stats.balances}
+        />
 
-        {/* Tab Navigation */}
-        <div className="dashboard-tabs">
-          <button
-            className={`tab ${activeTab === 'overview' ? 'active' : ''}`}
-            onClick={() => setActiveTab('overview')}
-          >
-            📊 Overview
-          </button>
-          <button
-            className={`tab ${activeTab === 'hotel' ? 'active' : ''}`}
-            onClick={() => setActiveTab('hotel')}
-          >
-            🏨 Hotel
-          </button>
-          <button
-            className={`tab ${activeTab === 'aula' ? 'active' : ''}`}
-            onClick={() => setActiveTab('aula')}
-          >
-            🏢 Auditorium
-          </button>
-          <button
-            className={`tab ${activeTab === 'visa' ? 'active' : ''}`}
-            onClick={() => setActiveTab('visa')}
-          >
-            ✈️ Visa
-          </button>
-          <button
-            className={`tab ${activeTab === 'rental' ? 'active' : ''}`}
-            onClick={() => setActiveTab('rental')}
-          >
-            📦 Rental
-          </button>
+        {/* Tab Navigation & Actions */}
+        <div className="dashboard-controls" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+          <div className="dashboard-tabs">
+            <button
+              className={`tab ${activeTab === 'overview' ? 'active' : ''}`}
+              onClick={() => setActiveTab('overview')}
+            >
+              📊 Overview
+            </button>
+            <button
+              className={`tab ${activeTab === 'hotel' ? 'active' : ''}`}
+              onClick={() => setActiveTab('hotel')}
+            >
+              🏨 Hotel
+            </button>
+            <button
+              className={`tab ${activeTab === 'aula' ? 'active' : ''}`}
+              onClick={() => setActiveTab('aula')}
+            >
+              🏢 Auditorium
+            </button>
+            <button
+              className={`tab ${activeTab === 'visa' ? 'active' : ''}`}
+              onClick={() => setActiveTab('visa')}
+            >
+              ✈️ Visa
+            </button>
+            <button
+              className={`tab ${activeTab === 'rental' ? 'active' : ''}`}
+              onClick={() => setActiveTab('rental')}
+            >
+              📦 Rental
+            </button>
+            <button
+              className={`tab ${activeTab === 'invoice' ? 'active' : ''}`}
+              onClick={() => setActiveTab('invoice')}
+            >
+              🧾 Invoice
+            </button>
+          </div>
         </div>
+
+        {/* Invoice Tab */}
+        {activeTab === 'invoice' && (
+          <InvoiceView
+            refreshTrigger={refreshTrigger}
+            onUpdate={() => {
+              fetchDashboardStats()
+              setRefreshTrigger(prev => prev + 1)
+            }}
+          />
+        )}
 
         {/* Overview Tab */}
         {activeTab === 'overview' && (
           <div className="overview-grid">
-            {/* Quick Stats */}
-            <div className="stats-row">
-              <div className="stat-card">
-                <span className="stat-icon">🏨</span>
-                <div className="stat-info">
-                  <span className="stat-value">{stats.hotel}/20</span>
-                  <span className="stat-label">Kamar Terisi</span>
-                </div>
-              </div>
-              <div className="stat-card">
-                <span className="stat-icon">🏢</span>
-                <div className="stat-info">
-                  <span className="stat-value">{stats.aula}</span>
-                  <span className="stat-label">Booking Aula</span>
-                </div>
-              </div>
-              <div className="stat-card">
-                <span className="stat-icon">✈️</span>
-                <div className="stat-info">
-                  <span className="stat-value">{stats.visa}</span>
-                  <span className="stat-label">Visa Inquiry</span>
-                </div>
-              </div>
-              <div className="stat-card">
-                <span className="stat-icon">📦</span>
-                <div className="stat-info">
-                  <span className="stat-value">{stats.rental}</span>
-                  <span className="stat-label">Rental Aktif</span>
-                </div>
-              </div>
-            </div>
+            {/* Realtime Weekly Overview */}
+            <WeeklyOverview refreshTrigger={refreshTrigger} />
+
 
             {/* Mini Calendars Grid */}
             <div className="mini-calendars">
               <div className="mini-calendar-card" onClick={() => setActiveTab('hotel')}>
                 <h4>🏨 Hotel - Hari Ini</h4>
                 <div className="mini-events">
-                  {dashboardData.hotel.length === 0 ? <div className="text-muted" style={{ padding: 10, color: '#888' }}>Tidak ada tamu hari ini</div> :
-                    dashboardData.hotel.map((booking: any, idx) => (
-                      <div key={idx} className="mini-event booked">
-                        <span style={{ fontWeight: 'bold', minWidth: 30 }}>{booking.assignedRooms?.[0] || '?'}</span>
-                        <span>{booking.guest?.fullName}</span>
-                      </div>
-                    ))
+                  {dashboardData.hotel && dashboardData.hotel.length === 0 ? <div className="text-muted" style={{ padding: 10, color: '#888' }}>Tidak ada tamu hari ini</div> :
+                    dashboardData.hotel?.map((booking: any, idx) => {
+                      // assignedRooms might be JSON string or array
+                      let roomNum = '?'
+                      try {
+                        if (Array.isArray(booking.assignedRooms)) roomNum = booking.assignedRooms[0]
+                        else if (typeof booking.assignedRooms === 'string') {
+                          const parsed = JSON.parse(booking.assignedRooms)
+                          if (Array.isArray(parsed)) roomNum = parsed[0]
+                          else roomNum = booking.assignedRooms
+                        }
+                      } catch (e) { roomNum = booking.assignedRooms || '?' }
+
+                      return (
+                        <div key={idx} className="mini-event booked">
+                          <span style={{ fontWeight: 'bold', minWidth: 30 }}>{roomNum}</span>
+                          <span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                            {booking.guest?.fullName || 'Tamu'}
+                          </span>
+                        </div>
+                      )
+                    })
                   }
                 </div>
                 <span className="view-more">Lihat Detail →</span>
@@ -258,11 +289,15 @@ export default function DashboardPage() {
               <div className="mini-calendar-card" onClick={() => setActiveTab('aula')}>
                 <h4>🏢 Auditorium - Minggu Ini</h4>
                 <div className="mini-events">
-                  {dashboardData.aula.length === 0 ? <div className="text-muted" style={{ padding: 10, color: '#888' }}>Tidak ada event minggu ini</div> :
-                    dashboardData.aula.slice(0, 3).map((booking: any, idx) => (
+                  {dashboardData.aula && dashboardData.aula.length === 0 ? <div className="text-muted" style={{ padding: 10, color: '#888' }}>Tidak ada event minggu ini</div> :
+                    dashboardData.aula?.slice(0, 3).map((booking: any, idx) => (
                       <div key={idx} className="mini-event booked">
-                        <span style={{ whiteSpace: 'nowrap' }}>{new Date(booking.date).getDate()} {new Date(booking.date).toLocaleDateString('id-ID', { month: 'short' })}</span>
-                        <span>{booking.eventName}</span>
+                        <span style={{ whiteSpace: 'nowrap', minWidth: '40px' }}>
+                          {booking.event?.date ? new Date(booking.event.date).getDate() : '-'} <small>{booking.event?.date ? new Date(booking.event.date).toLocaleDateString('id-ID', { month: 'short' }) : ''}</small>
+                        </span>
+                        <span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                          {booking.event?.name || 'Event'}
+                        </span>
                       </div>
                     ))}
                 </div>
@@ -272,11 +307,13 @@ export default function DashboardPage() {
               <div className="mini-calendar-card" onClick={() => setActiveTab('visa')}>
                 <h4>✈️ Visa Inquiries</h4>
                 <div className="mini-list">
-                  {dashboardData.visa.length === 0 ? <div className="text-muted" style={{ padding: 10, color: '#888' }}>Tidak ada inquiry baru</div> :
-                    dashboardData.visa.map((item: any, idx) => (
+                  {dashboardData.visa && dashboardData.visa.length === 0 ? <div className="text-muted" style={{ padding: 10, color: '#888' }}>Tidak ada inquiry baru</div> :
+                    dashboardData.visa?.map((item: any, idx) => (
                       <div key={idx} className="mini-list-item">
                         <span className={`dot inquiry`}></span>
-                        <span>{item.passengerName} - {item.visaStatus === 'pending_docs' ? 'Pending' : 'Process'}</span>
+                        <span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                          {item.passengerName} <small style={{ color: '#888' }}>({item.visaStatus === 'pending_docs' ? 'Pending' : 'Process'})</small>
+                        </span>
                       </div>
                     ))}
                 </div>
@@ -286,11 +323,13 @@ export default function DashboardPage() {
               <div className="mini-calendar-card" onClick={() => setActiveTab('rental')}>
                 <h4>📦 Equipment Rental</h4>
                 <div className="mini-list">
-                  {dashboardData.rental.length === 0 ? <div className="text-muted" style={{ padding: 10, color: '#888' }}>Tidak ada rental aktif</div> :
-                    dashboardData.rental.slice(0, 3).map((item: any, idx) => (
+                  {dashboardData.rental && dashboardData.rental.length === 0 ? <div className="text-muted" style={{ padding: 10, color: '#888' }}>Tidak ada rental aktif</div> :
+                    dashboardData.rental?.slice(0, 3).map((item: any, idx) => (
                       <div key={idx} className="mini-list-item">
                         <span className="dot rental"></span>
-                        <span>{item.customerName} - {item.invoiceNo}</span>
+                        <span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                          {item.customerName} <small style={{ color: '#888' }}>({item.invoiceNo})</small>
+                        </span>
                       </div>
                     ))}
                 </div>
@@ -298,11 +337,11 @@ export default function DashboardPage() {
               </div>
             </div>
 
-            {/* Recent Invoices */}
+            {/* Recent Paid Invoices */}
             <div className="card invoices-card">
               <div className="card-header">
-                <h3>📄 Auto-Generated Invoices</h3>
-                <span className="badge badge-info">Auto-sent via WA</span>
+                <h3>💰 Recent Paid Invoices</h3>
+                <span className="badge badge-success">Verified Payment</span>
               </div>
               <table className="invoices-table">
                 <thead>
@@ -315,19 +354,27 @@ export default function DashboardPage() {
                   </tr>
                 </thead>
                 <tbody>
-                  {recentInvoices.map((inv, idx) => (
-                    <tr key={idx}>
-                      <td><code>{inv.id}</code></td>
-                      <td>{inv.customer}</td>
-                      <td>{inv.type}</td>
-                      <td>{inv.amount}</td>
-                      <td>
-                        <span className={`badge ${inv.status === 'paid' ? 'badge-success' : 'badge-info'}`}>
-                          {inv.status === 'paid' ? '✓ Paid' : '📤 Sent'}
-                        </span>
+                  {dashboardData.recentPaidInvoices && dashboardData.recentPaidInvoices.length === 0 ? (
+                    <tr>
+                      <td colSpan={5} style={{ textAlign: 'center', color: '#888', padding: '20px' }}>
+                        Belum ada invoice lunas
                       </td>
                     </tr>
-                  ))}
+                  ) : (
+                    dashboardData.recentPaidInvoices?.map((inv: any, idx) => (
+                      <tr key={idx}>
+                        <td><code>{inv.invoiceNo}</code></td>
+                        <td>{inv.customerName}</td>
+                        <td style={{ textTransform: 'capitalize' }}>{inv.bookingType}</td>
+                        <td>{inv.currency} {inv.totalAmount?.toLocaleString()}</td>
+                        <td>
+                          <span className="badge badge-success">
+                            ✓ Paid
+                          </span>
+                        </td>
+                      </tr>
+                    ))
+                  )}
                 </tbody>
               </table>
             </div>
@@ -350,6 +397,11 @@ export default function DashboardPage() {
               </button>
             </div>
             <HotelCalendar
+              refreshTrigger={refreshTrigger}
+              onUpdate={() => {
+                fetchDashboardStats()
+                setRefreshTrigger(prev => prev + 1)
+              }}
               onBookRoom={(roomNumber, date) => {
                 setBookingModal({ isOpen: true, type: 'hotel', date })
               }}

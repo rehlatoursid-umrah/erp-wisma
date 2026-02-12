@@ -6,13 +6,27 @@ export async function GET() {
     const payload = await getPayload({ config })
 
     try {
-        const transactions = await payload.find({
+        const cashflow = await payload.find({
             collection: 'cashflow',
             sort: '-transactionDate',
             limit: 100,
+            pagination: false,
         })
 
-        return NextResponse.json(transactions.docs)
+        const invoices = await payload.find({
+            collection: 'transactions',
+            where: {
+                paymentStatus: { equals: 'paid' }
+            },
+            sort: '-updatedAt',
+            limit: 10000,
+            pagination: false,
+        })
+
+        return NextResponse.json({
+            cashflow: cashflow.docs,
+            invoices: invoices.docs
+        })
     } catch (error) {
         console.error('Error fetching transactions:', error)
         return NextResponse.json({ error: 'Failed to fetch transactions' }, { status: 500 })
@@ -24,17 +38,17 @@ export async function POST(req: Request) {
 
     try {
         const body = await req.json()
-        const { date, category, amount, currency, type, description, quantity, unitPrice, proofImage } = body
+        const { transactionDate, category, amount, currency, type, description, quantity, unitPrice, proofImage } = body
 
         // Validation
-        if (!date || !category || !amount || !currency || !type || !description) {
+        if (!transactionDate || !category || !amount || !currency || !type) {
             return NextResponse.json({ error: 'Missing required fields' }, { status: 400 })
         }
 
         const newTransaction = await payload.create({
             collection: 'cashflow',
             data: {
-                transactionDate: date,
+                transactionDate: transactionDate,
                 type: type, // 'in' or 'out'
                 category: category,
                 amount: Number(amount),

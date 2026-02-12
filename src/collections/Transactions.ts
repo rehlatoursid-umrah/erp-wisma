@@ -39,10 +39,15 @@ export const Transactions: CollectionConfig = {
             type: 'array',
             fields: [
                 {
+                    name: 'itemName',
+                    type: 'text',
+                    required: true,
+                },
+                {
                     name: 'service',
                     type: 'relationship',
                     relationTo: 'services',
-                    required: true,
+                    required: false,
                 },
                 {
                     name: 'quantity',
@@ -51,20 +56,16 @@ export const Transactions: CollectionConfig = {
                     defaultValue: 1,
                 },
                 {
-                    name: 'startDate',
-                    type: 'date',
-                },
-                {
-                    name: 'endDate',
-                    type: 'date',
-                },
-                {
                     name: 'priceUnit',
                     type: 'number',
+                    required: true,
+                    defaultValue: 0,
                 },
                 {
                     name: 'subtotal',
                     type: 'number',
+                    required: true,
+                    defaultValue: 0,
                 },
             ],
         },
@@ -100,6 +101,7 @@ export const Transactions: CollectionConfig = {
                 { label: 'Cash', value: 'cash' },
                 { label: 'Transfer Bank', value: 'transfer' },
                 { label: 'Instapay', value: 'instapay' },
+                { label: 'QRIS', value: 'qris' },
             ],
         },
         {
@@ -129,6 +131,29 @@ export const Transactions: CollectionConfig = {
         {
             name: 'notes',
             type: 'textarea',
+        },
+        // Auto-Invoicing Fields
+        {
+            name: 'relatedBooking',
+            type: 'relationship',
+            relationTo: ['hotel-bookings', 'auditorium-bookings', 'travel-docs'],
+            admin: {
+                description: 'Booking yang berhubungan dengan invoice ini',
+            },
+        },
+        {
+            name: 'bookingType',
+            type: 'select',
+            options: [
+                { label: 'Hotel', value: 'hotel' },
+                { label: 'Auditorium', value: 'auditorium' },
+                { label: 'Visa', value: 'visa_arrival' },
+                { label: 'Rental', value: 'rental' },
+                { label: 'Manual/Lainnya', value: 'manual' },
+            ],
+            admin: {
+                description: 'Tipe booking/transaksi (untuk auto-cashflow)',
+            },
         },
     ],
     hooks: {
