@@ -97,24 +97,11 @@ export async function GET() {
         })
 
         // 6. Calculate Balances (USD, EGP, IDR)
-        // Income: From Paid Transactions
+        // Income: From Paid Transactions ONLY (As per user request: "uang total pemasukan unit usaha saja")
         const allPaidInvoices = await payload.find({
             collection: 'transactions',
             where: {
                 paymentStatus: { equals: 'paid' }
-            },
-            limit: 10000,
-            pagination: false,
-        })
-
-        // Expense: From Approved Cashflow (Type: 'out')
-        const allExpenses = await payload.find({
-            collection: 'cashflow',
-            where: {
-                and: [
-                    { type: { equals: 'out' } },
-                    { approvalStatus: { equals: 'approved' } }
-                ]
             },
             limit: 10000,
             pagination: false,
@@ -132,15 +119,6 @@ export async function GET() {
             const currency = inv.currency as 'EGP' | 'USD' | 'IDR'
             if (balances.hasOwnProperty(currency)) {
                 balances[currency] += amount
-            }
-        })
-
-        // Subtract Expenses
-        allExpenses.docs.forEach((exp: any) => {
-            const amount = exp.amount || 0
-            const currency = exp.currency as 'EGP' | 'USD' | 'IDR'
-            if (balances.hasOwnProperty(currency)) {
-                balances[currency] -= amount
             }
         })
 

@@ -18,20 +18,6 @@ export async function GET() {
         depth: 0 // minimal data
     })
 
-    // 2. Approved Expenses (Cashflow Out)
-    const approvedExpenses = await payload.find({
-        collection: 'cashflow',
-        where: {
-            and: [
-                { type: { equals: 'out' } },
-                { approvalStatus: { equals: 'approved' } }
-            ]
-        },
-        pagination: false,
-        limit: 10000,
-        depth: 0
-    })
-
     const balances = {
         EGP: 0,
         USD: 0,
@@ -44,15 +30,6 @@ export async function GET() {
         const currency = inv.currency as 'EGP' | 'USD' | 'IDR'
         if (balances.hasOwnProperty(currency)) {
             balances[currency] += amount
-        }
-    })
-
-    // Subtract Expenses
-    approvedExpenses.docs.forEach((exp: any) => {
-        const amount = exp.amount || 0
-        const currency = exp.currency as 'EGP' | 'USD' | 'IDR'
-        if (balances.hasOwnProperty(currency)) {
-            balances[currency] -= amount
         }
     })
 
