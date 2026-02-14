@@ -19,6 +19,9 @@ type Transaction = {
   quantity?: number
   unitPrice?: number
   proofImage?: any
+  relatedBooking?: any // Populated booking object (Hotel or Auditorium)
+  customerName?: string
+  items?: { itemName: string; quantity: number }[]
 }
 
 type Task = {
@@ -48,13 +51,11 @@ export default function BPUPDPortal() {
   })
 
   // Income Form State
-  // Income Form State
   const [incomeForm, setIncomeForm] = useState({
     date: new Date().toISOString().split('T')[0],
     amount: '',
     description: '',
     file: null as File | null,
-    // unit and currency removed as they are specific to Unit Revenue (now read-only)
   })
 
   // Expense Form State
@@ -63,9 +64,142 @@ export default function BPUPDPortal() {
     itemName: '',
     quantity: '',
     unitPrice: '',
-    amount: '', // Auto-calculated
+    amount: '',
     file: null as File | null
   })
+
+  // Report State
+  const [reportYear, setReportYear] = useState(new Date().getFullYear())
+  const [openMonth, setOpenMonth] = useState<number | null>(null)
+
+  const generateMonthlyUnitReport = (monthIndex: number, category: string) => {
+    const doc = new jsPDF()
+    const monthName = new Date(reportYear, monthIndex, 1).toLocaleString('id-ID', { month: 'long' })
+    const title = `Laporan Pendapatan ${category.charAt(0).toUpperCase() + category.slice(1)}`
+    const period = `Periode: ${monthName} ${reportYear}`
+
+    const filteredData = invoices.filter(inv => {
+      const d = new Date(inv.date)
+      return d.getFullYear() === reportYear &&
+        d.getMonth() === monthIndex &&
+        inv.category === category
+    })
+
+    if (filteredData.length === 0) {
+      alert(`Tidak ada data transaksi untuk ${category} pada bulan ${monthName} ${reportYear}`)
+      return
+    }
+
+    // --- Header (Kop Surat) ---
+    doc.setFontSize(14)
+    doc.setFont("helvetica", "bold")
+    doc.text("WISMA NUSANTARA CAIRO", 105, 15, { align: "center" })
+    doc.setFontSize(10)
+    doc.setFont("helvetica", "normal")
+    doc.text("Indonesian Student Hostel & Community Center", 105, 20, { align: "center" })
+    doc.text("Rabaa Adawiyah, Nasr City, Cairo, Egypt", 105, 25, { align: "center" })
+    doc.line(14, 28, 196, 28) // Horizontal Line
+
+    // --- Title ---
+    doc.setFontSize(12)
+    doc.setFont("helvetica", "bold")
+    doc.text(title.toUpperCase(), 14, 38)
+    doc.setFontSize(10)
+    doc.setFont("helvetica", "normal")
+    doc.text(period, 14, 44)
+    doc.text(`Dicetak pada: ${new Date().toLocaleString('id-ID')}`, 14, 50)
+
+    // --- Totals ---
+    const totals: Record<string, number> = {}
+    filteredData.forEach(t => {
+      totals[t.currency] = (totals[t.currency] || 0) + (t.amount || 0)
+    })
+
+    let yPos = 58
+    doc.setFont("helvetica", "bold")
+    doc.text("Ringkasan Total:", 14, yPos)
+    yPos += 6
+    doc.setFont("helvetica", "normal")
+    Object.entries(totals).forEach(([curr, val]) => {
+      doc.text(`- ${curr}: ${val.toLocaleString()}`, 20, yPos)
+      yPos += 6
+    })
+
+    // --- Table Content ---
+    let tableColumn: string[] = []
+    let tableRows: any[] = []
+
+    if (category === 'hotel') {
+      tableColumn = ["No", "Tanggal", "Nama Tamu", "Total", "Durasi", "Keterangan (Kamar & Layanan)"]
+      tableRows = filteredData.map((inv, index) => {
+        // Duration from Item Quantity (First Item)
+        const duration = inv.items && inv.items.length > 0 ? `${inv.items[0].quantity} Malam` : '-'
+
+        // Description from Item Names
+        const itemDescription = inv.items && inv.items.length > 0
+          ? inv.items.map(i => i.itemName).join(', ')
+          : '-'
+
+        return [
+          index + 1,
+          inv.date,
+          inv.customerName || inv.description.split('-')[1]?.trim() || '-',
+          `${inv.amount.toLocaleString()} ${inv.currency}`,
+          duration,
+          itemDescription
+        ]
+      })
+    } else if (category === 'auditorium') {
+      tableColumn = ["No", "Tanggal", "Penyewa", "Event", "Total", "Durasi", "Keterangan (Paket & Fasilitas)"]
+      tableRows = filteredData.map((inv, index) => {
+        const booking = inv.relatedBooking || {}
+        const eventName = booking.event?.name || '-'
+        const duration = booking.hallRental?.duration ? `${booking.hallRental.duration} Jam` : (
+          inv.items && inv.items.length > 0 ? `${inv.items[0].quantity} Jam` : '-'
+        )
+
+        // Try to use Invoice Items for description if available, else fallback to booking
+        let description = ''
+        if (inv.items && inv.items.length > 0) {
+          description = inv.items.map(i => i.itemName).join(', ')
+        } else {
+          description = `Paket: ${booking.hallRental?.package || '-'}`
+        }
+
+        return [
+          index + 1,
+          inv.date,
+          inv.customerName || booking.personal?.fullName || '-',
+          eventName,
+          `${inv.amount.toLocaleString()} ${inv.currency}`,
+          duration,
+          description
+        ]
+      })
+    } else {
+      // Default (Visa, Rental, etc.)
+      tableColumn = ["No", "Tanggal", "Keterangan", "Jumlah"]
+      tableRows = filteredData.map((tx, index) => [
+        index + 1,
+        tx.date,
+        tx.description,
+        `${tx.amount.toLocaleString()} ${tx.currency}`
+      ])
+    }
+
+    autoTable(doc as any, {
+      head: [tableColumn],
+      body: tableRows,
+      startY: yPos + 5,
+      theme: 'grid',
+      headStyles: { fillColor: [41, 128, 185], textColor: 255 },
+      styles: { fontSize: 9, cellPadding: 3 },
+    })
+
+    doc.save(`Laporan_${category}_${monthName}_${reportYear}.pdf`)
+  }
+
+  // Initial Fetch
 
   // Initial Fetch
   useEffect(() => {
@@ -104,7 +238,10 @@ export default function BPUPDPortal() {
             status: 'approved',
             quantity: 1,
             unitPrice: inv.totalAmount,
-            proofImage: null
+            proofImage: null,
+            relatedBooking: inv.relatedBooking,
+            customerName: inv.customerName,
+            items: inv.items
           }))
           setInvoices(mappedInvoices)
         }
@@ -713,7 +850,74 @@ export default function BPUPDPortal() {
               </div>
             </div>
 
-            <div className="card">
+            <div className="card mt-4">
+              <div className="card-header">
+                <h3>📂 Arsip Laporan Bulanan</h3>
+                <div className="year-selector">
+                  <button onClick={() => setReportYear(prev => prev - 1)} className="btn btn-sm btn-outline">◀</button>
+                  <span className="text-lg font-bold mx-2">{reportYear}</span>
+                  <button onClick={() => setReportYear(prev => prev + 1)} className="btn btn-sm btn-outline">▶</button>
+                </div>
+              </div>
+
+              {/* Breadcrumb Navigation */}
+              {openMonth !== null && (
+                <div className="breadcrumb mb-4 flex items-center gap-2 text-sm text-gray-600">
+                  <button onClick={() => setOpenMonth(null)} className="hover:text-blue-600">📁 Tahun {reportYear}</button>
+                  <span>/</span>
+                  <span className="font-semibold text-gray-900">{new Date(reportYear, openMonth, 1).toLocaleString('id-ID', { month: 'long' })}</span>
+                </div>
+              )}
+
+              {/* View 1: Month Grid (Root) */}
+              {openMonth === null && (
+                <div className="folders-grid">
+                  {Array.from({ length: 12 }).map((_, index) => {
+                    const date = new Date(reportYear, index, 1)
+                    const monthName = date.toLocaleString('id-ID', { month: 'long' })
+
+                    return (
+                      <div
+                        key={index}
+                        className="folder-item"
+                        onClick={() => setOpenMonth(index)}
+                      >
+                        <div className="folder-icon">📂</div>
+                        <div className="folder-name">{monthName}</div>
+                      </div>
+                    )
+                  })}
+                </div>
+              )}
+
+              {/* View 2: Files Grid (Inside Month) */}
+              {openMonth !== null && (
+                <div className="files-grid">
+                  {/* Back Button Item */}
+                  <div className="folder-item back-item" onClick={() => setOpenMonth(null)}>
+                    <div className="folder-icon">🔙</div>
+                    <div className="folder-name">Kembali</div>
+                  </div>
+
+                  {/* Unit Report Files */}
+                  {['hotel', 'visa_arrival', 'auditorium', 'rental'].map(cat => (
+                    <div
+                      key={cat}
+                      className="file-item"
+                      onClick={() => generateMonthlyUnitReport(openMonth, cat)}
+                    >
+                      <div className="file-icon-large">📄</div>
+                      <div className="file-details">
+                        <span className="file-name-large">Laporan {cat.charAt(0).toUpperCase() + cat.slice(1)}</span>
+                        <span className="file-meta">PDF • Klik untuk Unduh</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            <div className="card mt-4">
               <div className="card-header">
                 <h3>Riwayat Transaksi Masuk (Read-Only)</h3>
               </div>
@@ -798,6 +1002,80 @@ export default function BPUPDPortal() {
         .stat-item { display: flex; flex-direction: column; }
         .stat-item .label { font-size: 0.875rem; color: #6b7280; }
         .stat-item .value { font-size: 1.25rem; font-weight: 700; }
+
+        /* Folder UI Refined */
+        .year-selector { display: flex; align-items: center; gap: 0.5rem; }
+        
+        /* Grid Layouts */
+        .folders-grid, .files-grid { 
+            display: grid; 
+            grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); 
+            gap: 1.5rem; 
+            padding: 1.5rem; 
+        }
+
+        /* Folder Item (Month) */
+        .folder-item { 
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+            text-align: center; 
+            padding: 1.5rem; 
+            border: 1px solid transparent; 
+            border-radius: 0.75rem; 
+            cursor: pointer; 
+            transition: all 0.2s; 
+            background: #fff;
+        }
+        .folder-item:hover { 
+            background: #eff6ff; 
+            border-color: #dbeafe; 
+            transform: translateY(-2px);
+        }
+        .folder-icon { font-size: 3rem; margin-bottom: 0.5rem; }
+        .folder-name { font-weight: 500; color: #374151; font-size: 0.95rem; }
+
+        /* File Item (Report) */
+        .file-item {
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+            text-align: center; 
+            padding: 1rem; 
+            border: 1px solid #e5e7eb; 
+            border-radius: 0.75rem; 
+            cursor: pointer; 
+            transition: all 0.2s; 
+            background: white;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+        }
+        .file-item:hover {
+            border-color: var(--color-primary);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            transform: translateY(-2px);
+        }
+        .file-icon-large { font-size: 2.5rem; margin-bottom: 0.5rem; color: #ef4444; /* PDF Color */ }
+        .file-details { display: flex; flex-direction: column; gap: 0.25rem; }
+        .file-name-large { font-weight: 600; font-size: 0.9rem; color: #1f2937; line-height: 1.3; }
+        .file-meta { font-size: 0.75rem; color: #9ca3af; }
+
+        /* Back Button Special Style */
+        .back-item {
+            border: 2px dashed #e5e7eb;
+            background: #f9fafb;
+        }
+        .back-item:hover {
+            border-color: #9ca3af;
+            background: #f3f4f6;
+        }
+
+        /* Breadcrumb */
+        .breadcrumb { padding: 0 1.5rem; margin-top: -0.5rem; }
+        
+        @keyframes slideDown {
+            from { opacity: 0; transform: translateY(-5px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
 
         .card { background: white; padding: 1.5rem; border-radius: 1rem; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
         .card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; }
