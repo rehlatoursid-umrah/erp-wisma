@@ -162,7 +162,7 @@ export default function BPUPDPortal() {
         let detailsParts = []
 
         // 1. Duration
-        if (durationVal > 0) detailsParts.push(`Sewa Aula: ${durationVal} Jam`)
+        if (durationVal > 0) detailsParts.push(`Durasi Sewa Auditorium: ${durationVal} Jam`)
 
         // 2. Additional Services (Manual check based on schema)
         if (booking.services) {
