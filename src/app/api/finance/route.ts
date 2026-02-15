@@ -21,6 +21,7 @@ export async function GET() {
             sort: '-updatedAt',
             limit: 10000,
             pagination: false,
+            depth: 2,
         })
 
         return NextResponse.json({
