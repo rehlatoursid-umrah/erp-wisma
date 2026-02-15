@@ -150,44 +150,25 @@ export default function BPUPDPortal() {
         ]
       })
     } else if (category === 'auditorium') {
-      tableColumn = ["No", "Tanggal", "Penyewa", "Event", "Total", "Durasi", "Keterangan (Paket & Fasilitas)"]
+      tableColumn = ["No", "Tanggal", "Full Name", "Nama Event", "Total", "Durasi Sewa Aula", "Keterangan"]
       tableRows = filteredData.map((inv, index) => {
         const booking = inv.relatedBooking || {}
         const eventName = booking.event?.name || '-'
-        // Duration from Booking Data (Hall Rental)
-        const durationVal = booking.hallRental?.duration || 0
+
+        // Duration from Invoice (First Item Quantity)
+        const durationVal = inv.items && inv.items.length > 0 ? inv.items[0].quantity : 0
         const durationStr = `${durationVal} Jam`
 
-        // Construct Detailed Description
-        let detailsParts = []
+        // Description from Invoice Items
+        // "diambil dari durasi sewa aula, dan dari rincian layanan tambahan dari invoice"
+        let descriptionParts = []
+        if (durationVal > 0) descriptionParts.push(`Sewa Aula (${durationVal} Jam)`)
 
-        // 1. Duration
-        if (durationVal > 0) detailsParts.push(`Durasi Sewa Auditorium: ${durationVal} Jam`)
-
-        // 2. Additional Services (Manual check based on schema)
-        if (booking.services) {
-          const s = booking.services
-          if (s.chairOption) detailsParts.push(`Kursi: ${s.chairOption} unit`)
-          if (s.tableOption) detailsParts.push(`Meja: ${s.tableOption} unit`)
-          if (s.micOption) detailsParts.push(`Mic: ${s.micOption} unit`) // Assuming mic exists or similar
-          if (s.projectorScreen && s.projectorScreen !== '') {
-            // Map values to readable text if possible, or just capitalize
-            const map: Record<string, string> = { 'projector': 'Proyektor', 'screen': 'Layar', 'both': 'Proyektor & Layar' }
-            detailsParts.push(map[s.projectorScreen] || s.projectorScreen)
-          }
-          if (s.acOption) detailsParts.push(`AC: ${s.acOption}`)
-          if (s.plateOption) detailsParts.push(`Piring: ${s.plateOption} pcs`)
-          if (s.glassOption) detailsParts.push(`Gelas: ${s.glassOption} pcs`)
-        }
-
-        // 3. Extra Hours
-        if (booking.hallRental?.extraHours > 0) {
-          detailsParts.push(`Extra: ${booking.hallRental.extraHours} Jam`)
-        }
-
-        // Fallback to invoice items if booking details are missing but invoice has items
-        if (detailsParts.length === 0 && inv.items && inv.items.length > 0) {
-          detailsParts = inv.items.map(i => `${i.itemName} (${i.quantity})`)
+        if (inv.items && inv.items.length > 0) {
+          // Add all items to description
+          inv.items.forEach(item => {
+            descriptionParts.push(`${item.itemName} (${item.quantity})`)
+          })
         }
 
         return [
@@ -197,7 +178,7 @@ export default function BPUPDPortal() {
           eventName,
           `${inv.amount.toLocaleString()} ${inv.currency}`,
           durationStr,
-          detailsParts.join(', ') // "Sewa Aula: 4 Jam, Kursi: 10 unit, Proyektor & Layar"
+          descriptionParts.join(', ')
         ]
       })
     } else {
