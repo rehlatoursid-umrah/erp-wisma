@@ -152,21 +152,46 @@ export default function BPUPDPortal() {
     } else if (category === 'auditorium') {
       tableColumn = ["No", "Tanggal", "Full Name", "Nama Event", "Total", "Durasi Sewa Aula", "Keterangan"]
       tableRows = filteredData.map((inv, index) => {
-        const booking = inv.relatedBooking || {}
+        // Handle Polymorphic Relationship
+        let booking = inv.relatedBooking || {}
+        if (booking.value) {
+          booking = booking.value
+        }
+
         const eventName = booking.event?.name || '-'
 
-        // Duration from Invoice (First Item Quantity)
-        const durationVal = inv.items && inv.items.length > 0 ? inv.items[0].quantity : 0
+        // Duration logic: Use Booking Hall Rental duration if available
+        const durationVal = booking.hallRental?.duration || (inv.items && inv.items.length > 0 ? inv.items[0].quantity : 0)
         const durationStr = `${durationVal} Jam`
 
-        // Description from Invoice Items
-        // "diambil dari durasi sewa aula, dan dari rincian layanan tambahan dari invoice"
+        // Detailed Description from Booking Service Form
         let descriptionParts = []
-        if (durationVal > 0) descriptionParts.push(`Sewa Aula (${durationVal} Jam)`)
 
-        if (inv.items && inv.items.length > 0) {
-          // Add all items to description
-          inv.items.forEach(item => {
+        // 1. Hall Rental Package
+        if (booking.hallRental?.package) {
+          descriptionParts.push(`Paket: ${booking.hallRental.package}`)
+        } else {
+          // Fallback
+          if (durationVal > 0) descriptionParts.push(`Sewa Aula (${durationVal} Jam)`)
+        }
+
+        // 2. Additional Services
+        if (booking.services) {
+          const s = booking.services
+          if (s.acOption) descriptionParts.push(`AC (${s.acOption} Jam)`)
+          if (s.chairOption) descriptionParts.push(`Kursi (${s.chairOption})`)
+          if (s.projectorScreen) {
+            const projMap: Record<string, string> = { 'projector': 'Projector Only', 'screen': 'Screen Only', 'both': 'Projector & Screen' }
+            descriptionParts.push(projMap[s.projectorScreen] || s.projectorScreen)
+          }
+          if (s.tableOption) descriptionParts.push(`Meja (${s.tableOption})`)
+          if (s.plateOption) descriptionParts.push(`Piring (${s.plateOption})`)
+          if (s.glassOption) descriptionParts.push(`Gelas (${s.glassOption})`)
+        }
+
+        // 3. Fallback: If no booking details found, use invoice items
+        if (descriptionParts.length === 0 && inv.items) {
+          inv.items.forEach((item: any) => {
             descriptionParts.push(`${item.itemName} (${item.quantity})`)
           })
         }
