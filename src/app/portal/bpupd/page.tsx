@@ -181,13 +181,42 @@ export default function BPUPDPortal() {
           descriptionParts.join(', ')
         ]
       })
+    } else if (category === 'visa_arrival') {
+      tableColumn = ["No", "Tanggal", "Customer", "Passenger", "Passport", "Status", "Total"]
+      tableRows = filteredData.map((inv, index) => {
+        const booking = inv.relatedBooking || {}
+
+        return [
+          index + 1,
+          inv.date,
+          inv.customerName,
+          booking.passengerName || '-',
+          booking.passportNo || '-',
+          booking.visaStatus ? booking.visaStatus.toUpperCase() : '-',
+          `${inv.amount.toLocaleString()} ${inv.currency}`
+        ]
+      })
+    } else if (category === 'rental') {
+      tableColumn = ["No", "Tanggal", "Customer", "Items", "Total"]
+      tableRows = filteredData.map((inv, index) => {
+
+        const itemsList = inv.items?.map((item: any) => `${item.itemName} (${item.quantity})`).join(', ') || '-'
+
+        return [
+          index + 1,
+          inv.date,
+          inv.customerName,
+          itemsList,
+          `${inv.amount.toLocaleString()} ${inv.currency}`
+        ]
+      })
     } else {
-      // Default (Visa, Rental, etc.)
+      // Default / Fallback
       tableColumn = ["No", "Tanggal", "Keterangan", "Jumlah"]
       tableRows = filteredData.map((tx, index) => [
         index + 1,
         tx.date,
-        tx.description,
+        tx.description || tx.items?.map((i: any) => i.itemName).join(', ') || '-',
         `${tx.amount.toLocaleString()} ${tx.currency}`
       ])
     }
