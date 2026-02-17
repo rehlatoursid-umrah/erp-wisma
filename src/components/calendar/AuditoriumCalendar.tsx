@@ -573,47 +573,69 @@ export default function AuditoriumCalendar({
               </div>
 
               {/* Action Buttons */}
+              {/* Action Buttons */}
               <div className="action-buttons" style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginTop: '24px' }}>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
-                  <button
-                    onClick={() => {
-                      if (!selectedBooking.date) return
-                      const params = new URLSearchParams({
-                        bookingId: selectedBooking.bookingId,
-                        name: selectedBooking.bookerName,
-                        event: selectedBooking.eventName,
-                        date: selectedBooking.date.split('T')[0],
-                        time: `${selectedBooking.startTime} - ${selectedBooking.endTime}`,
-                        total: selectedBooking.totalPrice.toString(),
-                      })
-                      window.open(`/api/booking/auditorium/pdf?${params.toString()}`, '_blank')
-                    }}
-                    style={{ padding: '10px', borderRadius: '8px', border: '1px solid #d1d5db', background: 'white', cursor: 'pointer', fontWeight: 500 }}
-                  >
-                    📄 Download PDF
-                  </button>
 
-                  <button
-                    onClick={() => {
-                      if (!selectedBooking.date) return
-                      const params = new URLSearchParams({
-                        bookingId: selectedBooking.bookingId,
-                        name: selectedBooking.bookerName,
-                        event: selectedBooking.eventName,
-                        date: selectedBooking.date.split('T')[0],
-                        total: selectedBooking.totalPrice.toString(),
-                      })
-                      window.open(`/api/booking/auditorium/invoice?${params.toString()}`, '_blank')
-                    }}
-                    style={{ padding: '10px', borderRadius: '8px', border: '1px solid #d1d5db', background: 'white', cursor: 'pointer', fontWeight: 500 }}
-                  >
-                    🧾 Buat Invoice
-                  </button>
+                  {/* 1. Confirmed Booking (Draft Invoice) */}
+                  {selectedBooking.status === 'pending' && (
+                    <button
+                      onClick={async () => {
+                        if (!confirm('Konfirmasi booking ini? Invoice DRAFT akan dibuat.')) return;
+                        try {
+                          const res = await fetch('/api/finance/invoice', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                              customerName: selectedBooking.bookerName,
+                              customerWA: selectedBooking.whatsapp,
+                              items: [{
+                                itemName: `Sewa Aula: ${selectedBooking.eventName}`,
+                                quantity: 1,
+                                priceUnit: selectedBooking.totalPrice,
+                                subtotal: selectedBooking.totalPrice
+                              }],
+                              totalAmount: selectedBooking.totalPrice,
+                              currency: 'EGP',
+                              bookingType: 'auditorium',
+                              relatedBooking: selectedBooking.id, // Use 'id' for direct relation or 'bookingId' if mapped that way. stored as 'id' usually.
+                              paymentStatus: 'pending', // DRAFT
+                              paymentMethod: 'cash',
+                              notes: `Draft Invoice for Booking ${selectedBooking.bookingId}`
+                            })
+                          })
 
+                          if (res.ok) {
+                            alert('✅ Booking Terkonfirmasi & Draft Invoice Dibuat!')
+                            setSelectedBooking(null)
+                            fetchBookings()
+                          } else {
+                            const err = await res.json()
+                            alert('❌ Gagal: ' + (err.error || 'Unknown error'))
+                          }
+                        } catch (e) {
+                          console.error(e)
+                          alert('Error processing confirmation')
+                        }
+                      }}
+                      style={{
+                        padding: '12px',
+                        borderRadius: '8px',
+                        border: 'none',
+                        background: '#f59e0b', // Amber
+                        color: 'white',
+                        cursor: 'pointer',
+                        fontWeight: 600
+                      }}
+                    >
+                      ✓ Confirm Booking
+                    </button>
+                  )}
+
+                  {/* 2. Mark as Paid */}
                   <button
                     onClick={async () => {
-                      if (!confirm('Tandai sebagai LUNAS? Data akan masuk ke Laporan Keuangan.')) return;
-
+                      if (!confirm('Tandai LUNAS? Invoice FINAL dan Cashflow akan dibuat otomatis.')) return;
                       try {
                         const res = await fetch('/api/finance/invoice', {
                           method: 'POST',
@@ -630,50 +652,104 @@ export default function AuditoriumCalendar({
                             totalAmount: selectedBooking.totalPrice,
                             currency: 'EGP',
                             bookingType: 'auditorium',
-                            relatedBooking: selectedBooking.id, // Ensure this maps correctly to ID
-                            paymentStatus: 'paid',
+                            relatedBooking: selectedBooking.id,
+                            paymentStatus: 'paid', // PAID
                             paymentMethod: 'cash',
-                            notes: `Auto-generated from Auditorium Calendar`
+                            notes: `Paid Invoice for Booking ${selectedBooking.bookingId}`
                           })
                         })
 
                         if (res.ok) {
-                          alert('✅ Pembayaran berhasil dicatat!');
+                          alert('✅ Pembayaran Berhasil & Invoice Lunas Dibuat!');
                           setSelectedBooking(null);
                           fetchBookings();
                         } else {
                           const errData = await res.json();
-                          alert('❌ Gagal memproses pembayaran: ' + (errData.error || 'Unknown error'));
+                          alert('❌ Gagal: ' + (errData.error || 'Unknown error'));
                         }
                       } catch (err: any) {
                         console.error(err);
-                        alert('❌ Terjadi kesalahan sistem: ' + (err.message || JSON.stringify(err)));
+                        alert('❌ Error: ' + (err.message || 'System error'));
                       }
                     }}
-                    style={{ padding: '10px', borderRadius: '8px', border: 'none', background: '#3b82f6', color: 'white', cursor: 'pointer', fontWeight: 500 }}
+                    style={{
+                      padding: '12px',
+                      borderRadius: '8px',
+                      border: 'none',
+                      background: '#22c55e', // Green
+                      color: 'white',
+                      cursor: 'pointer',
+                      fontWeight: 600,
+                      gridColumn: selectedBooking.status === 'pending' ? 'auto' : '1 / span 2'
+                    }}
                   >
-                    ✅ Mark Paid
+                    💲 Mark as Paid
                   </button>
                 </div>
 
-                <button
-                  onClick={() => {
-                    if (!selectedBooking.date) return
-                    const message = `📋 *Konfirmasi Booking Auditorium*\n\n` +
-                      `Booking ID: ${selectedBooking.bookingId}\n` +
-                      `Nama: ${selectedBooking.bookerName}\n` +
-                      `Acara: ${selectedBooking.eventName}\n` +
-                      `Tanggal: ${selectedBooking.date.split('T')[0]}\n` +
-                      `Waktu: ${selectedBooking.startTime} - ${selectedBooking.endTime}\n` +
-                      `Total: ${selectedBooking.totalPrice.toLocaleString()} EGP\n\n` +
-                      `Status: ${getStatusBadge(selectedBooking.status || 'pending').label}`
-                    window.open(`https://wa.me/${selectedBooking.whatsapp}?text=${encodeURIComponent(message)}`, '_blank')
-                  }}
-                  style={{ padding: '12px', borderRadius: '8px', border: 'none', background: '#25D366', color: 'white', cursor: 'pointer', fontWeight: 600, fontSize: '1rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}
-                >
-                  📱 Kirim ke Customer
-                </button>
+                {/* 3. Preview Invoice (WA) & Download PDF */}
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                  <button
+                    onClick={() => {
+                      if (!selectedBooking.date) return
+                      const params = new URLSearchParams({
+                        bookingId: selectedBooking.bookingId,
+                        name: selectedBooking.bookerName,
+                        event: selectedBooking.eventName,
+                        date: selectedBooking.date.split('T')[0],
+                        total: selectedBooking.totalPrice.toString(),
+                      })
+                      window.open(`/api/booking/auditorium/invoice?${params.toString()}`, '_blank')
+                    }}
+                    style={{
+                      padding: '12px',
+                      borderRadius: '8px',
+                      border: '1px solid #d1d5db',
+                      background: 'white',
+                      color: '#374151',
+                      cursor: 'pointer',
+                      fontWeight: 600,
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: '8px'
+                    }}
+                  >
+                    🧾 Preview Invoice
+                  </button>
 
+                  <button
+                    onClick={() => {
+                      if (!selectedBooking.date) return
+                      const params = new URLSearchParams({
+                        bookingId: selectedBooking.bookingId,
+                        name: selectedBooking.bookerName,
+                        event: selectedBooking.eventName,
+                        date: selectedBooking.date.split('T')[0],
+                        time: `${selectedBooking.startTime} - ${selectedBooking.endTime}`,
+                        total: selectedBooking.totalPrice.toString(),
+                      })
+                      window.open(`/api/booking/auditorium/pdf?${params.toString()}`, '_blank')
+                    }}
+                    style={{
+                      padding: '12px',
+                      borderRadius: '8px',
+                      border: '1px solid #d1d5db',
+                      background: 'white',
+                      color: '#374151',
+                      cursor: 'pointer',
+                      fontWeight: 600,
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: '8px'
+                    }}
+                  >
+                    📄 Download PDF
+                  </button>
+                </div>
+
+                {/* Broadcast Admin (Optional Utility) */}
                 <button
                   onClick={() => {
                     const adminPhone = '201507049289'
@@ -688,7 +764,21 @@ export default function AuditoriumCalendar({
                       `📱 WA Customer: ${selectedBooking.whatsapp}`
                     window.open(`https://wa.me/${adminPhone}?text=${encodeURIComponent(message)}`, '_blank')
                   }}
-                  style={{ padding: '12px', borderRadius: '8px', border: 'none', background: '#3b82f6', color: 'white', cursor: 'pointer', fontWeight: 600, fontSize: '1rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}
+                  style={{
+                    marginTop: '8px',
+                    padding: '12px',
+                    borderRadius: '8px',
+                    border: 'none',
+                    background: '#3b82f6',
+                    color: 'white',
+                    cursor: 'pointer',
+                    fontWeight: 600,
+                    fontSize: '1rem',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '8px'
+                  }}
                 >
                   📣 Broadcast Admin
                 </button>
