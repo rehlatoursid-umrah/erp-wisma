@@ -76,7 +76,22 @@ export async function POST(req: Request) {
 
         console.log('Invoice created successfully:', newInvoice.id);
 
-        // 2. If Status is PAID, immediately create Cashflow
+        // 2. Update Booking Status if linked (Always to 'confirmed' if invoice created)
+        if (relatedBooking && relationSlug) {
+            try {
+                await payload.update({
+                    collection: relationSlug as any,
+                    id: relatedBooking,
+                    data: { status: 'confirmed' }, // standardized status
+                    overrideAccess: true
+                })
+                console.log('Related booking updated to confirmed.');
+            } catch (err) {
+                console.error('Failed to update related booking status', err)
+            }
+        }
+
+        // 3. If Status is PAID, immediately create Cashflow
         if (paymentStatus === 'paid') {
             console.log('Attempting to create Cashflow for paid invoice...');
             try {
@@ -96,23 +111,6 @@ export async function POST(req: Request) {
                 console.log('Cashflow entry created.');
             } catch (cfError) {
                 console.error('Failed to create Cashflow:', cfError);
-                // We don't fail the whole request, but log it.
-                // Optionally could return a warning.
-            }
-
-            // Update Booking Status if linked
-            if (relatedBooking && relationSlug) {
-                try {
-                    await payload.update({
-                        collection: relationSlug as any,
-                        id: relatedBooking,
-                        data: { status: 'confirmed' }, // standardized status
-                        overrideAccess: true
-                    })
-                    console.log('Related booking updated.');
-                } catch (err) {
-                    console.error('Failed to update related booking status', err)
-                }
             }
         }
 

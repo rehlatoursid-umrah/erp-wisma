@@ -532,84 +532,89 @@ export default function HotelCalendar({ onBookRoom, refreshTrigger = 0, onUpdate
               </div>
 
               {/* Actions */}
-              <div style={{ display: 'flex', gap: '10px', marginTop: '24px' }}>
-                <button
-                  onClick={() => {
-                    const message = `📋 *Hotel Booking Details*\n\n` +
-                      `ID: ${selectedBooking.bookingId}\n` +
-                      `Room: ${selectedBooking.roomNumber}\n` +
-                      `Name: ${selectedBooking.guestName}\n` +
-                      `Check-In: ${selectedBooking.checkIn.split('T')[0]}\n` +
-                      `Check-Out: ${selectedBooking.checkOut.split('T')[0]}\n` +
-                      `Total: $${selectedBooking.totalPrice} USD`
-                    window.open(`https://wa.me/${selectedBooking.guestWhatsapp}?text=${encodeURIComponent(message)}`, '_blank')
-                  }}
-                  style={{
-                    flex: 1,
-                    padding: '12px',
-                    borderRadius: '8px',
-                    border: 'none',
-                    background: '#25D366',
-                    color: 'white',
-                    cursor: 'pointer',
-                    fontWeight: 600
-                  }}
-                >
-                  Send via WA
-                </button>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginTop: '24px' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                  {/* 1. Confirmed Booking (Draft Invoice) */}
+                  {selectedBooking.status === 'pending' && (
+                    <button
+                      onClick={async () => {
+                        if (!confirm('Confirm this booking? A DRAFT invoice will be created.')) return;
+                        try {
+                          // Calculate Total (Same logic as Paid)
+                          const pricing = (selectedBooking as any).pricing || {}
+                          const roomsTotal = pricing.roomsTotal || (selectedBooking.pricePerNight * selectedBooking.nights)
+                          const totalUSD = roomsTotal + (pricing.extraBedTotal || 0) + (pricing.pickupTotal || 0)
 
-                {/* Mark as Paid Button */}
-                {selectedBooking.status !== 'confirmed' && selectedBooking.status !== 'checked-in' && (
+                          const invoiceItems = [{
+                            itemName: `Hotel Room ${selectedBooking.roomNumber} (${selectedBooking.nights} nights)`,
+                            quantity: 1,
+                            priceUnit: roomsTotal,
+                            subtotal: roomsTotal
+                          }]
+                          if (pricing.extraBedTotal > 0) invoiceItems.push({ itemName: 'Extra Beds', quantity: 1, priceUnit: pricing.extraBedTotal, subtotal: pricing.extraBedTotal })
+                          if (pricing.pickupTotal > 0) invoiceItems.push({ itemName: 'Airport Pickup', quantity: 1, priceUnit: pricing.pickupTotal, subtotal: pricing.pickupTotal })
+
+                          const res = await fetch('/api/finance/invoice', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                              customerName: selectedBooking.guestName,
+                              customerWA: selectedBooking.guestWhatsapp,
+                              items: invoiceItems,
+                              totalAmount: totalUSD,
+                              currency: 'USD',
+                              bookingType: 'hotel',
+                              relatedBooking: selectedBooking.originalId || selectedBooking.id.split('-')[0],
+                              paymentStatus: 'pending', // DRAFT
+                              paymentMethod: 'cash',
+                              notes: `Draft Invoice for Booking ${selectedBooking.bookingId}`
+                            })
+                          })
+
+                          if (res.ok) {
+                            alert('✅ Booking Confirmed & Draft Invoice Created!')
+                            setSelectedBooking(null)
+                            fetchBookings()
+                            if (onUpdate) onUpdate()
+                          } else {
+                            const err = await res.json()
+                            alert('❌ Failed: ' + err.error)
+                          }
+                        } catch (e) {
+                          alert('Error confirming booking')
+                        }
+                      }}
+                      style={{
+                        padding: '12px',
+                        borderRadius: '8px',
+                        border: 'none',
+                        background: '#f59e0b', // Amber for Draft/Confirm
+                        color: 'white',
+                        cursor: 'pointer',
+                        fontWeight: 600
+                      }}
+                    >
+                      ✓ Confirm Booking
+                    </button>
+                  )}
+
+                  {/* 2. Mark as Paid */}
                   <button
                     onClick={async () => {
-                      if (!confirm('Are you sure you want to mark this booking as PAID? An invoice will be created automatically.')) return;
-
+                      if (!confirm('Mark as PAID? This will create a FINAL invoice and cashflow entry.')) return;
                       try {
                         const pricing = (selectedBooking as any).pricing || {}
-                        const mealsTotalEGP = pricing.mealsTotal || 0
-                        const extraBedTotalUSD = pricing.extraBedTotal || 0
-                        const pickupTotalUSD = pricing.pickupTotal || 0
+                        const roomsTotal = pricing.roomsTotal || (selectedBooking.pricePerNight * selectedBooking.nights)
+                        const totalUSD = roomsTotal + (pricing.extraBedTotal || 0) + (pricing.pickupTotal || 0)
 
-                        // Construct Invoice Items (USD ONLY)
-                        const invoiceItems = []
-
-                        // 1. Room Charge
-                        // Use calculated room total or fallback
-                        let roomTotalUSD = pricing.roomsTotal || (selectedBooking.pricePerNight * selectedBooking.nights)
-
-                        invoiceItems.push({
+                        const invoiceItems = [{
                           itemName: `Hotel Room ${selectedBooking.roomNumber} (${selectedBooking.nights} nights)`,
                           quantity: 1,
-                          priceUnit: roomTotalUSD,
-                          subtotal: roomTotalUSD
-                        })
-
-                        // 2. Extra Beds (USD)
-                        if (extraBedTotalUSD > 0) {
-                          invoiceItems.push({
-                            itemName: 'Extra Beds',
-                            quantity: 1,
-                            priceUnit: extraBedTotalUSD,
-                            subtotal: extraBedTotalUSD
-                          })
-                        }
-
-                        // 3. Pickup (USD)
-                        if (pickupTotalUSD > 0) {
-                          invoiceItems.push({
-                            itemName: 'Airport Pickup',
-                            quantity: 1,
-                            priceUnit: pickupTotalUSD,
-                            subtotal: pickupTotalUSD
-                          })
-                        }
-
-                        // NOTE: Meals are in EGP, so we do not add them to the USD invoice items directly.
-                        const notes = `Auto-generated from Hotel Calendar for Booking ${selectedBooking.bookingId}` +
-                          (mealsTotalEGP > 0 ? `\n\n[NOTICE] Includes Meals valued at ${mealsTotalEGP.toLocaleString()} EGP (Paid Separately).` : '')
-
-                        // Calculate USD Total
-                        const totalUSD = roomTotalUSD + extraBedTotalUSD + pickupTotalUSD
+                          priceUnit: roomsTotal,
+                          subtotal: roomsTotal
+                        }]
+                        if (pricing.extraBedTotal > 0) invoiceItems.push({ itemName: 'Extra Beds', quantity: 1, priceUnit: pricing.extraBedTotal, subtotal: pricing.extraBedTotal })
+                        if (pricing.pickupTotal > 0) invoiceItems.push({ itemName: 'Airport Pickup', quantity: 1, priceUnit: pricing.pickupTotal, subtotal: pricing.pickupTotal })
 
                         const res = await fetch('/api/finance/invoice', {
                           method: 'POST',
@@ -622,41 +627,75 @@ export default function HotelCalendar({ onBookRoom, refreshTrigger = 0, onUpdate
                             currency: 'USD',
                             bookingType: 'hotel',
                             relatedBooking: selectedBooking.originalId || selectedBooking.id.split('-')[0],
-                            paymentStatus: 'paid',
+                            paymentStatus: 'paid', // PAID
                             paymentMethod: 'cash',
-                            notes: notes
+                            notes: `Paid Invoice for Booking ${selectedBooking.bookingId}`
                           })
                         })
 
                         if (res.ok) {
-                          alert('✅ Payment recorded & Invoice created!')
+                          alert('✅ Payment Recorded!')
                           setSelectedBooking(null)
                           fetchBookings()
                           if (onUpdate) onUpdate()
                         } else {
-                          const errData = await res.json()
-                          alert('❌ Failed to process payment: ' + (errData.error || 'Unknown error'))
+                          const err = await res.json()
+                          alert('❌ Failed: ' + err.error)
                         }
-                      } catch (err) {
-                        console.error(err)
-                        alert('❌ System error occurred.')
+                      } catch (e) {
+                        alert('Error processing payment')
                       }
                     }}
                     style={{
-                      marginTop: '1rem',
-                      width: '100%',
-                      padding: '0.75rem',
+                      padding: '12px',
+                      borderRadius: '8px',
                       border: 'none',
-                      borderRadius: '0.5rem',
-                      background: '#25D366',
+                      background: '#22c55e', // Green for Paid
                       color: 'white',
                       cursor: 'pointer',
-                      fontWeight: 600
+                      fontWeight: 600,
+                      gridColumn: selectedBooking.status === 'pending' ? 'auto' : '1 / span 2'
                     }}
                   >
-                    Mark as Paid (Create Invoice)
+                    💲 Mark as Paid
                   </button>
-                )}
+                </div>
+
+                {/* 3. Preview Invoice (WA) */}
+                <button
+                  onClick={() => {
+                    const pricing = (selectedBooking as any).pricing || {}
+                    const params = new URLSearchParams({
+                      bookingId: selectedBooking.bookingId,
+                      name: selectedBooking.guestName,
+                      room: selectedBooking.roomNumber,
+                      nights: selectedBooking.nights.toString(),
+                      checkIn: selectedBooking.checkIn.split('T')[0],
+                      checkOut: selectedBooking.checkOut.split('T')[0],
+                      total: selectedBooking.totalPrice.toString(),
+                      currency: 'USD',
+                      extraBed: (pricing.extraBedTotal || 0).toString(),
+                      pickup: (pricing.pickupTotal || 0).toString(),
+                      meals: (pricing.mealsTotal || 0).toString()
+                    })
+                    window.open(`/api/booking/hotel/invoice?${params.toString()}`, '_blank')
+                  }}
+                  style={{
+                    padding: '12px',
+                    borderRadius: '8px',
+                    border: '1px solid #d1d5db',
+                    background: 'white',
+                    color: '#374151',
+                    cursor: 'pointer',
+                    fontWeight: 600,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '8px'
+                  }}
+                >
+                  🧾 Preview Invoice (WA)
+                </button>
               </div>
             </div>
           </div>
