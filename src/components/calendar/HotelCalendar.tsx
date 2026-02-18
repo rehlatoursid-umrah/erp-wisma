@@ -661,41 +661,75 @@ export default function HotelCalendar({ onBookRoom, refreshTrigger = 0, onUpdate
                   </button>
                 </div>
 
-                {/* 3. Preview Invoice (WA) */}
-                <button
-                  onClick={() => {
-                    const pricing = (selectedBooking as any).pricing || {}
-                    const params = new URLSearchParams({
-                      bookingId: selectedBooking.bookingId,
-                      name: selectedBooking.guestName,
-                      room: selectedBooking.roomNumber,
-                      nights: selectedBooking.nights.toString(),
-                      checkIn: selectedBooking.checkIn.split('T')[0],
-                      checkOut: selectedBooking.checkOut.split('T')[0],
-                      total: selectedBooking.totalPrice.toString(),
-                      currency: 'USD',
-                      extraBed: (pricing.extraBedTotal || 0).toString(),
-                      pickup: (pricing.pickupTotal || 0).toString(),
-                      meals: (pricing.mealsTotal || 0).toString()
-                    })
-                    window.open(`/api/booking/hotel/invoice?${params.toString()}`, '_blank')
-                  }}
-                  style={{
-                    padding: '12px',
-                    borderRadius: '8px',
-                    border: '1px solid #d1d5db',
-                    background: 'white',
-                    color: '#374151',
-                    cursor: 'pointer',
-                    fontWeight: 600,
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    gap: '8px'
-                  }}
-                >
-                  🧾 Preview Invoice (WA)
-                </button>
+                {/* 3. Preview Invoice (WA) & Download PDF */}
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                  <button
+                    onClick={() => {
+                      const pricing = (selectedBooking as any).pricing || {}
+                      const params = new URLSearchParams({
+                        bookingId: selectedBooking.bookingId,
+                        name: selectedBooking.guestName,
+                        room: selectedBooking.roomNumber,
+                        nights: selectedBooking.nights.toString(),
+                        checkIn: selectedBooking.checkIn.split('T')[0],
+                        checkOut: selectedBooking.checkOut.split('T')[0],
+                        total: selectedBooking.totalPrice.toString(),
+                        currency: 'USD',
+                        extraBed: (pricing.extraBedTotal || 0).toString(),
+                        pickup: (pricing.pickupTotal || 0).toString(),
+                        meals: (pricing.mealsTotal || 0).toString()
+                      })
+                      window.open(`/api/booking/hotel/invoice?${params.toString()}`, '_blank')
+                    }}
+                    style={{
+                      padding: '12px',
+                      borderRadius: '8px',
+                      border: '1px solid #d1d5db',
+                      background: 'white',
+                      color: '#374151',
+                      cursor: 'pointer',
+                      fontWeight: 600,
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: '8px'
+                    }}
+                  >
+                    🧾 Invoice (WA)
+                  </button>
+
+                  <button
+                    onClick={() => {
+                      const params = new URLSearchParams({
+                        bookingId: selectedBooking.bookingId,
+                        name: selectedBooking.guestName,
+                        room: selectedBooking.roomNumber,
+                        nights: selectedBooking.nights.toString(),
+                        checkIn: selectedBooking.checkIn.split('T')[0],
+                        checkOut: selectedBooking.checkOut.split('T')[0],
+                        total: selectedBooking.totalPrice.toString(),
+                        currency: 'USD',
+                        status: selectedBooking.status
+                      })
+                      window.open(`/api/booking/hotel/pdf?${params.toString()}`, '_blank')
+                    }}
+                    style={{
+                      padding: '12px',
+                      borderRadius: '8px',
+                      border: '1px solid #d1d5db',
+                      background: 'white',
+                      color: '#374151',
+                      cursor: 'pointer',
+                      fontWeight: 600,
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: '8px'
+                    }}
+                  >
+                    📄 Download PDF
+                  </button>
+                </div>
               </div>
             </div>
           </div>
