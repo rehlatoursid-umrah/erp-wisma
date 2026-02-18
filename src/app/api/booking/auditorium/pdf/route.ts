@@ -9,6 +9,26 @@ export async function GET(request: NextRequest) {
     const date = searchParams.get('date') || ''
     const time = searchParams.get('time') || ''
     const total = searchParams.get('total') || '0'
+    const itemsParam = searchParams.get('items')
+
+    let parsedItems = []
+    if (itemsParam) {
+        try {
+            parsedItems = JSON.parse(itemsParam)
+        } catch (e) {
+            console.error('Failed to parse items', e)
+        }
+    }
+
+    // Fallback
+    if (parsedItems.length === 0) {
+        parsedItems.push({
+            item: 'Sewa Auditorium (Bundle)',
+            qty: 1,
+            price: total,
+            total: total
+        })
+    }
 
     // Generate HTML for PDF-like confirmation
     const html = `
@@ -156,6 +176,35 @@ export async function GET(request: NextRequest) {
             .container { box-shadow: none; }
             .print-btn { display: none; }
         }
+        
+        .items-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+        .items-table th {
+            text-align: left;
+            padding: 10px;
+            background: #f8f4f0;
+            color: #8B4513;
+            font-size: 0.9rem;
+        }
+        .items-table td {
+            padding: 10px;
+            border-bottom: 1px solid #eee;
+            font-size: 0.9rem;
+        }
+        .items-table td:last-child, .items-table th:last-child {
+            text-align: right;
+        }
+        .item-name {
+            font-weight: 600;
+        }
+        .item-desc {
+            font-size: 0.8rem;
+            color: #666;
+            margin-top: 4px;
+        }
     </style>
 </head>
 <body>
@@ -193,6 +242,33 @@ export async function GET(request: NextRequest) {
                     <span class="label">Waktu</span>
                     <span class="value">${decodeURIComponent(time)}</span>
                 </div>
+            </div>
+
+            <div class="section">
+                <div class="section-title">🛍️ Rincian Pesanan</div>
+                <table class="items-table">
+                <thead>
+                    <tr>
+                        <th>Deskripsi</th>
+                        <th>Qty</th>
+                        <th>Harga</th>
+                        <th>Total</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${parsedItems.map((item: any) => `
+                    <tr>
+                        <td>
+                            <div class="item-name">${item.item}</div>
+                            ${item.item.includes('Sewa Aula') ? `<div class="item-desc">${decodeURIComponent(event)}<br>📅 ${date}<br>⏰ ${decodeURIComponent(time)}</div>` : ''}
+                        </td>
+                        <td>${item.qty}</td>
+                        <td>${parseInt(item.price).toLocaleString()} EGP</td>
+                        <td>${parseInt(item.total).toLocaleString()} EGP</td>
+                    </tr>
+                    `).join('')}
+                </tbody>
+            </table>
             </div>
             
             <div class="total-section">

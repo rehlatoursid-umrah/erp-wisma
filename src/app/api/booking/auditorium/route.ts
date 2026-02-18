@@ -4,23 +4,27 @@ import configPromise from '@/payload.config'
 
 const ADMIN_PHONE = '201507049289'
 
-// Hall Rental Packages (based on duration)
-const HALL_PACKAGES: Record<string, { price: number; label: string }> = {
-    '4h': { price: 420, label: '4 Hours' },
-    '9h': { price: 900, label: '9 Hours' },
-    '12h': { price: 1100, label: '12 Hours' },
-    '14h': { price: 1250, label: 'Full Day (14h)' },
-}
-const AFTER_HOURS_RATE = 125 // per hour (22:00 - 07:00)
-const EXTRA_HOUR_RATE = 115 // for late checkout (admin only)
+import {
+    HALL_PACKAGES,
+    AFTER_HOURS_RATE,
+    // Note: The API was using a Record<string, number> for prices but the constant uses an array of objects. 
+    // We need to be careful with the replacement logic if the data structure differs.
+    // The previous API code had: const AC_PRICES = { '4-6': 150 ... }
+    // The shared constant has: const AC_OPTIONS = [{ value: '4-6', price: 150 }, ...]
+    // I will need to map the array back to a record for easy lookup, or update the logic to find in array.
+    AC_OPTIONS, CHAIR_OPTIONS, PROJECTOR_SCREEN_OPTIONS, TABLE_OPTIONS, PLATE_OPTIONS, GLASS_OPTIONS
+} from '@/constants/auditorium'
 
-// Additional Services Pricing
-const AC_PRICES: Record<string, number> = { '4-6': 150, '7-9': 200, '10-12': 300, '13-14': 350 }
-const CHAIR_PRICES: Record<string, number> = { '3': 75, '5': 120, '7': 160, '10': 210, '15': 300, '20': 380, '30': 540, '40': 680 }
-const PROJECTOR_PRICES: Record<string, number> = { 'projector': 250, 'screen': 75, 'both': 275 }
-const TABLE_PRICES: Record<string, number> = { '3': 140, '6': 240, '9': 300 }
-const PLATE_PRICES: Record<string, number> = { '6': 60, '12': 110, '18': 160, '24': 200 }
-const GLASS_PRICES: Record<string, number> = { '3': 20, '6': 35, '12': 60 }
+// Helper to convert options array to price map for backend compatibility/ease of use
+const toPriceMap = (options: { value: string; price: number }[]) =>
+    options.reduce((acc, curr) => ({ ...acc, [curr.value]: curr.price }), {} as Record<string, number>)
+
+const AC_PRICES = toPriceMap(AC_OPTIONS)
+const CHAIR_PRICES = toPriceMap(CHAIR_OPTIONS)
+const PROJECTOR_PRICES = toPriceMap(PROJECTOR_SCREEN_OPTIONS)
+const TABLE_PRICES = toPriceMap(TABLE_OPTIONS)
+const PLATE_PRICES = toPriceMap(PLATE_OPTIONS)
+const GLASS_PRICES = toPriceMap(GLASS_OPTIONS)
 
 export async function POST(request: NextRequest) {
     try {
@@ -126,7 +130,7 @@ export async function POST(request: NextRequest) {
         })
 
         // Get package label
-        const packageLabel = HALL_PACKAGES[hallPackage]?.label || `${duration}h`
+        const packageLabel = HALL_PACKAGES.find(p => p.value === hallPackage)?.label || `${duration}h`
 
         // Build services summary
         const servicesSummary = []

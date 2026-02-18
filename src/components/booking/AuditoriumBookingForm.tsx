@@ -1,6 +1,20 @@
 'use client'
 
 import { useState, useMemo } from 'react'
+import {
+  HALL_PACKAGES,
+  AFTER_HOURS_RATE,
+  EXTRA_HOUR_RATE,
+  AC_OPTIONS,
+  CHAIR_OPTIONS,
+  PROJECTOR_SCREEN_OPTIONS,
+  TABLE_OPTIONS,
+  PLATE_OPTIONS,
+  GLASS_OPTIONS,
+  calculateDuration,
+  calculateAfterHours,
+  calculateHallPricing
+} from '@/constants/auditorium'
 
 export interface AuditoriumBookingData {
   // Personal Information
@@ -39,174 +53,7 @@ interface AuditoriumBookingFormProps {
   isModal?: boolean
 }
 
-// Hall Rental Packages (based on duration)
-const HALL_PACKAGES = [
-  { maxHours: 4, value: '4h', label: '4 Hours', price: 420 },
-  { maxHours: 9, value: '9h', label: '9 Hours', price: 900 },
-  { maxHours: 12, value: '12h', label: '12 Hours', price: 1100 },
-  { maxHours: 14, value: '14h', label: 'Full Day (14h)', price: 1250 },
-]
-
-const AFTER_HOURS_RATE = 125 // EGP per hour (22:00 - 07:00) - additional surcharge
-const EXTRA_HOUR_RATE = 115 // EGP per hour for hours beyond package
-
-// Additional Services Pricing
-const AC_OPTIONS = [
-  { value: '', label: 'No AC', price: 0 },
-  { value: '4-6', label: '4-6 hours', price: 150 },
-  { value: '7-9', label: '7-9 hours', price: 200 },
-  { value: '10-12', label: '10-12 hours', price: 300 },
-  { value: '13-14', label: '13-14 hours', price: 350 },
-]
-
-const CHAIR_OPTIONS = [
-  { value: '', label: 'No chairs', price: 0 },
-  { value: '3', label: '3 chairs', price: 75 },
-  { value: '5', label: '5 chairs', price: 120 },
-  { value: '7', label: '7 chairs', price: 160 },
-  { value: '10', label: '10 chairs', price: 210 },
-  { value: '15', label: '15 chairs', price: 300 },
-  { value: '20', label: '20 chairs', price: 380 },
-  { value: '30', label: '30 chairs', price: 540 },
-  { value: '40', label: '40 chairs', price: 680 },
-]
-
-const PROJECTOR_SCREEN_OPTIONS = [
-  { value: '', label: 'None', price: 0 },
-  { value: 'projector', label: 'Projector only', price: 250 },
-  { value: 'screen', label: 'Screen only', price: 75 },
-  { value: 'both', label: 'Projector & Screen', price: 275 },
-]
-
-const TABLE_OPTIONS = [
-  { value: '', label: 'No tables', price: 0 },
-  { value: '3', label: '3 tables', price: 140 },
-  { value: '6', label: '6 tables', price: 240 },
-  { value: '9', label: '9 tables', price: 300 },
-  { value: 'more', label: 'More than 9 tables (ask availability)', price: 0 },
-]
-
-const PLATE_OPTIONS = [
-  { value: '', label: 'No plates', price: 0 },
-  { value: '6', label: '6 plates', price: 60 },
-  { value: '12', label: '12 plates', price: 110 },
-  { value: '18', label: '18 plates', price: 160 },
-  { value: '24', label: '24 plates', price: 200 },
-]
-
-const GLASS_OPTIONS = [
-  { value: '', label: 'No glasses', price: 0 },
-  { value: '3', label: '3 glasses', price: 20 },
-  { value: '6', label: '6 glasses', price: 35 },
-  { value: '12', label: '12 glasses', price: 60 },
-]
-
-// Helper function to calculate hours between two times
-function calculateDuration(startTime: string, endTime: string): number {
-  if (!startTime || !endTime) return 0
-  const [startH, startM] = startTime.split(':').map(Number)
-  const [endH, endM] = endTime.split(':').map(Number)
-
-  let startMinutes = startH * 60 + startM
-  let endMinutes = endH * 60 + endM
-
-  // Handle overnight events
-  if (endMinutes <= startMinutes) {
-    endMinutes += 24 * 60
-  }
-
-  return Math.ceil((endMinutes - startMinutes) / 60)
-}
-
-// Helper function to count after-hours (22:00 - 07:00)
-function calculateAfterHours(startTime: string, endTime: string): number {
-  if (!startTime || !endTime) return 0
-
-  const [startH] = startTime.split(':').map(Number)
-  const [endH] = endTime.split(':').map(Number)
-
-  let afterHoursCount = 0
-
-  // Simple calculation: count hours that fall in 22:00-07:00 range
-  let currentHour = startH
-  const duration = calculateDuration(startTime, endTime)
-
-  for (let i = 0; i < duration; i++) {
-    const hour = currentHour % 24
-    // After hours: 22, 23, 0, 1, 2, 3, 4, 5, 6
-    if (hour >= 22 || hour < 7) {
-      afterHoursCount++
-    }
-    currentHour++
-  }
-
-  return afterHoursCount
-}
-
-// Helper function to calculate hall pricing
-// Logic (per user request):
-// - If duration matches a package (4h, 9h, 12h, 14h), use that package price
-// - If duration is between packages, use lower package + extra hours at 115 EGP/h
-// Examples:
-// - 4h → 420 EGP (package)
-// - 8h → 4h (420) + 4h (460) = 880 EGP
-// - 9h → 900 EGP (package)
-// - 11h → 9h (900) + 2h (230) = 1130 EGP
-// - 12h → 1100 EGP (package)
-// - 13h → 12h (1100) + 1h (115) = 1215 EGP
-// - 14h → 1250 EGP (package)
-function calculateHallPricing(duration: number): {
-  basePackage: typeof HALL_PACKAGES[0];
-  extraHours: number;
-  basePrice: number;
-  extraHoursPrice: number;
-} {
-  if (duration <= 0) {
-    return { basePackage: HALL_PACKAGES[0], extraHours: 0, basePrice: 0, extraHoursPrice: 0 }
-  }
-
-  let selectedPackage = HALL_PACKAGES[0]
-  let extraHours = 0
-
-  if (duration <= 4) {
-    // Use 4h package
-    selectedPackage = HALL_PACKAGES[0] // 420 EGP
-    extraHours = 0
-  } else if (duration > 4 && duration < 9) {
-    // Between 4h and 9h: use 4h + extra
-    selectedPackage = HALL_PACKAGES[0] // 4h = 420 EGP
-    extraHours = duration - 4
-  } else if (duration === 9) {
-    // Use 9h package
-    selectedPackage = HALL_PACKAGES[1] // 900 EGP
-    extraHours = 0
-  } else if (duration > 9 && duration < 12) {
-    // Between 9h and 12h: use 9h + extra
-    selectedPackage = HALL_PACKAGES[1] // 9h = 900 EGP
-    extraHours = duration - 9
-  } else if (duration === 12) {
-    // Use 12h package
-    selectedPackage = HALL_PACKAGES[2] // 1100 EGP
-    extraHours = 0
-  } else if (duration > 12 && duration < 14) {
-    // Between 12h and 14h: use 12h + extra
-    selectedPackage = HALL_PACKAGES[2] // 12h = 1100 EGP
-    extraHours = duration - 12
-  } else if (duration === 14) {
-    // Use 14h package
-    selectedPackage = HALL_PACKAGES[3] // 1250 EGP
-    extraHours = 0
-  } else {
-    // Duration > 14h: use 14h + extra
-    selectedPackage = HALL_PACKAGES[3] // 14h = 1250 EGP
-    extraHours = duration - 14
-  }
-
-  const basePrice = selectedPackage.price
-  const extraHoursPrice = extraHours * EXTRA_HOUR_RATE // 115 per hour
-
-  return { basePackage: selectedPackage, extraHours, basePrice, extraHoursPrice }
-}
+// Constants and helper functions are now imported from @/constants/auditorium
 
 export default function AuditoriumBookingForm({
   initialDate = '',

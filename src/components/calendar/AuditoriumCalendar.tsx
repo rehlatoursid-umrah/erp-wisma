@@ -2,6 +2,20 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import AuditoriumBookingForm, { AuditoriumBookingData } from '../booking/AuditoriumBookingForm'
+import {
+  HALL_PACKAGES,
+  AFTER_HOURS_RATE,
+  EXTRA_HOUR_RATE,
+  AC_OPTIONS,
+  CHAIR_OPTIONS,
+  PROJECTOR_SCREEN_OPTIONS,
+  TABLE_OPTIONS,
+  PLATE_OPTIONS,
+  GLASS_OPTIONS,
+  calculateDuration,
+  calculateAfterHours,
+  calculateHallPricing
+} from '@/constants/auditorium'
 
 interface AuditoriumBooking {
   id: string
@@ -692,12 +706,77 @@ export default function AuditoriumCalendar({
                   <button
                     onClick={() => {
                       if (!selectedBooking.date) return
+
+                      // Calculate detailed items
+                      const duration = calculateDuration(selectedBooking.startTime, selectedBooking.endTime)
+                      const pricing = calculateHallPricing(duration)
+                      const afterHoursCount = calculateAfterHours(selectedBooking.startTime, selectedBooking.endTime)
+                      const afterHoursPrice = afterHoursCount * AFTER_HOURS_RATE
+
+                      const items = []
+
+                      // 1. Base Package
+                      items.push({
+                        item: `Sewa Aula (${pricing.basePackage.label})`,
+                        qty: 1,
+                        price: pricing.basePrice,
+                        total: pricing.basePrice
+                      })
+
+                      // 2. Extra Hours
+                      if (pricing.extraHours > 0) {
+                        items.push({
+                          item: `Extra Time (${pricing.extraHours} jam)`,
+                          qty: pricing.extraHours,
+                          price: EXTRA_HOUR_RATE,
+                          total: pricing.extraHoursPrice
+                        })
+                      }
+
+                      // 3. After Hours
+                      if (afterHoursCount > 0) {
+                        items.push({
+                          item: `Overnight Surcharge (${afterHoursCount} jam)`,
+                          qty: afterHoursCount,
+                          price: AFTER_HOURS_RATE,
+                          total: afterHoursPrice
+                        })
+                      }
+
+                      // 4. Services
+                      const services = selectedBooking.services
+                      if (services.acOption) {
+                        const opt = AC_OPTIONS.find(o => o.value === services.acOption)
+                        if (opt && opt.price > 0) items.push({ item: `AC (${opt.label})`, qty: 1, price: opt.price, total: opt.price })
+                      }
+                      if (services.chairOption) {
+                        const opt = CHAIR_OPTIONS.find(o => o.value === services.chairOption)
+                        if (opt && opt.price > 0) items.push({ item: `Kursi (${opt.label})`, qty: 1, price: opt.price, total: opt.price })
+                      }
+                      if (services.tableOption) {
+                        const opt = TABLE_OPTIONS.find(o => o.value === services.tableOption)
+                        if (opt && opt.price > 0) items.push({ item: `Meja (${opt.label})`, qty: 1, price: opt.price, total: opt.price })
+                      }
+                      if (services.projectorScreen) {
+                        const opt = PROJECTOR_SCREEN_OPTIONS.find(o => o.value === services.projectorScreen)
+                        if (opt && opt.price > 0) items.push({ item: `Projector/Screen (${opt.label})`, qty: 1, price: opt.price, total: opt.price })
+                      }
+                      if (services.plateOption) {
+                        const opt = PLATE_OPTIONS.find(o => o.value === services.plateOption)
+                        if (opt && opt.price > 0) items.push({ item: `Piring (${opt.label})`, qty: 1, price: opt.price, total: opt.price })
+                      }
+                      if (services.glassOption) {
+                        const opt = GLASS_OPTIONS.find(o => o.value === services.glassOption)
+                        if (opt && opt.price > 0) items.push({ item: `Gelas (${opt.label})`, qty: 1, price: opt.price, total: opt.price })
+                      }
+
                       const params = new URLSearchParams({
                         bookingId: selectedBooking.bookingId,
                         name: selectedBooking.bookerName,
                         event: selectedBooking.eventName,
                         date: selectedBooking.date.split('T')[0],
                         total: selectedBooking.totalPrice.toString(),
+                        items: JSON.stringify(items)
                       })
                       window.open(`/api/booking/auditorium/invoice?${params.toString()}`, '_blank')
                     }}
@@ -721,6 +800,70 @@ export default function AuditoriumCalendar({
                   <button
                     onClick={() => {
                       if (!selectedBooking.date) return
+
+                      // Calculate detailed items (Duplicate logic - ideally refactor to function but inline for now)
+                      const duration = calculateDuration(selectedBooking.startTime, selectedBooking.endTime)
+                      const pricing = calculateHallPricing(duration)
+                      const afterHoursCount = calculateAfterHours(selectedBooking.startTime, selectedBooking.endTime)
+                      const afterHoursPrice = afterHoursCount * AFTER_HOURS_RATE
+
+                      const items = []
+
+                      // 1. Base Package
+                      items.push({
+                        item: `Sewa Aula (${pricing.basePackage.label})`,
+                        qty: 1,
+                        price: pricing.basePrice,
+                        total: pricing.basePrice
+                      })
+
+                      // 2. Extra Hours
+                      if (pricing.extraHours > 0) {
+                        items.push({
+                          item: `Extra Time (${pricing.extraHours} jam)`,
+                          qty: pricing.extraHours,
+                          price: EXTRA_HOUR_RATE,
+                          total: pricing.extraHoursPrice
+                        })
+                      }
+
+                      // 3. After Hours
+                      if (afterHoursCount > 0) {
+                        items.push({
+                          item: `Overnight Surcharge (${afterHoursCount} jam)`,
+                          qty: afterHoursCount,
+                          price: AFTER_HOURS_RATE,
+                          total: afterHoursPrice
+                        })
+                      }
+
+                      // 4. Services
+                      const services = selectedBooking.services
+                      if (services.acOption) {
+                        const opt = AC_OPTIONS.find(o => o.value === services.acOption)
+                        if (opt && opt.price > 0) items.push({ item: `AC (${opt.label})`, qty: 1, price: opt.price, total: opt.price })
+                      }
+                      if (services.chairOption) {
+                        const opt = CHAIR_OPTIONS.find(o => o.value === services.chairOption)
+                        if (opt && opt.price > 0) items.push({ item: `Kursi (${opt.label})`, qty: 1, price: opt.price, total: opt.price })
+                      }
+                      if (services.tableOption) {
+                        const opt = TABLE_OPTIONS.find(o => o.value === services.tableOption)
+                        if (opt && opt.price > 0) items.push({ item: `Meja (${opt.label})`, qty: 1, price: opt.price, total: opt.price })
+                      }
+                      if (services.projectorScreen) {
+                        const opt = PROJECTOR_SCREEN_OPTIONS.find(o => o.value === services.projectorScreen)
+                        if (opt && opt.price > 0) items.push({ item: `Projector/Screen (${opt.label})`, qty: 1, price: opt.price, total: opt.price })
+                      }
+                      if (services.plateOption) {
+                        const opt = PLATE_OPTIONS.find(o => o.value === services.plateOption)
+                        if (opt && opt.price > 0) items.push({ item: `Piring (${opt.label})`, qty: 1, price: opt.price, total: opt.price })
+                      }
+                      if (services.glassOption) {
+                        const opt = GLASS_OPTIONS.find(o => o.value === services.glassOption)
+                        if (opt && opt.price > 0) items.push({ item: `Gelas (${opt.label})`, qty: 1, price: opt.price, total: opt.price })
+                      }
+
                       const params = new URLSearchParams({
                         bookingId: selectedBooking.bookingId,
                         name: selectedBooking.bookerName,
@@ -728,6 +871,7 @@ export default function AuditoriumCalendar({
                         date: selectedBooking.date.split('T')[0],
                         time: `${selectedBooking.startTime} - ${selectedBooking.endTime}`,
                         total: selectedBooking.totalPrice.toString(),
+                        items: JSON.stringify(items) // Pass items for PDF too
                       })
                       window.open(`/api/booking/auditorium/pdf?${params.toString()}`, '_blank')
                     }}

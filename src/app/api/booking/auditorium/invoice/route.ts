@@ -8,6 +8,26 @@ export async function GET(request: NextRequest) {
     const event = searchParams.get('event') || ''
     const date = searchParams.get('date') || ''
     const total = searchParams.get('total') || '0'
+    const itemsParam = searchParams.get('items')
+
+    let parsedItems = []
+    if (itemsParam) {
+        try {
+            parsedItems = JSON.parse(itemsParam)
+        } catch (e) {
+            console.error('Failed to parse items', e)
+        }
+    }
+
+    // Fallback if no items passed
+    if (parsedItems.length === 0) {
+        parsedItems.push({
+            item: 'Sewa Auditorium (Bundle)',
+            qty: 1,
+            price: total,
+            total: total
+        })
+    }
 
     // Generate invoice number
     const invoiceNumber = `INV-${bookingId.replace('AULA-', '')}`
@@ -263,20 +283,21 @@ export async function GET(request: NextRequest) {
                         <th>Deskripsi</th>
                         <th>Qty</th>
                         <th>Harga</th>
+                        <th>Total</th>
                     </tr>
                 </thead>
                 <tbody>
+                    ${parsedItems.map((item: any) => `
                     <tr>
                         <td>
-                            <div class="item-name">Sewa Auditorium</div>
-                            <div class="item-desc">
-                                ${decodeURIComponent(event)}<br>
-                                📅 ${date}
-                            </div>
+                            <div class="item-name">${item.item}</div>
+                            ${item.item.includes('Sewa Aula') ? `<div class="item-desc">${decodeURIComponent(event)}<br>📅 ${date}</div>` : ''}
                         </td>
-                        <td>1</td>
-                        <td>${parseInt(total).toLocaleString()} EGP</td>
+                        <td>${item.qty}</td>
+                        <td>${parseInt(item.price).toLocaleString()} EGP</td>
+                        <td>${parseInt(item.total).toLocaleString()} EGP</td>
                     </tr>
+                    `).join('')}
                 </tbody>
             </table>
             
