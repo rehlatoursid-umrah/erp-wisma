@@ -780,11 +780,10 @@ export default function HotelCalendar({ onBookRoom, refreshTrigger = 0, onUpdate
             </div>
           </div>
         </div>
-        </div>
-  )
-}
+      )
+      }
 
-<style jsx>{`
+      <style jsx>{`
                 .hotel-calendar {
                     background: var(--color-bg-card);
                     border-radius: var(--radius-2xl);
