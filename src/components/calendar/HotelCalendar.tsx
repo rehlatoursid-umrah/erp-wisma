@@ -730,14 +730,61 @@ export default function HotelCalendar({ onBookRoom, refreshTrigger = 0, onUpdate
                     📄 Download PDF
                   </button>
                 </div>
+
+                {/* 4. Cancel Booking (New) */}
+                {selectedBooking.status !== 'cancelled' && (
+                  <button
+                    onClick={async () => {
+                      if (!confirm('⚠️ Are you sure you want to CANCEL this booking?\n\nThis will:\n1. Update status to CANCELLED.\n2. PERMANENTLY DELETE any generated invoices (Draft or Paid).')) return;
+
+                      try {
+                        const res = await fetch('/api/booking/hotel/cancel', {
+                          method: 'POST',
+                          headers: { 'Content-Type': 'application/json' },
+                          body: JSON.stringify({ bookingId: selectedBooking.bookingId })
+                        })
+                        const data = await res.json()
+
+                        if (res.ok) {
+                          alert('✅ Booking Cancelled & Invoices Deleted.')
+                          setSelectedBooking(null)
+                          fetchBookings()
+                          if (onUpdate) onUpdate()
+                        } else {
+                          alert('❌ Failed to cancel: ' + data.error)
+                        }
+                      } catch (e) {
+                        console.error(e)
+                        alert('Error cancelling booking')
+                      }
+                    }}
+                    style={{
+                      marginTop: '10px',
+                      padding: '12px',
+                      borderRadius: '8px',
+                      border: '1px solid #fee2e2',
+                      background: '#fef2f2',
+                      color: '#dc2626',
+                      cursor: 'pointer',
+                      fontWeight: 600,
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: '8px'
+                    }}
+                  >
+                    ❌ Cancel Booking
+                  </button>
+                )}
               </div>
             </div>
           </div>
         </div>
-      )
-      }
+        </div>
+  )
+}
 
-      <style jsx>{`
+<style jsx>{`
                 .hotel-calendar {
                     background: var(--color-bg-card);
                     border-radius: var(--radius-2xl);
