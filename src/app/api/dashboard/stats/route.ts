@@ -24,30 +24,20 @@ export async function GET() {
         const startOfWeekStr = startOfWeek.toISOString().split('T')[0]
         const endOfWeekStr = endOfWeek.toISOString().split('T')[0]
 
-        // 1. Hotel: Active Guests Today (Checked In)
-        // Logic: Status is 'checked-in' OR (CheckIn <= Today AND CheckOut > Today)
+        // 1. Hotel: Bookings This Week
         const hotelBookings = await payload.find({
             collection: 'hotel-bookings',
             where: {
                 and: [
-                    {
-                        or: [
-                            { status: { equals: 'checked-in' } },
-                            {
-                                and: [
-                                    { checkIn: { less_than_equal: now.toISOString() } },
-                                    { checkOut: { greater_than: now.toISOString() } },
-                                    { status: { not_equals: 'cancelled' } }
-                                ]
-                            }
-                        ]
-                    }
+                    { checkIn: { greater_than_equal: startOfWeekStr } },
+                    { checkIn: { less_than_equal: endOfWeekStr } },
+                    { status: { not_equals: 'cancelled' } }
                 ]
             },
-            limit: 5,
+            limit: 10,
             sort: 'checkIn',
         })
-        const occupiedRooms = hotelBookings.totalDocs // We want total count, but also details for the card
+        const occupiedRooms = hotelBookings.totalDocs
 
         // 2. Auditorium: Events This Week
         const aulaBookings = await payload.find({
@@ -64,24 +54,31 @@ export async function GET() {
         })
         const upcomingEventsCount = aulaBookings.totalDocs
 
-        // 3. Visa: Recent Inquiries (Pending Docs or On Process)
+        // 3. Visa: Inquiries This Week
         const visaInquiries = await payload.find({
             collection: 'travel-docs',
             where: {
-                visaStatus: { in: ['pending_docs', 'on_process'] }
+                and: [
+                    { createdAt: { greater_than_equal: startOfWeek.toISOString() } },
+                    { createdAt: { less_than_equal: endOfWeek.toISOString() } }
+                ]
             },
-            limit: 5,
+            limit: 10,
             sort: '-createdAt',
         })
         const activeVisaCount = visaInquiries.totalDocs
 
-        // 4. Rental: Recent Orders (Transactions with type 'rental')
+        // 4. Rental: Orders This Week
         const rentalTransactions = await payload.find({
             collection: 'transactions',
             where: {
-                bookingType: { equals: 'rental' }
+                and: [
+                    { bookingType: { equals: 'rental' } },
+                    { createdAt: { greater_than_equal: startOfWeek.toISOString() } },
+                    { createdAt: { less_than_equal: endOfWeek.toISOString() } }
+                ]
             },
-            limit: 5,
+            limit: 10,
             sort: '-createdAt',
         })
         const activeRentalsCount = rentalTransactions.totalDocs

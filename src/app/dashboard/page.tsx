@@ -257,10 +257,10 @@ export default function DashboardPage() {
             {/* Mini Calendars Grid */}
             <div className="mini-calendars">
               <div className="mini-calendar-card" onClick={() => setActiveTab('hotel')}>
-                <h4>🏨 Hotel - Hari Ini</h4>
+                <h4>🏨 Hotel - Minggu Ini</h4>
                 <div className="mini-events">
-                  {dashboardData.hotel && dashboardData.hotel.length === 0 ? <div className="text-muted" style={{ padding: 10, color: '#888' }}>Tidak ada tamu hari ini</div> :
-                    dashboardData.hotel?.map((booking: any, idx) => {
+                  {dashboardData.hotel && dashboardData.hotel.length === 0 ? <div className="text-muted" style={{ padding: 10, color: '#888' }}>Tidak ada booking minggu ini</div> :
+                    dashboardData.hotel?.slice(0, 5).map((booking: any, idx) => {
                       // assignedRooms might be JSON string or array
                       let roomNum = '?'
                       try {
@@ -272,11 +272,15 @@ export default function DashboardPage() {
                         }
                       } catch (e) { roomNum = booking.assignedRooms || '?' }
 
+                      const checkInDate = booking.checkIn ? new Date(booking.checkIn) : null
+
                       return (
                         <div key={idx} className="mini-event booked">
-                          <span style={{ fontWeight: 'bold', minWidth: 30 }}>{roomNum}</span>
+                          <span style={{ whiteSpace: 'nowrap', minWidth: '40px' }}>
+                            {checkInDate ? checkInDate.getDate() : '-'} <small>{checkInDate ? checkInDate.toLocaleDateString('id-ID', { month: 'short' }) : ''}</small>
+                          </span>
                           <span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                            {booking.guest?.fullName || 'Tamu'}
+                            {booking.guest?.fullName || 'Tamu'} <small style={{ color: '#888' }}>R.{roomNum}</small>
                           </span>
                         </div>
                       )
@@ -289,7 +293,7 @@ export default function DashboardPage() {
               <div className="mini-calendar-card" onClick={() => setActiveTab('aula')}>
                 <h4>🏢 Auditorium - Minggu Ini</h4>
                 <div className="mini-events">
-                  {dashboardData.aula && dashboardData.aula.length === 0 ? <div className="text-muted" style={{ padding: 10, color: '#888' }}>Tidak ada event minggu ini</div> :
+                  {dashboardData.aula && dashboardData.aula.length === 0 ? <div className="text-muted" style={{ padding: 10, color: '#888' }}>Tidak ada booking minggu ini</div> :
                     dashboardData.aula?.slice(0, 3).map((booking: any, idx) => (
                       <div key={idx} className="mini-event booked">
                         <span style={{ whiteSpace: 'nowrap', minWidth: '40px' }}>
@@ -305,9 +309,9 @@ export default function DashboardPage() {
               </div>
 
               <div className="mini-calendar-card" onClick={() => setActiveTab('visa')}>
-                <h4>✈️ Visa Inquiries</h4>
+                <h4>✈️ Visa Inquiries - Minggu Ini</h4>
                 <div className="mini-list">
-                  {dashboardData.visa && dashboardData.visa.length === 0 ? <div className="text-muted" style={{ padding: 10, color: '#888' }}>Tidak ada inquiry baru</div> :
+                  {dashboardData.visa && dashboardData.visa.length === 0 ? <div className="text-muted" style={{ padding: 10, color: '#888' }}>Tidak ada inquiry minggu ini</div> :
                     dashboardData.visa?.map((item: any, idx) => (
                       <div key={idx} className="mini-list-item">
                         <span className={`dot inquiry`}></span>
@@ -321,9 +325,9 @@ export default function DashboardPage() {
               </div>
 
               <div className="mini-calendar-card" onClick={() => setActiveTab('rental')}>
-                <h4>📦 Equipment Rental</h4>
+                <h4>📦 Rental Equipment - Minggu Ini</h4>
                 <div className="mini-list">
-                  {dashboardData.rental && dashboardData.rental.length === 0 ? <div className="text-muted" style={{ padding: 10, color: '#888' }}>Tidak ada rental aktif</div> :
+                  {dashboardData.rental && dashboardData.rental.length === 0 ? <div className="text-muted" style={{ padding: 10, color: '#888' }}>Tidak ada rental minggu ini</div> :
                     dashboardData.rental?.slice(0, 3).map((item: any, idx) => (
                       <div key={idx} className="mini-list-item">
                         <span className="dot rental"></span>
