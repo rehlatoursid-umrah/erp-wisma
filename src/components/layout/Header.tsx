@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { Menu, Banknote, Coins, Clock, Globe } from 'lucide-react'
 
 interface HeaderProps {
   onMenuClick: () => void
@@ -66,22 +67,22 @@ export default function Header({ onMenuClick, balances }: HeaderProps & {
     <header className="header">
       <div className="header-left">
         <button className="menu-btn" onClick={onMenuClick}>
-          <span>☰</span>
+          <Menu size={24} />
         </button>
         <div className="header-ticker">
           {/* USD Balance */}
           <div className="ticker-item">
-            <span>💵</span>
+            <Globe size={16} />
             <span>USD: <strong>{displayBalances?.USD?.toLocaleString() || '0'}</strong></span>
           </div>
           {/* EGP Balance */}
           <div className="ticker-item">
-            <span>💷</span>
+            <Banknote size={16} />
             <span>EGP: <strong>{displayBalances?.EGP?.toLocaleString() || '0'}</strong></span>
           </div>
           {/* IDR Balance */}
           <div className="ticker-item">
-            <span>💰</span>
+            <Coins size={16} />
             <span>IDR: <strong>{displayBalances?.IDR?.toLocaleString() || '0'}</strong></span>
           </div>
 
@@ -89,7 +90,7 @@ export default function Header({ onMenuClick, balances }: HeaderProps & {
 
           {/* Clock */}
           <div className="ticker-item clock">
-            <span>🕐</span>
+            <Clock size={16} />
             <span style={{ minWidth: '80px', display: 'inline-block' }}>{time}</span>
           </div>
         </div>

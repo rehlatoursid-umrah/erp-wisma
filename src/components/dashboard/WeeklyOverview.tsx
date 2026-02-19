@@ -1,97 +1,106 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import {
+  CalendarDays,
+  Hotel,
+  Building2,
+  Plane,
+  Package
+} from 'lucide-react'
 
 interface WeeklyStats {
-    hotel: number
-    auditorium: number
-    visa: number
-    rental: number
+  hotel: number
+  auditorium: number
+  visa: number
+  rental: number
 }
 
 interface WeeklyOverviewProps {
-    refreshTrigger?: number
+  refreshTrigger?: number
 }
 
 export default function WeeklyOverview({ refreshTrigger = 0 }: WeeklyOverviewProps) {
-    const [stats, setStats] = useState<WeeklyStats>({
-        hotel: 0,
-        auditorium: 0,
-        visa: 0,
-        rental: 0
-    })
-    const [dateRange, setDateRange] = useState<string>('')
+  const [stats, setStats] = useState<WeeklyStats>({
+    hotel: 0,
+    auditorium: 0,
+    visa: 0,
+    rental: 0
+  })
+  const [dateRange, setDateRange] = useState<string>('')
 
-    const fetchStats = async () => {
-        try {
-            const res = await fetch('/api/dashboard/weekly-stats')
-            if (res.ok) {
-                const data = await res.json()
-                setStats(data.stats)
+  const fetchStats = async () => {
+    try {
+      const res = await fetch('/api/dashboard/weekly-stats')
+      if (res.ok) {
+        const data = await res.json()
+        setStats(data.stats)
 
-                // Format date range
-                if (data.period) {
-                    const start = new Date(data.period.start)
-                    const end = new Date(data.period.end)
-                    const options: Intl.DateTimeFormatOptions = { day: 'numeric', month: 'short' }
-                    setDateRange(`${start.toLocaleDateString('id-ID', options)} - ${end.toLocaleDateString('id-ID', options)}`)
-                }
-            }
-        } catch (error) {
-            console.error('Failed to fetch weekly stats:', error)
+        // Format date range
+        if (data.period) {
+          const start = new Date(data.period.start)
+          const end = new Date(data.period.end)
+          const options: Intl.DateTimeFormatOptions = { day: 'numeric', month: 'short' }
+          setDateRange(`${start.toLocaleDateString('id-ID', options)} - ${end.toLocaleDateString('id-ID', options)}`)
         }
+      }
+    } catch (error) {
+      console.error('Failed to fetch weekly stats:', error)
     }
+  }
 
-    useEffect(() => {
-        fetchStats()
-    }, [refreshTrigger])
+  useEffect(() => {
+    fetchStats()
+  }, [refreshTrigger])
 
-    return (
-        <div className="weekly-overview">
-            <div className="section-header">
-                <h2>📅 Overview Minggu Ini</h2>
-                <span className="date-range">{dateRange}</span>
-            </div>
+  return (
+    <div className="weekly-overview">
+      <div className="section-header">
+        <h2><CalendarDays className="inline-icon" size={24} /> Overview Minggu Ini</h2>
+        <span className="date-range">{dateRange}</span>
+      </div>
 
-            <div className="stats-grid">
-                {/* Hotel Card */}
-                <div className="stat-card hotel">
-                    <div className="stat-icon">🏨</div>
-                    <div className="stat-content">
-                        <span className="stat-label">Hotel Check-ins</span>
-                        <span className="stat-value">{stats.hotel}</span>
-                    </div>
-                </div>
+      <div className="stats-grid">
+        {/* Hotel Card */}
+        <div className="stat-card hotel">
+          <div className="stat-icon"><Hotel size={28} /></div>
+          <div className="stat-content">
+            <span className="stat-label">Hotel Check-ins</span>
+            <span className="stat-value">{stats.hotel}</span>
+          </div>
+        </div>
 
-                {/* Auditorium Card */}
-                <div className="stat-card auditorium">
-                    <div className="stat-icon">🏢</div>
-                    <div className="stat-content">
-                        <span className="stat-label">Event Auditorium</span>
-                        <span className="stat-value">{stats.auditorium}</span>
-                    </div>
-                </div>
+        {/* Auditorium Card */}
+        <div className="stat-card auditorium">
+          <div className="stat-icon"><Building2 size={28} /></div>
+          <div className="stat-content">
+            <span className="stat-label">Event Auditorium</span>
+            <span className="stat-value">{stats.auditorium}</span>
+          </div>
+        </div>
 
-                {/* Visa Card */}
-                <div className="stat-card visa">
-                    <div className="stat-icon">✈️</div>
-                    <div className="stat-content">
-                        <span className="stat-label">Visa Inquiry</span>
-                        <span className="stat-value">{stats.visa}</span>
-                    </div>
-                </div>
+        {/* Visa Card */}
+        <div className="stat-card visa">
+          <div className="stat-icon"><Plane size={28} /></div>
+          <div className="stat-content">
+            <span className="stat-label">Visa Inquiry</span>
+            <span className="stat-value">{stats.visa}</span>
+          </div>
+        </div>
 
-                {/* Rental Card */}
-                <div className="stat-card rental">
-                    <div className="stat-icon">📦</div>
-                    <div className="stat-content">
-                        <span className="stat-label">Rental Orders</span>
-                        <span className="stat-value">{stats.rental}</span>
-                    </div>
-                </div>
-            </div>
+        {/* Rental Card */}
+        <div className="stat-card rental">
+          <div className="stat-icon"><Package size={28} /></div>
+          <div className="stat-content">
+            <span className="stat-label">Rental Orders</span>
+            <span className="stat-value">{stats.rental}</span>
+          </div>
+        </div>
+      </div>
 
-            <style jsx>{`
+      {/* ... styles ... */}
+
+      <style jsx>{`
         .weekly-overview {
           margin-bottom: var(--spacing-xl);
           animation: fadeIn 0.5s ease-out;
@@ -191,6 +200,6 @@ export default function WeeklyOverview({ refreshTrigger = 0 }: WeeklyOverviewPro
           to { opacity: 1; transform: translateY(0); }
         }
       `}</style>
-        </div>
-    )
+    </div >
+  )
 }

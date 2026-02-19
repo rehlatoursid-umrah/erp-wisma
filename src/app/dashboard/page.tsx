@@ -1,6 +1,12 @@
-'use client'
-
 import { useState, useEffect } from 'react'
+import {
+  Hotel,
+  Building2,
+  Plane,
+  Package,
+  Receipt,
+  LayoutDashboard
+} from 'lucide-react'
 import Sidebar from '@/components/layout/Sidebar'
 import Header from '@/components/layout/Header'
 import LiveCalendar from '@/components/calendar/LiveCalendar'
@@ -201,37 +207,37 @@ export default function DashboardPage() {
               className={`tab ${activeTab === 'overview' ? 'active' : ''}`}
               onClick={() => setActiveTab('overview')}
             >
-              📊 Overview
+              <LayoutDashboard size={18} /> Overview
             </button>
             <button
               className={`tab ${activeTab === 'hotel' ? 'active' : ''}`}
               onClick={() => setActiveTab('hotel')}
             >
-              🏨 Hotel
+              <Hotel size={18} /> Hotel
             </button>
             <button
               className={`tab ${activeTab === 'aula' ? 'active' : ''}`}
               onClick={() => setActiveTab('aula')}
             >
-              🏢 Auditorium
+              <Building2 size={18} /> Auditorium
             </button>
             <button
               className={`tab ${activeTab === 'visa' ? 'active' : ''}`}
               onClick={() => setActiveTab('visa')}
             >
-              ✈️ Visa
+              <Plane size={18} /> Visa
             </button>
             <button
               className={`tab ${activeTab === 'rental' ? 'active' : ''}`}
               onClick={() => setActiveTab('rental')}
             >
-              📦 Rental
+              <Package size={18} /> Rental
             </button>
             <button
               className={`tab ${activeTab === 'invoice' ? 'active' : ''}`}
               onClick={() => setActiveTab('invoice')}
             >
-              🧾 Invoice
+              <Receipt size={18} /> Invoice
             </button>
           </div>
         </div>

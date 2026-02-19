@@ -10,8 +10,21 @@ interface LogEntry {
   category?: string
 }
 
+import {
+  BookOpen,
+  Megaphone,
+  Plane,
+  Home,
+  Wallet,
+  Briefcase,
+  Send
+} from 'lucide-react'
+
+// ... interface LogEntry ...
+
 export default function Logbook() {
   const [logText, setLogText] = useState('')
+  // ... state ...
   const [category, setCategory] = useState('general')
   const [logs, setLogs] = useState<LogEntry[]>([])
 
@@ -83,7 +96,7 @@ export default function Logbook() {
 
   return (
     <div className="card logbook">
-      <h3>📝 Daily Logbook</h3>
+      <h3><BookOpen className="inline-icon" size={20} /> Daily Logbook</h3>
 
       <form onSubmit={handleSubmit} className="log-form">
         <div className="input-group">
@@ -92,11 +105,11 @@ export default function Logbook() {
             onChange={(e) => setCategory(e.target.value)}
             className="category-select"
           >
-            <option value="general">📢 Umum (Piket)</option>
-            <option value="bpupd">✈️ BPUPD</option>
-            <option value="bppg">🏠 BPPG</option>
-            <option value="bendahara">💰 Bendahara</option>
-            <option value="direktur">👔 Direktur</option>
+            <option value="general">Umum (Piket)</option>
+            <option value="bpupd">BPUPD</option>
+            <option value="bppg">BPPG</option>
+            <option value="bendahara">Bendahara</option>
+            <option value="direktur">Direktur</option>
           </select>
           <input
             type="text"
@@ -106,8 +119,8 @@ export default function Logbook() {
             onChange={(e) => setLogText(e.target.value)}
           />
         </div>
-        <button type="submit" className="btn btn-primary">
-          Kirim
+        <button type="submit" className="btn btn-primary icon-btn">
+          <Send size={16} /> Kirim
         </button>
       </form>
 
@@ -116,11 +129,11 @@ export default function Logbook() {
           <div key={log.id} className="log-item">
             <div className="log-header">
               <span className="log-author">
-                {log.category === 'general' ? '📢 Piket/Umum' :
-                  log.category === 'bpupd' ? '✈️ BPUPD' :
-                    log.category === 'bppg' ? '🏠 BPPG' :
-                      log.category === 'bendahara' ? '💰 Bendahara' :
-                        log.category === 'direktur' ? '👔 Direktur' : log.category}
+                {log.category === 'general' ? <><Megaphone size={14} /> Piket/Umum</> :
+                  log.category === 'bpupd' ? <><Plane size={14} /> BPUPD</> :
+                    log.category === 'bppg' ? <><Home size={14} /> BPPG</> :
+                      log.category === 'bendahara' ? <><Wallet size={14} /> Bendahara</> :
+                        log.category === 'direktur' ? <><Briefcase size={14} /> Direktur</> : log.category}
               </span>
               <span className="log-time">{formatTime(log.timestamp)}</span>
             </div>
@@ -130,9 +143,20 @@ export default function Logbook() {
       </div>
 
       <style jsx>{`
-        .logbook h3 {
-          margin-bottom: var(--spacing-lg);
+        .inline-icon {
+            display: inline-block;
+            vertical-align: middle;
+            margin-right: 8px;
+            margin-bottom: 2px;
         }
+
+        .icon-btn {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        
+        /* ... existing styles ... */
 
         .log-form {
           display: flex;
@@ -183,6 +207,9 @@ export default function Logbook() {
           font-weight: 600;
           font-size: 0.8125rem;
           color: var(--color-primary);
+          display: flex;
+          align-items: center;
+          gap: 6px;
         }
 
         .log-time {

@@ -2,6 +2,20 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
+import {
+    Home,
+    Shield,
+    Plane,
+    Wrench,
+    FileText,
+    Briefcase,
+    BarChart3,
+    LineChart,
+    Settings,
+    LogOut,
+    Building2,
+    Lock
+} from 'lucide-react'
 
 interface SidebarProps {
     isOpen: boolean
@@ -12,24 +26,24 @@ const navItems = [
     {
         section: 'Main',
         items: [
-            { href: '/dashboard', icon: '🏠', label: 'Dashboard' },
+            { href: '/dashboard', icon: Home, label: 'Dashboard' },
         ]
     },
     {
         section: 'Portal Divisi',
         items: [
-            { href: '/portal/bendahara', icon: '🛡️', label: 'Bendahara', locked: true },
-            { href: '/portal/bpupd', icon: '✈️', label: 'BPUPD' },
-            { href: '/portal/bppg', icon: '🛠️', label: 'BPPG' },
-            { href: '/portal/sekretaris', icon: '🗄️', label: 'Sekretaris' },
-            { href: '/portal/direktur', icon: '👔', label: 'Direktur' },
+            { href: '/portal/bendahara', icon: Shield, label: 'Bendahara', locked: true },
+            { href: '/portal/bpupd', icon: Plane, label: 'BPUPD' },
+            { href: '/portal/bppg', icon: Wrench, label: 'BPPG' },
+            { href: '/portal/sekretaris', icon: FileText, label: 'Sekretaris' },
+            { href: '/portal/direktur', icon: Briefcase, label: 'Direktur' },
         ]
     },
     {
         section: 'Data',
         items: [
-            { href: '/transactions', icon: '📊', label: 'Transaksi' },
-            { href: '/reports', icon: '📈', label: 'Laporan' },
+            { href: '/transactions', icon: BarChart3, label: 'Transaksi' },
+            { href: '/reports', icon: LineChart, label: 'Laporan' },
         ]
     },
 ]
@@ -47,7 +61,9 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
 
             <aside className={`sidebar ${isOpen ? 'open' : ''}`}>
                 <div className="sidebar-logo">
-                    <div className="logo-icon">🏛️</div>
+                    <div className="logo-icon">
+                        <Building2 size={28} color="white" />
+                    </div>
                     <div>
                         <h2>WIN-OS</h2>
                         <p className="logo-subtitle">Wisma Nusantara</p>
@@ -64,9 +80,11 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
                                     href={item.href}
                                     className={`nav-item ${pathname === item.href ? 'active' : ''}`}
                                 >
-                                    <span className="nav-icon">{item.icon}</span>
+                                    <span className="nav-icon">
+                                        <item.icon size={20} color="black" />
+                                    </span>
                                     <span>{item.label}</span>
-                                    {item.locked && <span className="nav-lock">🔒</span>}
+                                    {item.locked && <span className="nav-lock"><Lock size={12} /></span>}
                                 </Link>
                             ))}
                             {sIdx < navItems.length - 1 && <div className="nav-divider" />}
@@ -76,11 +94,11 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
 
                 <div className="sidebar-footer">
                     <Link href="/settings" className="nav-item">
-                        <span className="nav-icon">⚙️</span>
+                        <span className="nav-icon"><Settings size={20} color="black" /></span>
                         <span>Pengaturan</span>
                     </Link>
                     <button className="nav-item logout-btn">
-                        <span className="nav-icon">🚪</span>
+                        <span className="nav-icon"><LogOut size={20} color="black" /></span>
                         <span>Keluar</span>
                     </button>
                 </div>
