@@ -833,6 +833,7 @@ export default function AuditoriumCalendar({
                         date: selectedBooking.date.split('T')[0],
                         total: selectedBooking.totalPrice.toString(),
                         currency: 'EGP', // Default for view
+                        status: selectedBooking.status, // Pass status here
                         items: JSON.stringify(items)
                       })
                       window.open(`/api/booking/auditorium/invoice?${params.toString()}`, '_blank')
