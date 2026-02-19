@@ -12,6 +12,9 @@ export async function GET(request: NextRequest) {
     const total = searchParams.get('total') || '0'
     const status = searchParams.get('status') || 'pending'
     const currency = searchParams.get('currency') || 'USD'
+    const extraBed = parseInt(searchParams.get('extraBed') || '0')
+    const pickup = parseInt(searchParams.get('pickup') || '0')
+    const meals = parseInt(searchParams.get('meals') || '0')
 
     const isConfirmed = status === 'confirmed' || status === 'paid' || status === 'checked-in' || status === 'checked-out'
     const statusLabel = isConfirmed ? 'KONFIRMASI BOOKING' : 'MENUNGGU KONFIRMASI'
@@ -252,6 +255,29 @@ export async function GET(request: NextRequest) {
                     </div>
                 </div>
             </div>
+
+            ${(extraBed > 0 || pickup > 0 || meals > 0) ? `
+            <div class="section">
+                <div class="section-title">✨ Additional Services</div>
+                <div class="detail-grid">
+                    ${extraBed > 0 ? `
+                    <div class="detail-item">
+                        <span class="label">Extra Bed</span>
+                        <span class="value">${extraBed.toLocaleString()} ${currency}</span>
+                    </div>` : ''}
+                    ${pickup > 0 ? `
+                    <div class="detail-item">
+                        <span class="label">Airport Pickup</span>
+                        <span class="value">${pickup.toLocaleString()} ${currency}</span>
+                    </div>` : ''}
+                    ${meals > 0 ? `
+                    <div class="detail-item">
+                        <span class="label">Meals (Paid Separately)</span>
+                        <span class="value" style="color: #ea580c;">${meals.toLocaleString()} EGP</span>
+                    </div>` : ''}
+                </div>
+            </div>
+            ` : ''}
             
             <div class="total-section">
                 <div class="total-row">

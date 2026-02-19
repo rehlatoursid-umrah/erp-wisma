@@ -722,6 +722,7 @@ export default function HotelCalendar({ onBookRoom, refreshTrigger = 0, onUpdate
 
                   <button
                     onClick={() => {
+                      const pricing = (selectedBooking as any).pricing || {}
                       const params = new URLSearchParams({
                         bookingId: selectedBooking.bookingId,
                         name: selectedBooking.guestName,
@@ -731,7 +732,10 @@ export default function HotelCalendar({ onBookRoom, refreshTrigger = 0, onUpdate
                         checkOut: selectedBooking.checkOut.split('T')[0],
                         total: selectedBooking.totalPrice.toString(),
                         currency: 'USD',
-                        status: selectedBooking.status
+                        status: selectedBooking.status,
+                        extraBed: (pricing.extraBedTotal || 0).toString(),
+                        pickup: (pricing.pickupTotal || 0).toString(),
+                        meals: (pricing.mealsTotal || 0).toString()
                       })
                       window.open(`/api/booking/hotel/pdf?${params.toString()}`, '_blank')
                     }}
