@@ -315,9 +315,14 @@ export default function DashboardPage() {
                     dashboardData.visa?.map((item: any, idx) => (
                       <div key={idx} className="mini-list-item">
                         <span className={`dot inquiry`}></span>
-                        <span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                          {item.passengerName} <small style={{ color: '#888' }}>({item.visaStatus === 'pending_docs' ? 'Pending' : 'Process'})</small>
-                        </span>
+                        <div>
+                          <span style={{ display: 'block', fontSize: '0.8rem', color: '#666' }}>
+                            {item.createdAt ? new Date(item.createdAt).toLocaleDateString('id-ID', { day: 'numeric', month: 'short' }) : '-'}
+                          </span>
+                          <span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                            {item.passengerName} <small style={{ color: '#888' }}>({item.visaStatus === 'pending_docs' ? 'Pending' : 'Process'})</small>
+                          </span>
+                        </div>
                       </div>
                     ))}
                 </div>
@@ -331,9 +336,14 @@ export default function DashboardPage() {
                     dashboardData.rental?.slice(0, 3).map((item: any, idx) => (
                       <div key={idx} className="mini-list-item">
                         <span className="dot rental"></span>
-                        <span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                          {item.customerName} <small style={{ color: '#888' }}>({item.invoiceNo})</small>
-                        </span>
+                        <div>
+                          <span style={{ display: 'block', fontSize: '0.8rem', color: '#666' }}>
+                            {item.createdAt ? new Date(item.createdAt).toLocaleDateString('id-ID', { day: 'numeric', month: 'short' }) : '-'}
+                          </span>
+                          <span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                            {item.customerName} <small style={{ color: '#888' }}>({item.invoiceNo})</small>
+                          </span>
+                        </div>
                       </div>
                     ))}
                 </div>
