@@ -13,6 +13,19 @@ export async function GET(request: NextRequest) {
     const statusLabel = isPaid ? '✅ LUNAS' : '⏳ Belum Dibayar'
     const statusClass = isPaid ? 'paid' : 'unpaid'
 
+    // Generate invoice number
+    const invoiceNumber = `INV-${bookingId.replace('AULA-', '')}`
+    const invoiceDate = new Date().toLocaleDateString('id-ID', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+    })
+    const dueDate = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toLocaleDateString('id-ID', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+    })
+
     // ... (rest of the code)
 
     const html = `
