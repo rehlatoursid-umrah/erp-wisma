@@ -8,6 +8,7 @@ export async function GET(request: NextRequest) {
     const event = searchParams.get('event') || ''
     const date = searchParams.get('date') || ''
     const total = searchParams.get('total') || '0'
+    const currency = searchParams.get('currency') || 'EGP'
     const itemsParam = searchParams.get('items')
 
     let parsedItems = []
@@ -294,8 +295,8 @@ export async function GET(request: NextRequest) {
                             ${item.item.includes('Sewa Aula') ? `<div class="item-desc">${decodeURIComponent(event)}<br>📅 ${date}</div>` : ''}
                         </td>
                         <td>${item.qty}</td>
-                        <td>${parseInt(item.price).toLocaleString()} EGP</td>
-                        <td>${parseInt(item.total).toLocaleString()} EGP</td>
+                        <td>${parseInt(item.price).toLocaleString()} ${currency}</td>
+                        <td>${parseInt(item.total).toLocaleString()} ${currency}</td>
                     </tr>
                     `).join('')}
                 </tbody>
@@ -305,15 +306,15 @@ export async function GET(request: NextRequest) {
                 <table class="totals-table">
                     <tr>
                         <td>Subtotal</td>
-                        <td>${parseInt(total).toLocaleString()} EGP</td>
+                        <td>${parseInt(total).toLocaleString()} ${currency}</td>
                     </tr>
                     <tr>
                         <td>Pajak (0%)</td>
-                        <td>0 EGP</td>
+                        <td>0 ${currency}</td>
                     </tr>
                     <tr class="grand-total">
                         <td>Total</td>
-                        <td>${parseInt(total).toLocaleString()} EGP</td>
+                        <td>${parseInt(total).toLocaleString()} ${currency}</td>
                     </tr>
                 </table>
             </div>

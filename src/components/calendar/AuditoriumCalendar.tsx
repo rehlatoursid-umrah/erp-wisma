@@ -28,7 +28,8 @@ import {
   RefreshCw,
   X,
   MessageSquare,
-  Calendar as CalendarIcon
+  Calendar as CalendarIcon,
+  Download
 } from 'lucide-react'
 import AuditoriumBookingForm, { AuditoriumBookingData } from '../booking/AuditoriumBookingForm'
 import {
@@ -762,7 +763,44 @@ export default function AuditoriumCalendar({
                     onClick={() => {
                       if (!selectedBooking.date) return
 
-                      // Calculate detailed items
+                      const params = new URLSearchParams({
+                        bookingId: selectedBooking.bookingId,
+                        name: selectedBooking.bookerName,
+                        event: selectedBooking.eventName,
+                        date: selectedBooking.date.split('T')[0],
+                        total: selectedBooking.totalPrice.toString(),
+                        currency: 'EGP', // Default for view
+                        items: JSON.stringify([{
+                          item: `Sewa Aula: ${selectedBooking.eventName}`,
+                          qty: 1,
+                          price: selectedBooking.totalPrice,
+                          total: selectedBooking.totalPrice
+                        }])
+                      })
+                      window.open(`/api/booking/auditorium/invoice?${params.toString()}`, '_blank')
+                    }}
+                    style={{
+                      padding: '12px',
+                      borderRadius: '8px',
+                      border: '1px solid #d1d5db',
+                      background: 'white',
+                      color: '#374151',
+                      cursor: 'pointer',
+                      fontWeight: 600,
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: '8px'
+                    }}
+                  >
+                    <Download size={18} /> Invoice (PDF)
+                  </button>
+
+                  <button
+                    onClick={() => {
+                      if (!selectedBooking.date) return
+
+                      // Calculate detailed items for Confirmation
                       const duration = calculateDuration(selectedBooking.startTime, selectedBooking.endTime)
                       const pricing = calculateHallPricing(duration)
                       const afterHoursCount = calculateAfterHours(selectedBooking.startTime, selectedBooking.endTime)
@@ -799,7 +837,7 @@ export default function AuditoriumCalendar({
                       }
 
                       // 4. Services
-                      const services = selectedBooking.services
+                      const services = selectedBooking.services || {}
                       if (services.acOption) {
                         const opt = AC_OPTIONS.find(o => o.value === services.acOption)
                         if (opt && opt.price > 0) items.push({ item: `AC (${opt.label})`, qty: 1, price: opt.price, total: opt.price })
@@ -832,6 +870,7 @@ export default function AuditoriumCalendar({
                         date: selectedBooking.date.split('T')[0],
                         time: `${selectedBooking.startTime} - ${selectedBooking.endTime}`,
                         total: selectedBooking.totalPrice.toString(),
+                        currency: 'EGP',
                         items: JSON.stringify(items)
                       })
                       window.open(`/api/booking/auditorium/pdf?${params.toString()}`, '_blank')
@@ -850,7 +889,7 @@ export default function AuditoriumCalendar({
                       gap: '8px'
                     }}
                   >
-                    <FileText size={18} /> Download PDF
+                    <FileText size={18} /> Kirim Booking Confirmation (WA)
                   </button>
 
                   <button

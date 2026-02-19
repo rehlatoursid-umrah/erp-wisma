@@ -9,6 +9,7 @@ export async function GET(request: NextRequest) {
     const date = searchParams.get('date') || ''
     const time = searchParams.get('time') || ''
     const total = searchParams.get('total') || '0'
+    const currency = searchParams.get('currency') || 'EGP'
     const itemsParam = searchParams.get('items')
 
     let parsedItems = []
@@ -263,8 +264,8 @@ export async function GET(request: NextRequest) {
                             ${item.item.includes('Sewa Aula') ? `<div class="item-desc">${decodeURIComponent(event)}<br>📅 ${date}<br>⏰ ${decodeURIComponent(time)}</div>` : ''}
                         </td>
                         <td>${item.qty}</td>
-                        <td>${parseInt(item.price).toLocaleString()} EGP</td>
-                        <td>${parseInt(item.total).toLocaleString()} EGP</td>
+                        <td>${parseInt(item.price).toLocaleString()} ${currency}</td>
+                        <td>${parseInt(item.total).toLocaleString()} ${currency}</td>
                     </tr>
                     `).join('')}
                 </tbody>
@@ -274,7 +275,7 @@ export async function GET(request: NextRequest) {
             <div class="total-section">
                 <div class="total-row">
                     <span class="total-label">💰 Total Pembayaran</span>
-                    <span class="total-value">${parseInt(total).toLocaleString()} EGP</span>
+                    <span class="total-value">${parseInt(total).toLocaleString()} ${currency}</span>
                 </div>
             </div>
         </div>
