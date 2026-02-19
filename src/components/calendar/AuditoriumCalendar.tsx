@@ -633,6 +633,11 @@ export default function AuditoriumCalendar({
                     <button
                       onClick={async () => {
                         if (!confirm('Konfirmasi booking ini? Invoice DRAFT akan dibuat.')) return;
+
+                        // Prompt for Currency
+                        const useUSD = confirm('Create Invoice in USD? (Click OK for USD, Cancel for EGP)');
+                        const selectedCurrency = useUSD ? 'USD' : 'EGP';
+
                         try {
                           const res = await fetch('/api/finance/invoice', {
                             method: 'POST',
@@ -647,7 +652,7 @@ export default function AuditoriumCalendar({
                                 subtotal: selectedBooking.totalPrice
                               }],
                               totalAmount: selectedBooking.totalPrice,
-                              currency: 'EGP',
+                              currency: selectedCurrency,
                               bookingType: 'auditorium',
                               relatedBooking: selectedBooking.id, // Use 'id' for direct relation or 'bookingId' if mapped that way. stored as 'id' usually.
                               paymentStatus: 'pending', // DRAFT
@@ -691,6 +696,11 @@ export default function AuditoriumCalendar({
                   <button
                     onClick={async () => {
                       if (!confirm('Tandai LUNAS? Invoice FINAL dan Cashflow akan dibuat otomatis.')) return;
+
+                      // Prompt for Currency
+                      const useUSD = confirm('Payment in USD? (Click OK for USD, Cancel for EGP)');
+                      const selectedCurrency = useUSD ? 'USD' : 'EGP';
+
                       try {
                         const res = await fetch('/api/finance/invoice', {
                           method: 'POST',
@@ -705,7 +715,7 @@ export default function AuditoriumCalendar({
                               subtotal: selectedBooking.totalPrice
                             }],
                             totalAmount: selectedBooking.totalPrice,
-                            currency: 'EGP',
+                            currency: selectedCurrency,
                             bookingType: 'auditorium',
                             relatedBooking: selectedBooking.id,
                             paymentStatus: 'paid', // PAID
