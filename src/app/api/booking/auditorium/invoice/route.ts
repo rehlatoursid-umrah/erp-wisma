@@ -13,6 +13,28 @@ export async function GET(request: NextRequest) {
     const statusLabel = isPaid ? '✅ LUNAS' : '⏳ Belum Dibayar'
     const statusClass = isPaid ? 'paid' : 'unpaid'
 
+    const currency = searchParams.get('currency') || 'EGP'
+    const itemsParam = searchParams.get('items')
+
+    let parsedItems = []
+    if (itemsParam) {
+        try {
+            parsedItems = JSON.parse(itemsParam)
+        } catch (e) {
+            console.error('Failed to parse items', e)
+        }
+    }
+
+    // Fallback if no items passed
+    if (parsedItems.length === 0) {
+        parsedItems.push({
+            item: 'Sewa Auditorium (Bundle)',
+            qty: 1,
+            price: total,
+            total: total
+        })
+    }
+
     // Generate invoice number
     const invoiceNumber = `INV-${bookingId.replace('AULA-', '')}`
     const invoiceDate = new Date().toLocaleDateString('id-ID', {
