@@ -1,11 +1,38 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Sidebar from '@/components/layout/Sidebar'
 import Header from '@/components/layout/Header'
 
 export default function DirekturPortal() {
   const [sidebarOpen, setSidebarOpen] = useState(false)
+
+  const LogbookTasks = ({ category }: { category: string }) => {
+    const [tasks, setTasks] = useState<any[]>([])
+
+    useEffect(() => {
+      fetch(`/api/tasks?category=${category}`)
+        .then(res => res.json())
+        .then(data => setTasks(data))
+        .catch(err => console.error(err))
+    }, [category])
+
+    if (tasks.length === 0) return <div className="p-4 text-center text-gray-500">Tidak ada laporan khusus direktur.</div>
+
+    return (
+      <div className="grid gap-3">
+        {tasks.map((t: any) => (
+          <div key={t.id} className="p-4 bg-gray-50 rounded-lg border border-gray-100 flex justify-between items-center">
+            <div>
+              <p className="font-medium">{t.title}</p>
+              <p className="text-sm text-gray-500 mt-1">{t.description}</p>
+            </div>
+            <span className="text-xs text-gray-400">{new Date(t.createdAt).toLocaleDateString()}</span>
+          </div>
+        ))}
+      </div>
+    )
+  }
 
   return (
     <div className="dashboard-layout">
@@ -71,6 +98,13 @@ export default function DirekturPortal() {
               <p>📉 Trend occupancy bulanan</p>
             </div>
           </div>
+        </div>
+
+        <div className="card">
+          <div className="card-header">
+            <h3>📝 Executive Summary (Logbook)</h3>
+          </div>
+          <LogbookTasks category="direktur" />
         </div>
 
         <div className="card">

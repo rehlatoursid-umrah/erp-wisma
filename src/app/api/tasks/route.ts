@@ -2,21 +2,27 @@ import { getPayload } from 'payload'
 import config from '@payload-config'
 import { NextResponse } from 'next/server'
 
-export async function GET() {
-    const payload = await getPayload({ config })
+const { searchParams } = new URL(req.url)
+const category = searchParams.get('category')
 
-    try {
-        const tasks = await payload.find({
-            collection: 'tasks',
-            sort: '-createdAt',
-            limit: 50,
-        })
-
-        return NextResponse.json(tasks.docs)
-    } catch (error) {
-        console.error('Error fetching tasks:', error)
-        return NextResponse.json({ error: 'Failed to fetch tasks' }, { status: 500 })
+try {
+    const query: any = {}
+    if (category) {
+        query.category = { equals: category }
     }
+
+    const tasks = await payload.find({
+        collection: 'tasks',
+        where: query,
+        sort: '-createdAt',
+        limit: 50,
+    })
+
+    return NextResponse.json(tasks.docs)
+} catch (error) {
+    console.error('Error fetching tasks:', error)
+    return NextResponse.json({ error: 'Failed to fetch tasks' }, { status: 500 })
+}
 }
 
 export async function POST(req: Request) {
@@ -30,7 +36,7 @@ export async function POST(req: Request) {
             collection: 'tasks',
             data: {
                 title,
-                category: category || 'housekeeping',
+                category: category || 'general',
                 priority: priority || 'normal',
                 description: description || '',
                 status: 'pending',

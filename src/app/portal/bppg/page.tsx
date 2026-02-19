@@ -1,114 +1,129 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Sidebar from '@/components/layout/Sidebar'
 import Header from '@/components/layout/Header'
 
 export default function BPPGPortal() {
-    const [sidebarOpen, setSidebarOpen] = useState(false)
+  const [sidebarOpen, setSidebarOpen] = useState(false)
 
-    const housekeepingList = [
-        { room: '102', status: 'dirty', guest: 'Check-out 10:00' },
-        { room: '104', status: 'dirty', guest: 'Check-out 11:30' },
-    ]
+  const housekeepingList = [
+    { room: '102', status: 'dirty', guest: 'Check-out 10:00' },
+    { room: '104', status: 'dirty', guest: 'Check-out 11:30' },
+  ]
 
-    const maintenanceTickets = [
-        { id: 1, title: 'AC kamar 105 bunyi', priority: 'high', status: 'pending' },
-        { id: 2, title: 'Kran wastafel 101 bocor', priority: 'normal', status: 'in_progress' },
-        { id: 3, title: 'Lampu lorong lantai 2', priority: 'low', status: 'done' },
-    ]
+  const [maintenanceTickets, setMaintenanceTickets] = useState<any[]>([])
 
-    return (
-        <div className="dashboard-layout">
-            <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+  useEffect(() => {
+    const fetchTasks = async () => {
+      try {
+        const res = await fetch('/api/tasks?category=bppg')
+        if (res.ok) {
+          const data = await res.json()
+          setMaintenanceTickets(data)
+        }
+      } catch (error) {
+        console.error('Failed to fetch tasks', error)
+      }
+    }
+    fetchTasks()
+  }, [])
 
-            <main className="main-content">
-                <Header onMenuClick={() => setSidebarOpen(true)} />
+  return (
+    <div className="dashboard-layout">
+      <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
 
-                <div className="portal-header">
-                    <h1>🛠️ Portal BPPG</h1>
-                    <p>Maintenance & Housekeeping</p>
-                </div>
+      <main className="main-content">
+        <Header onMenuClick={() => setSidebarOpen(true)} />
 
-                <div className="portal-grid">
-                    <div className="card">
-                        <h3>🧹 Housekeeping List</h3>
-                        <p className="card-desc">Kamar yang perlu dibersihkan</p>
+        <div className="portal-header">
+          <h1>🛠️ Portal BPPG</h1>
+          <p>Maintenance & Housekeeping</p>
+        </div>
 
-                        {housekeepingList.length === 0 ? (
-                            <div className="empty-state">✨ Semua kamar sudah bersih!</div>
-                        ) : (
-                            <div className="task-list">
-                                {housekeepingList.map((item) => (
-                                    <div key={item.room} className="task-item dirty">
-                                        <div className="task-info">
-                                            <strong>Kamar {item.room}</strong>
-                                            <span>{item.guest}</span>
-                                        </div>
-                                        <button className="btn btn-primary">✓ Selesai</button>
-                                    </div>
-                                ))}
-                            </div>
-                        )}
+        <div className="portal-grid">
+          <div className="card">
+            <h3>🧹 Housekeeping List</h3>
+            <p className="card-desc">Kamar yang perlu dibersihkan</p>
+
+            {housekeepingList.length === 0 ? (
+              <div className="empty-state">✨ Semua kamar sudah bersih!</div>
+            ) : (
+              <div className="task-list">
+                {housekeepingList.map((item) => (
+                  <div key={item.room} className="task-item dirty">
+                    <div className="task-info">
+                      <strong>Kamar {item.room}</strong>
+                      <span>{item.guest}</span>
                     </div>
+                    <button className="btn btn-primary">✓ Selesai</button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
 
-                    <div className="card">
-                        <h3>🔧 Maintenance Tickets</h3>
-                        <p className="card-desc">Daftar kerusakan yang perlu diperbaiki</p>
+          <div className="card">
+            <h3>🔧 Maintenance Tickets (Logbook)</h3>
+            <p className="card-desc">Laporan kerusakan dari Logbook</p>
 
-                        <div className="task-list">
-                            {maintenanceTickets.map((ticket) => (
-                                <div key={ticket.id} className={`task-item ${ticket.status}`}>
-                                    <div className="task-info">
-                                        <strong>{ticket.title}</strong>
-                                        <div className="task-meta">
-                                            <span className={`priority ${ticket.priority}`}>
-                                                {ticket.priority === 'high' ? '🔴' : ticket.priority === 'normal' ? '🟡' : '🟢'} {ticket.priority}
-                                            </span>
-                                            <span className={`status-badge ${ticket.status}`}>
-                                                {ticket.status === 'pending' ? '📋 Pending' : ticket.status === 'in_progress' ? '🔄 In Progress' : '✅ Done'}
-                                            </span>
-                                        </div>
-                                    </div>
-                                    {ticket.status !== 'done' && (
-                                        <button className="btn btn-secondary">Update</button>
-                                    )}
-                                </div>
-                            ))}
-                        </div>
-
-                        <button className="btn btn-primary" style={{ width: '100%', marginTop: 'var(--spacing-md)' }}>
-                            + Tambah Ticket
-                        </button>
+            <div className="task-list">
+              {maintenanceTickets.length === 0 ? (
+                <p className="text-muted">Tidak ada tiket maintenance aktif.</p>
+              ) : (
+                maintenanceTickets.map((ticket) => (
+                  <div key={ticket.id} className={`task-item ${ticket.status}`}>
+                    <div className="task-info">
+                      <strong>{ticket.title}</strong>
+                      <div className="task-meta">
+                        <span className={`priority ${ticket.priority}`}>
+                          {ticket.priority === 'high' ? '🔴' : ticket.priority === 'normal' ? '🟡' : '🟢'} {ticket.priority}
+                        </span>
+                        <span className={`status-badge ${ticket.status}`}>
+                          {ticket.status === 'pending' ? '📋 Pending' : ticket.status === 'in_progress' ? '🔄 In Progress' : '✅ Done'}
+                        </span>
+                      </div>
                     </div>
+                    {ticket.status !== 'done' && (
+                      <button className="btn btn-secondary">Update</button>
+                    )}
+                  </div>
+                ))
+              )}
+            </div>
 
-                    <div className="card">
-                        <h3>📦 Inventory Check</h3>
-                        <p className="card-desc">Cek stok barang di gudang</p>
+            <button className="btn btn-primary" style={{ width: '100%', marginTop: 'var(--spacing-md)' }}>
+              + Tambah Ticket
+            </button>
+          </div>
 
-                        <div className="inventory-grid">
-                            <div className="inventory-item">
-                                <span className="item-name">Handuk</span>
-                                <span className="item-count">24 pcs</span>
-                            </div>
-                            <div className="inventory-item">
-                                <span className="item-name">Sabun</span>
-                                <span className="item-count low">5 pcs</span>
-                            </div>
-                            <div className="inventory-item">
-                                <span className="item-name">Sprei</span>
-                                <span className="item-count">18 set</span>
-                            </div>
-                            <div className="inventory-item">
-                                <span className="item-name">Kursi Lipat</span>
-                                <span className="item-count">12 pcs</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </main>
+          <div className="card">
+            <h3>📦 Inventory Check</h3>
+            <p className="card-desc">Cek stok barang di gudang</p>
 
-            <style jsx>{`
+            <div className="inventory-grid">
+              <div className="inventory-item">
+                <span className="item-name">Handuk</span>
+                <span className="item-count">24 pcs</span>
+              </div>
+              <div className="inventory-item">
+                <span className="item-name">Sabun</span>
+                <span className="item-count low">5 pcs</span>
+              </div>
+              <div className="inventory-item">
+                <span className="item-name">Sprei</span>
+                <span className="item-count">18 set</span>
+              </div>
+              <div className="inventory-item">
+                <span className="item-name">Kursi Lipat</span>
+                <span className="item-count">12 pcs</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </main>
+
+      <style jsx>{`
         .dashboard-layout {
           display: flex;
           min-height: 100vh;
@@ -241,6 +256,6 @@ export default function BPPGPortal() {
           }
         }
       `}</style>
-        </div>
-    )
+    </div>
+  )
 }

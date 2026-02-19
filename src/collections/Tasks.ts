@@ -21,12 +21,17 @@ export const Tasks: CollectionConfig = {
             name: 'category',
             type: 'select',
             options: [
+                { label: '📢 General (Piket)', value: 'general' },
+                { label: '✈️ BPUPD', value: 'bpupd' },
+                { label: '🏠 BPPG', value: 'bppg' },
+                { label: '💰 Bendahara', value: 'bendahara' },
+                { label: '👔 Direktur', value: 'direktur' },
                 { label: '🧹 Housekeeping', value: 'housekeeping' },
                 { label: '🔧 Maintenance', value: 'maintenance' },
                 { label: '📦 Inventory', value: 'inventory' },
                 { label: '📝 Admin', value: 'admin' },
             ],
-            defaultValue: 'housekeeping',
+            defaultValue: 'general',
         },
         {
             name: 'priority',

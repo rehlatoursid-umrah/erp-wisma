@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Sidebar from '@/components/layout/Sidebar'
 import Header from '@/components/layout/Header'
 
@@ -10,6 +10,30 @@ export default function BendaharaPortal() {
   const [otp, setOtp] = useState('')
   const [error, setError] = useState('')
   const [sidebarOpen, setSidebarOpen] = useState(false)
+
+  const LogbookTasks = ({ category }: { category: string }) => {
+    const [tasks, setTasks] = useState<any[]>([])
+
+    useEffect(() => {
+      fetch(`/api/tasks?category=${category}`)
+        .then(res => res.json())
+        .then(data => setTasks(data))
+        .catch(err => console.error(err))
+    }, [category])
+
+    if (tasks.length === 0) return <p className="text-sm text-gray-500">Tidak ada catatan baru.</p>
+
+    return (
+      <div className="flex flex-col gap-2">
+        {tasks.map((t: any) => (
+          <div key={t.id} className="p-3 bg-gray-50 rounded border border-gray-100">
+            <p className="font-medium text-sm">{t.title}</p>
+            <span className="text-xs text-gray-400">{new Date(t.createdAt).toLocaleDateString()}</span>
+          </div>
+        ))}
+      </div>
+    )
+  }
 
   const handlePinSubmit = (e: React.FormEvent) => {
     e.preventDefault()
@@ -188,18 +212,13 @@ export default function BendaharaPortal() {
           <div className="card">
             <h3>💸 Petty Cash Requests</h3>
             <p className="card-desc">Permintaan pencairan dana</p>
-            <div className="pending-list">
-              <div className="pending-item">
-                <div>
-                  <strong>Beli sabun & deterjen</strong>
-                  <span className="amount">EGP 150</span>
-                  <span className="requester">by BPPG</span>
-                </div>
-                <div className="actions">
-                  <button className="btn btn-primary">Cairkan</button>
-                </div>
-              </div>
-            </div>
+            {/* Logic for petty cash */}
+          </div>
+
+          <div className="card">
+            <h3>📝 Catatan Logbook</h3>
+            <p className="card-desc">Pesan dari Piket/Resepsionis</p>
+            <LogbookTasks category="bendahara" />
           </div>
 
           <div className="card">

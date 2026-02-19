@@ -313,7 +313,7 @@ export default function BPUPDPortal() {
     // Fetch Tasks
     const fetchTasks = async () => {
       try {
-        const res = await fetch('/api/tasks')
+        const res = await fetch('/api/tasks?category=bpupd')
         if (res.ok) {
           const data = await res.json()
           setTasks(data)
