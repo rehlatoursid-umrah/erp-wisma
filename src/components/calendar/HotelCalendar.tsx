@@ -687,6 +687,7 @@ export default function HotelCalendar({ onBookRoom, refreshTrigger = 0, onUpdate
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
                   <button
                     onClick={() => {
+                      const pricing = (selectedBooking as any).pricing || {}
                       const params = new URLSearchParams({
                         bookingId: selectedBooking.bookingId,
                         name: selectedBooking.guestName,
@@ -696,9 +697,11 @@ export default function HotelCalendar({ onBookRoom, refreshTrigger = 0, onUpdate
                         checkOut: selectedBooking.checkOut.split('T')[0],
                         total: selectedBooking.totalPrice.toString(),
                         currency: 'USD',
-                        status: selectedBooking.status
+                        extraBed: (pricing.extraBedTotal || 0).toString(),
+                        pickup: (pricing.pickupTotal || 0).toString(),
+                        meals: (pricing.mealsTotal || 0).toString()
                       })
-                      window.open(`/api/booking/hotel/pdf?${params.toString()}`, '_blank')
+                      window.open(`/api/booking/hotel/invoice?${params.toString()}`, '_blank')
                     }}
                     style={{
                       padding: '12px',
@@ -719,8 +722,18 @@ export default function HotelCalendar({ onBookRoom, refreshTrigger = 0, onUpdate
 
                   <button
                     onClick={() => {
-                      const message = `Halo ${selectedBooking.guestName},%0A%0ATerima kasih telah melakukan pemesanan di Wisma Nusantara Cairo.%0A%0ADetail Booking:%0AID: ${selectedBooking.bookingId}%0AKamar: ${selectedBooking.roomNumber}%0ACheck-in: ${selectedBooking.checkIn.split('T')[0]}%0ACheck-out: ${selectedBooking.checkOut.split('T')[0]}%0ADurasi: ${selectedBooking.nights} malam%0ATotal: $${selectedBooking.totalPrice}%0AStatus: ${selectedBooking.status.toUpperCase()}%0A%0ASilakan hubungi kami untuk informasi lebih lanjut.`
-                      window.open(`https://wa.me/${selectedBooking?.guestWhatsapp?.replace(/\D/g, '')}?text=${message}`, '_blank')
+                      const params = new URLSearchParams({
+                        bookingId: selectedBooking.bookingId,
+                        name: selectedBooking.guestName,
+                        room: selectedBooking.roomNumber,
+                        nights: selectedBooking.nights.toString(),
+                        checkIn: selectedBooking.checkIn.split('T')[0],
+                        checkOut: selectedBooking.checkOut.split('T')[0],
+                        total: selectedBooking.totalPrice.toString(),
+                        currency: 'USD',
+                        status: selectedBooking.status
+                      })
+                      window.open(`/api/booking/hotel/pdf?${params.toString()}`, '_blank')
                     }}
                     style={{
                       padding: '12px',
