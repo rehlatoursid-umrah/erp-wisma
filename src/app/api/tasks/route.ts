@@ -6,11 +6,22 @@ export async function GET(req: Request) {
     const payload = await getPayload({ config })
     const { searchParams } = new URL(req.url)
     const category = searchParams.get('category')
+    const fromDate = searchParams.get('fromDate')
 
     try {
         const query: any = {}
+        const andQuery: any[] = []
+
         if (category) {
-            query.category = { equals: category }
+            andQuery.push({ category: { equals: category } })
+        }
+
+        if (fromDate) {
+            andQuery.push({ createdAt: { greater_than_equal: fromDate } })
+        }
+
+        if (andQuery.length > 0) {
+            query.and = andQuery
         }
 
         const tasks = await payload.find({

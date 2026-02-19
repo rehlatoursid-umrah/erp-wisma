@@ -15,11 +15,16 @@ export default function Logbook() {
   const [category, setCategory] = useState('general')
   const [logs, setLogs] = useState<LogEntry[]>([])
 
-  // Fetch logs on mount
+  // Fetch logs on mount (Last 2 Weeks Only)
   useEffect(() => {
     const fetchLogs = async () => {
       try {
-        const res = await fetch('/api/tasks')
+        // Calculate date 2 weeks ago
+        const twoWeeksAgo = new Date()
+        twoWeeksAgo.setDate(twoWeeksAgo.getDate() - 14)
+        const fromDateStr = twoWeeksAgo.toISOString()
+
+        const res = await fetch(`/api/tasks?fromDate=${fromDateStr}`)
         if (res.ok) {
           const data = await res.json()
           // Map tasks to log entries
