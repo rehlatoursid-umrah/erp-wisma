@@ -2,27 +2,29 @@ import { getPayload } from 'payload'
 import config from '@payload-config'
 import { NextResponse } from 'next/server'
 
-const { searchParams } = new URL(req.url)
-const category = searchParams.get('category')
+export async function GET(req: Request) {
+    const payload = await getPayload({ config })
+    const { searchParams } = new URL(req.url)
+    const category = searchParams.get('category')
 
-try {
-    const query: any = {}
-    if (category) {
-        query.category = { equals: category }
+    try {
+        const query: any = {}
+        if (category) {
+            query.category = { equals: category }
+        }
+
+        const tasks = await payload.find({
+            collection: 'tasks',
+            where: query,
+            sort: '-createdAt',
+            limit: 50,
+        })
+
+        return NextResponse.json(tasks.docs)
+    } catch (error) {
+        console.error('Error fetching tasks:', error)
+        return NextResponse.json({ error: 'Failed to fetch tasks' }, { status: 500 })
     }
-
-    const tasks = await payload.find({
-        collection: 'tasks',
-        where: query,
-        sort: '-createdAt',
-        limit: 50,
-    })
-
-    return NextResponse.json(tasks.docs)
-} catch (error) {
-    console.error('Error fetching tasks:', error)
-    return NextResponse.json({ error: 'Failed to fetch tasks' }, { status: 500 })
-}
 }
 
 export async function POST(req: Request) {
