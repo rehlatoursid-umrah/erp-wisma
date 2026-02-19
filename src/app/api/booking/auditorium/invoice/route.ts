@@ -58,7 +58,180 @@ export async function GET(request: NextRequest) {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Invoice - ${invoiceNumber}</title>
     <style>
-        /* ... existing styles ... */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f5f5f5;
+            padding: 20px;
+            color: #333;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+        }
+        .invoice-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            padding: 40px;
+            border-bottom: 3px solid #8B4513;
+        }
+        .company-info h1 {
+            font-size: 1.8rem;
+            color: #8B4513;
+            margin-bottom: 8px;
+        }
+        .company-info p {
+            color: #666;
+            font-size: 0.9rem;
+            line-height: 1.6;
+        }
+        .invoice-title {
+            text-align: right;
+        }
+        .invoice-title h2 {
+            font-size: 2rem;
+            color: #8B4513;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+        .invoice-number {
+            font-family: monospace;
+            font-size: 1rem;
+            color: #666;
+            margin-top: 8px;
+        }
+        .invoice-body {
+            padding: 40px;
+        }
+        .invoice-details {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 40px;
+        }
+        .bill-to h3, .invoice-info h3 {
+            font-size: 0.8rem;
+            color: #999;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 10px;
+        }
+        .bill-to p, .invoice-info p {
+            line-height: 1.8;
+        }
+        .invoice-info {
+            text-align: right;
+        }
+        .items-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 30px;
+        }
+        .items-table th {
+            background: #f8f4f0;
+            padding: 15px;
+            text-align: left;
+            font-weight: 600;
+            color: #8B4513;
+            border-bottom: 2px solid #8B4513;
+        }
+        .items-table th:last-child {
+            text-align: right;
+        }
+        .items-table td {
+            padding: 15px;
+            border-bottom: 1px solid #eee;
+        }
+        .items-table td:last-child {
+            text-align: right;
+            font-weight: 600;
+        }
+        .items-table .item-name {
+            font-weight: 600;
+        }
+        .items-table .item-desc {
+            font-size: 0.85rem;
+            color: #666;
+            margin-top: 4px;
+        }
+        .totals {
+            display: flex;
+            justify-content: flex-end;
+        }
+        .totals-table {
+            width: 300px;
+        }
+        .totals-table tr td {
+            padding: 10px 15px;
+        }
+        .totals-table tr td:first-child {
+            color: #666;
+        }
+        .totals-table tr td:last-child {
+            text-align: right;
+            font-weight: 600;
+        }
+        .totals-table .grand-total {
+            background: linear-gradient(135deg, #8B4513 0%, #A0522D 100%);
+            color: white;
+        }
+        .totals-table .grand-total td {
+            font-size: 1.2rem;
+            padding: 15px;
+        }
+        .totals-table .grand-total td:first-child {
+            color: white;
+        }
+        .payment-info {
+            background: #f8f4f0;
+            padding: 25px;
+            border-radius: 8px;
+            margin-top: 30px;
+        }
+        .payment-info h3 {
+            font-size: 1rem;
+            color: #8B4513;
+            margin-bottom: 15px;
+        }
+        .payment-info p {
+            font-size: 0.9rem;
+            color: #666;
+            line-height: 1.8;
+        }
+        .invoice-footer {
+            text-align: center;
+            padding: 30px;
+            background: #f8f4f0;
+            border-top: 1px solid #eee;
+        }
+        .invoice-footer p {
+            color: #666;
+            font-size: 0.85rem;
+        }
+        .print-btn {
+            background: #8B4513;
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1rem;
+            margin-top: 15px;
+        }
+        .print-btn:hover {
+            background: #A0522D;
+        }
+        @media print {
+            body { background: white; padding: 0; }
+            .container { box-shadow: none; }
+            .print-btn { display: none; }
+        }
         .status-badge {
             display: inline-block;
             background: #fbbf24;
@@ -76,14 +249,18 @@ export async function GET(request: NextRequest) {
             background: #dcfce7;
             color: #166534;
         }
-        /* ... */
     </style>
 </head>
 <body>
     <div class="container">
         <div class="invoice-header">
             <div class="company-info">
-               <!-- ... -->
+                <h1>🏛️ Wisma Nusantara Cairo</h1>
+                <p>
+                    Indonesian Hostel in Cairo<br>
+                    Cairo, Egypt<br>
+                    📱 +20 150 704 9289
+                </p>
             </div>
             <div class="invoice-title">
                 <h2>Invoice</h2>
