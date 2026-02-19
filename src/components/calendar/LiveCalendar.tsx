@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { ChevronLeft, ChevronRight } from 'lucide-react'
 
 interface CalendarDay {
   date: Date
@@ -94,9 +95,13 @@ export default function LiveCalendar({
     <div className="live-calendar">
       <div className="calendar-header">
         <div className="calendar-nav">
-          <button className="nav-btn" onClick={() => navigateMonth(-1)}>←</button>
+          <button className="nav-btn" onClick={() => navigateMonth(-1)}>
+            <ChevronLeft size={20} />
+          </button>
           <h3>{monthNames[currentDate.getMonth()]} {currentDate.getFullYear()}</h3>
-          <button className="nav-btn" onClick={() => navigateMonth(1)}>→</button>
+          <button className="nav-btn" onClick={() => navigateMonth(1)}>
+            <ChevronRight size={20} />
+          </button>
         </div>
         <button className="today-btn" onClick={goToToday}>Hari Ini</button>
       </div>

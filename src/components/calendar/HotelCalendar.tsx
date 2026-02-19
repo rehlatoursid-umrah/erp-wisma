@@ -1,6 +1,18 @@
 ﻿'use client'
 
 import { useState, useEffect, useCallback } from 'react'
+import {
+  CheckCircle,
+  DollarSign,
+  MessageSquare,
+  Download,
+  XCircle,
+  X,
+  ChevronLeft,
+  ChevronRight,
+  RefreshCw,
+  Calendar as CalendarIcon
+} from 'lucide-react'
 import { MEAL_PACKAGES, EXTRA_BED_PRICE } from '@/constants/hotel'
 
 // Room configuration (synced with HotelBookings collection)
@@ -176,29 +188,32 @@ export default function HotelCalendar({ onBookRoom, refreshTrigger = 0, onUpdate
             className="nav-btn"
             onClick={() => setCurrentDate(new Date(year, month - 2, 1))}
           >
-            &lt; Prev
+            <ChevronLeft size={20} />
           </button>
           <h3>{monthName}</h3>
           <button
             className="nav-btn"
             onClick={() => setCurrentDate(new Date(year, month, 1))}
           >
-            Next &gt;
+            <ChevronRight size={20} />
           </button>
         </div>
         <div className="header-actions">
           <button
             className="today-btn"
             onClick={() => setCurrentDate(new Date())}
+            style={{ display: 'flex', alignItems: 'center', gap: '6px' }}
           >
-            Today
+            <CalendarIcon size={16} /> Today
           </button>
           <button
             className="refresh-btn"
             onClick={fetchBookings}
             disabled={refreshing}
+            style={{ display: 'flex', alignItems: 'center', gap: '6px' }}
           >
-            {refreshing ? '...' : 'Refresh'}
+            <RefreshCw size={16} className={refreshing ? 'animate-spin' : ''} />
+            {refreshing ? 'Updating...' : 'Refresh'}
           </button>
         </div>
       </div>
@@ -395,13 +410,12 @@ export default function HotelCalendar({ onBookRoom, refreshTrigger = 0, onUpdate
                   justifyContent: 'center',
                   cursor: 'pointer',
                   color: '#4b5563',
-                  fontSize: '1.2rem',
                   transition: 'background 0.2s'
                 }}
                 onMouseOver={(e) => e.currentTarget.style.background = '#e5e7eb'}
                 onMouseOut={(e) => e.currentTarget.style.background = '#f3f4f6'}
               >
-                &times;
+                <X size={20} />
               </button>
             </div>
 
@@ -591,10 +605,14 @@ export default function HotelCalendar({ onBookRoom, refreshTrigger = 0, onUpdate
                         background: '#f59e0b', // Amber for Draft/Confirm
                         color: 'white',
                         cursor: 'pointer',
-                        fontWeight: 600
+                        fontWeight: 600,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: '8px'
                       }}
                     >
-                      ✓ Confirm Booking
+                      <CheckCircle size={18} /> Confirm Booking
                     </button>
                   )}
 
@@ -654,10 +672,14 @@ export default function HotelCalendar({ onBookRoom, refreshTrigger = 0, onUpdate
                       color: 'white',
                       cursor: 'pointer',
                       fontWeight: 600,
-                      gridColumn: selectedBooking.status === 'pending' ? 'auto' : '1 / span 2'
+                      gridColumn: selectedBooking.status === 'pending' ? 'auto' : '1 / span 2',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: '8px'
                     }}
                   >
-                    💲 Mark as Paid
+                    <DollarSign size={18} /> Mark as Paid
                   </button>
                 </div>
 
@@ -695,7 +717,7 @@ export default function HotelCalendar({ onBookRoom, refreshTrigger = 0, onUpdate
                       gap: '8px'
                     }}
                   >
-                    🧾 Invoice (WA)
+                    <MessageSquare size={18} /> Invoice (WA)
                   </button>
 
                   <button
@@ -727,7 +749,7 @@ export default function HotelCalendar({ onBookRoom, refreshTrigger = 0, onUpdate
                       gap: '8px'
                     }}
                   >
-                    📄 Download PDF
+                    <Download size={18} /> Download PDF
                   </button>
                 </div>
 
@@ -773,7 +795,7 @@ export default function HotelCalendar({ onBookRoom, refreshTrigger = 0, onUpdate
                       gap: '8px'
                     }}
                   >
-                    ❌ Cancel Booking
+                    <XCircle size={18} /> Cancel Booking
                   </button>
                 )}
               </div>

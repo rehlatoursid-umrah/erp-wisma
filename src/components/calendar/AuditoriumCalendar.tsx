@@ -1,6 +1,35 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
+import {
+  User,
+  Globe,
+  PartyPopper,
+  Clock,
+  Package,
+  Timer,
+  Wind,
+  Armchair,
+  Projector,
+  Utensils,
+  GlassWater,
+  Building2,
+  Moon,
+  Settings,
+  CheckCircle,
+  XCircle,
+  Check,
+  DollarSign,
+  FileText,
+  ClipboardList,
+  ChevronLeft,
+  ChevronRight,
+  Loader2,
+  RefreshCw,
+  X,
+  MessageSquare,
+  Calendar as CalendarIcon
+} from 'lucide-react'
 import AuditoriumBookingForm, { AuditoriumBookingData } from '../booking/AuditoriumBookingForm'
 import {
   HALL_PACKAGES,
@@ -246,15 +275,22 @@ export default function AuditoriumCalendar({
       {/* Header */}
       <div className="calendar-header">
         <div className="calendar-nav">
-          <button className="nav-btn" onClick={() => navigateMonth(-1)}>←</button>
+          <button className="nav-btn" onClick={() => navigateMonth(-1)}>
+            <ChevronLeft size={20} />
+          </button>
           <h3>{monthNames[currentDate.getMonth()]} {currentDate.getFullYear()}</h3>
-          <button className="nav-btn" onClick={() => navigateMonth(1)}>→</button>
+          <button className="nav-btn" onClick={() => navigateMonth(1)}>
+            <ChevronRight size={20} />
+          </button>
         </div>
         <div className="header-actions">
-          <button className="refresh-btn" onClick={fetchBookings} disabled={isLoading}>
-            {isLoading ? '⏳' : '🔄'} Refresh
+          <button className="refresh-btn" onClick={fetchBookings} disabled={isLoading} style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <RefreshCw size={16} className={isLoading ? 'animate-spin' : ''} />
+            {isLoading ? 'Updating...' : 'Refresh'}
           </button>
-          <button className="today-btn" onClick={goToToday}>Hari Ini</button>
+          <button className="today-btn" onClick={goToToday} style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <CalendarIcon size={16} /> Hari Ini
+          </button>
         </div>
       </div>
 
@@ -292,10 +328,10 @@ export default function AuditoriumCalendar({
                       pointerEvents: 'auto'
                     }}
                   >
-                    <div className="booking-name">👤 {booking.bookerName}</div>
-                    <div className="booking-country">🌍 {booking.country}</div>
-                    <div className="booking-event">🎉 {booking.eventName}</div>
-                    <div className="booking-time">⏰ {booking.startTime} - {booking.endTime}</div>
+                    <div className="booking-name" style={{ display: 'flex', alignItems: 'center', gap: '4px' }}><User size={10} /> {booking.bookerName}</div>
+                    <div className="booking-country" style={{ display: 'flex', alignItems: 'center', gap: '4px' }}><Globe size={10} /> {booking.country}</div>
+                    <div className="booking-event" style={{ display: 'flex', alignItems: 'center', gap: '4px' }}><PartyPopper size={10} /> {booking.eventName}</div>
+                    <div className="booking-time" style={{ display: 'flex', alignItems: 'center', gap: '4px' }}><Clock size={10} /> {booking.startTime} - {booking.endTime}</div>
                   </div>
                 ))}
               </div>
@@ -362,9 +398,9 @@ export default function AuditoriumCalendar({
               <h2 style={{ margin: 0, color: '#111827' }}>Buat Booking Auditorium</h2>
               <button
                 onClick={() => setIsBookingModalOpen(false)}
-                style={{ background: 'none', border: 'none', fontSize: '1.5rem', cursor: 'pointer' }}
+                style={{ background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
               >
-                ✕
+                <X size={24} />
               </button>
             </div>
 
@@ -431,7 +467,9 @@ export default function AuditoriumCalendar({
               background: '#fff'
             }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                <span style={{ fontSize: '1.5rem' }}>📋</span>
+                <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#f3f4f6', padding: '8px', borderRadius: '8px' }}>
+                  <ClipboardList size={24} className="text-gray-600" />
+                </span>
                 <div>
                   <h3 style={{ margin: 0, fontSize: '1.25rem', color: '#111827', fontWeight: 700 }}>{selectedBooking.eventName}</h3>
                   <span style={{ fontSize: '0.875rem', color: '#6b7280' }}>ID: {selectedBooking.bookingId}</span>
@@ -450,13 +488,12 @@ export default function AuditoriumCalendar({
                   justifyContent: 'center',
                   cursor: 'pointer',
                   color: '#4b5563',
-                  fontSize: '1.2rem',
                   transition: 'background 0.2s'
                 }}
                 onMouseOver={(e) => e.currentTarget.style.background = '#e5e7eb'}
                 onMouseOut={(e) => e.currentTarget.style.background = '#f3f4f6'}
               >
-                ✕
+                <X size={20} />
               </button>
             </div>
 
@@ -492,19 +529,19 @@ export default function AuditoriumCalendar({
                 <h4 style={{ fontSize: '0.95rem', color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '12px' }}>Informasi Pemesan</h4>
                 <div style={{ background: '#f9fafb', borderRadius: '12px', padding: '16px' }}>
                   <div className="detail-row" style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
-                    <span className="detail-label" style={{ color: '#6b7280' }}>👤 Nama Lengkap</span>
+                    <span className="detail-label" style={{ color: '#6b7280', display: 'flex', alignItems: 'center', gap: '6px' }}><User size={14} /> Nama Lengkap</span>
                     <span className="detail-value" style={{ fontWeight: 600, color: '#111827' }}>{selectedBooking.bookerName}</span>
                   </div>
                   <div className="detail-row" style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
-                    <span className="detail-label" style={{ color: '#6b7280' }}>🌍 Asal Negara</span>
+                    <span className="detail-label" style={{ color: '#6b7280', display: 'flex', alignItems: 'center', gap: '6px' }}><Globe size={14} /> Asal Negara</span>
                     <span className="detail-value" style={{ fontWeight: 500 }}>{selectedBooking.country}</span>
                   </div>
                   <div className="detail-row" style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
-                    <span className="detail-label" style={{ color: '#6b7280' }}>📞 Telepon</span>
+                    <span className="detail-label" style={{ color: '#6b7280', display: 'flex', alignItems: 'center', gap: '6px' }}><ClipboardList size={14} /> Telepon</span>
                     <span className="detail-value" style={{ fontFamily: 'monospace' }}>{selectedBooking.phone}</span>
                   </div>
                   <div className="detail-row" style={{ display: 'flex', justifyContent: 'space-between' }}>
-                    <span className="detail-label" style={{ color: '#6b7280' }}>📱 WhatsApp</span>
+                    <span className="detail-label" style={{ color: '#6b7280', display: 'flex', alignItems: 'center', gap: '6px' }}><MessageSquare size={14} /> WhatsApp</span>
                     <a href={`https://wa.me/${selectedBooking.whatsapp}`} target="_blank" rel="noopener noreferrer" style={{ color: '#25D366', fontWeight: 600, textDecoration: 'none' }}>
                       {selectedBooking.whatsapp} ↗
                     </a>
@@ -517,19 +554,19 @@ export default function AuditoriumCalendar({
                 <h4 style={{ fontSize: '0.95rem', color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '12px' }}>Detail Acara</h4>
                 <div style={{ background: '#f9fafb', borderRadius: '12px', padding: '16px' }}>
                   <div className="detail-row" style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
-                    <span className="detail-label" style={{ color: '#6b7280' }}>📅 Tanggal</span>
+                    <span className="detail-label" style={{ color: '#6b7280', display: 'flex', alignItems: 'center', gap: '6px' }}><CalendarIcon size={14} /> Tanggal</span>
                     <span className="detail-value" style={{ fontWeight: 600 }}>{selectedBooking.date ? selectedBooking.date.split('T')[0] : '-'}</span>
                   </div>
                   <div className="detail-row" style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
-                    <span className="detail-label" style={{ color: '#6b7280' }}>⏰ Waktu</span>
+                    <span className="detail-label" style={{ color: '#6b7280', display: 'flex', alignItems: 'center', gap: '6px' }}><Clock size={14} /> Waktu</span>
                     <span className="detail-value" style={{ fontWeight: 600 }}>{selectedBooking.startTime} - {selectedBooking.endTime}</span>
                   </div>
                   <div className="detail-row" style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
-                    <span className="detail-label" style={{ color: '#6b7280' }}>📦 Paket Aula</span>
+                    <span className="detail-label" style={{ color: '#6b7280', display: 'flex', alignItems: 'center', gap: '6px' }}><Package size={14} /> Paket Aula</span>
                     <span className="detail-value">{selectedBooking.hallPackage}</span>
                   </div>
                   <div className="detail-row" style={{ display: 'flex', justifyContent: 'space-between' }}>
-                    <span className="detail-label" style={{ color: '#6b7280' }}>⏱️ Durasi</span>
+                    <span className="detail-label" style={{ color: '#6b7280', display: 'flex', alignItems: 'center', gap: '6px' }}><Timer size={14} /> Durasi</span>
                     <span className="detail-value">{selectedBooking.duration} Jam</span>
                   </div>
                 </div>
@@ -541,22 +578,22 @@ export default function AuditoriumCalendar({
                   <h4 style={{ fontSize: '0.95rem', color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '12px' }}>Layanan Tambahan</h4>
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
                     {selectedBooking.services.acOption && (
-                      <div style={{ background: '#f0f9ff', padding: '8px 12px', borderRadius: '8px', fontSize: '0.9rem', color: '#0369a1' }}>❄️ AC: <b>{selectedBooking.services.acOption} Jam</b></div>
+                      <div style={{ background: '#f0f9ff', padding: '8px 12px', borderRadius: '8px', fontSize: '0.9rem', color: '#0369a1', display: 'flex', alignItems: 'center', gap: '6px' }}><Wind size={14} /> AC: <b>{selectedBooking.services.acOption} Jam</b></div>
                     )}
                     {selectedBooking.services.chairOption && (
-                      <div style={{ background: '#fdf2f8', padding: '8px 12px', borderRadius: '8px', fontSize: '0.9rem', color: '#be185d' }}>🪑 Kursi: <b>{selectedBooking.services.chairOption}</b></div>
+                      <div style={{ background: '#fdf2f8', padding: '8px 12px', borderRadius: '8px', fontSize: '0.9rem', color: '#be185d', display: 'flex', alignItems: 'center', gap: '6px' }}><Armchair size={14} /> Kursi: <b>{selectedBooking.services.chairOption}</b></div>
                     )}
                     {selectedBooking.services.tableOption && (
-                      <div style={{ background: '#fff7ed', padding: '8px 12px', borderRadius: '8px', fontSize: '0.9rem', color: '#c2410c' }}>🪑 Meja: <b>{selectedBooking.services.tableOption}</b></div>
+                      <div style={{ background: '#fff7ed', padding: '8px 12px', borderRadius: '8px', fontSize: '0.9rem', color: '#c2410c', display: 'flex', alignItems: 'center', gap: '6px' }}><Armchair size={14} /> Meja: <b>{selectedBooking.services.tableOption}</b></div>
                     )}
                     {selectedBooking.services.projectorScreen && (
-                      <div style={{ background: '#f0fdf4', padding: '8px 12px', borderRadius: '8px', fontSize: '0.9rem', color: '#15803d' }}>📽️ Proyektor: <b>{selectedBooking.services.projectorScreen}</b></div>
+                      <div style={{ background: '#f0fdf4', padding: '8px 12px', borderRadius: '8px', fontSize: '0.9rem', color: '#15803d', display: 'flex', alignItems: 'center', gap: '6px' }}><Projector size={14} /> Proyektor: <b>{selectedBooking.services.projectorScreen}</b></div>
                     )}
                     {selectedBooking.services.plateOption && (
-                      <div style={{ background: '#fefce8', padding: '8px 12px', borderRadius: '8px', fontSize: '0.9rem', color: '#a16207' }}>🍽️ Piring: <b>{selectedBooking.services.plateOption}</b></div>
+                      <div style={{ background: '#fefce8', padding: '8px 12px', borderRadius: '8px', fontSize: '0.9rem', color: '#a16207', display: 'flex', alignItems: 'center', gap: '6px' }}><Utensils size={14} /> Piring: <b>{selectedBooking.services.plateOption}</b></div>
                     )}
                     {selectedBooking.services.glassOption && (
-                      <div style={{ background: '#fefce8', padding: '8px 12px', borderRadius: '8px', fontSize: '0.9rem', color: '#a16207' }}>🥛 Gelas: <b>{selectedBooking.services.glassOption}</b></div>
+                      <div style={{ background: '#fefce8', padding: '8px 12px', borderRadius: '8px', fontSize: '0.9rem', color: '#a16207', display: 'flex', alignItems: 'center', gap: '6px' }}><GlassWater size={14} /> Gelas: <b>{selectedBooking.services.glassOption}</b></div>
                     )}
                   </div>
                 </div>
@@ -565,23 +602,23 @@ export default function AuditoriumCalendar({
               {/* Price Breakdown Component */}
               <div className="detail-section total-section" style={{ borderTop: '2px dashed #e5e7eb', paddingTop: '20px', marginTop: '10px' }}>
                 <div className="detail-row" style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px', color: '#6b7280' }}>
-                  <span className="detail-label">🏛️ Sewa Aula</span>
+                  <span className="detail-label" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}><Building2 size={14} /> Sewa Aula</span>
                   <span className="detail-value">{selectedBooking.hallPrice?.toLocaleString() || 0} EGP</span>
                 </div>
                 {selectedBooking.afterHoursPrice > 0 && (
                   <div className="detail-row" style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px', color: '#6b7280' }}>
-                    <span className="detail-label">🌙 After Hours ({selectedBooking.afterHoursCount}h)</span>
+                    <span className="detail-label" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}><Moon size={14} /> After Hours ({selectedBooking.afterHoursCount}h)</span>
                     <span className="detail-value">+{selectedBooking.afterHoursPrice?.toLocaleString() || 0} EGP</span>
                   </div>
                 )}
                 {selectedBooking.servicesPrice > 0 && (
                   <div className="detail-row" style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '12px', color: '#6b7280' }}>
-                    <span className="detail-label">⚙️ Layanan Tambahan</span>
+                    <span className="detail-label" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}><Settings size={14} /> Layanan Tambahan</span>
                     <span className="detail-value">+{selectedBooking.servicesPrice?.toLocaleString() || 0} EGP</span>
                   </div>
                 )}
                 <div className="detail-row total" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#f8fafc', padding: '12px', borderRadius: '8px' }}>
-                  <span className="detail-label" style={{ fontWeight: 600, color: '#374151' }}>💰 Total Harga</span>
+                  <span className="detail-label" style={{ fontWeight: 600, color: '#374151', display: 'flex', alignItems: 'center', gap: '6px' }}><DollarSign size={16} /> Total Harga</span>
                   <span className="detail-value price" style={{ fontSize: '1.25rem', fontWeight: 700, color: '#8B4513' }}>{selectedBooking.totalPrice?.toLocaleString() || 0} EGP</span>
                 </div>
               </div>
@@ -639,10 +676,14 @@ export default function AuditoriumCalendar({
                         background: '#f59e0b', // Amber
                         color: 'white',
                         cursor: 'pointer',
-                        fontWeight: 600
+                        fontWeight: 600,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: '8px'
                       }}
                     >
-                      ✓ Confirm Booking
+                      <CheckCircle size={18} /> Confirm Booking
                     </button>
                   )}
 
@@ -694,10 +735,14 @@ export default function AuditoriumCalendar({
                       color: 'white',
                       cursor: 'pointer',
                       fontWeight: 600,
-                      gridColumn: selectedBooking.status === 'pending' ? 'auto' : '1 / span 2'
+                      gridColumn: selectedBooking.status === 'pending' ? 'auto' : '1 / span 2',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: '8px'
                     }}
                   >
-                    💲 Mark as Paid
+                    <DollarSign size={18} /> Mark as Paid
                   </button>
                 </div>
 
@@ -795,7 +840,7 @@ export default function AuditoriumCalendar({
                       gap: '8px'
                     }}
                   >
-                    📄 Download PDF
+                    <FileText size={18} /> Download PDF
                   </button>
 
                   <button
@@ -827,7 +872,7 @@ export default function AuditoriumCalendar({
                       gap: '8px'
                     }}
                   >
-                    📣 Broadcast Admin
+                    <MessageSquare size={18} /> Broadcast Admin
                   </button>
                 </div>
 
@@ -872,7 +917,7 @@ export default function AuditoriumCalendar({
                       gap: '8px'
                     }}
                   >
-                    ❌ Cancel Booking
+                    <XCircle size={18} /> Cancel Booking
                   </button>
                 )}
               </div>

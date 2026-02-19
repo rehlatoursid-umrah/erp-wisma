@@ -1,125 +1,136 @@
 'use client'
 
 import { useState } from 'react'
+import {
+  Box,
+  Laptop,
+  Armchair,
+  Tent,
+  Utensils,
+  X,
+  Package
+} from 'lucide-react'
 
 interface RentalItem {
-    id: string
-    name: string
-    category: 'electronics' | 'furniture' | 'outdoor' | 'kitchen'
-    price: number
-    available: number
-    total: number
-    rentals: { date: string; customer: string; quantity: number }[]
+  id: string
+  name: string
+  category: 'electronics' | 'furniture' | 'outdoor' | 'kitchen'
+  price: number
+  available: number
+  total: number
+  rentals: { date: string; customer: string; quantity: number }[]
 }
 
 interface RentalCalendarProps {
-    items: RentalItem[]
-    onRentItem?: (itemId: string, date: Date) => void
+  items: RentalItem[]
+  onRentItem?: (itemId: string, date: Date) => void
 }
 
 export default function RentalCalendar({ items, onRentItem }: RentalCalendarProps) {
-    const [selectedCategory, setSelectedCategory] = useState<string>('all')
+  const [selectedCategory, setSelectedCategory] = useState<string>('all')
 
-    const categories = [
-        { id: 'all', name: 'Semua', icon: '📦' },
-        { id: 'electronics', name: 'Elektronik', icon: '💻' },
-        { id: 'furniture', name: 'Furniture', icon: '🪑' },
-        { id: 'outdoor', name: 'Outdoor', icon: '⛺' },
-        { id: 'kitchen', name: 'Dapur', icon: '🍽️' },
-    ]
+  const categories = [
+    { id: 'all', name: 'Semua', icon: <Box size={16} /> },
+    { id: 'electronics', name: 'Elektronik', icon: <Laptop size={16} /> },
+    { id: 'furniture', name: 'Furniture', icon: <Armchair size={16} /> },
+    { id: 'outdoor', name: 'Outdoor', icon: <Tent size={16} /> },
+    { id: 'kitchen', name: 'Dapur', icon: <Utensils size={16} /> },
+  ]
 
-    // Generate next 7 days
-    const getDays = () => {
-        const days = []
-        const today = new Date()
-        for (let i = 0; i < 7; i++) {
-            const date = new Date(today)
-            date.setDate(today.getDate() + i)
-            days.push(date)
-        }
-        return days
+  // Generate next 7 days
+  const getDays = () => {
+    const days = []
+    const today = new Date()
+    for (let i = 0; i < 7; i++) {
+      const date = new Date(today)
+      date.setDate(today.getDate() + i)
+      days.push(date)
     }
+    return days
+  }
 
-    const days = getDays()
-    const daysOfWeek = ['Min', 'Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab']
+  const days = getDays()
+  const daysOfWeek = ['Min', 'Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab']
 
-    const getRentedQuantity = (item: RentalItem, date: Date) => {
-        const dateStr = date.toISOString().split('T')[0]
-        const rental = item.rentals.find(r => r.date === dateStr)
-        return rental?.quantity || 0
-    }
+  const getRentedQuantity = (item: RentalItem, date: Date) => {
+    const dateStr = date.toISOString().split('T')[0]
+    const rental = item.rentals.find(r => r.date === dateStr)
+    return rental?.quantity || 0
+  }
 
-    const filteredItems = selectedCategory === 'all'
-        ? items
-        : items.filter(item => item.category === selectedCategory)
+  const filteredItems = selectedCategory === 'all'
+    ? items
+    : items.filter(item => item.category === selectedCategory)
 
-    return (
-        <div className="rental-calendar">
-            <div className="calendar-header">
-                <h3>📦 Equipment Rental Status</h3>
-                <div className="category-filter">
-                    {categories.map(cat => (
-                        <button
-                            key={cat.id}
-                            className={`filter-btn ${selectedCategory === cat.id ? 'active' : ''}`}
-                            onClick={() => setSelectedCategory(cat.id)}
-                        >
-                            {cat.icon} {cat.name}
-                        </button>
-                    ))}
-                </div>
-            </div>
+  return (
+    <div className="rental-calendar">
+      <div className="calendar-header">
+        <h3 style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <Package size={24} /> Equipment Rental Status
+        </h3>
+        <div className="category-filter">
+          {categories.map(cat => (
+            <button
+              key={cat.id}
+              className={`filter-btn ${selectedCategory === cat.id ? 'active' : ''}`}
+              onClick={() => setSelectedCategory(cat.id)}
+            >
+              {cat.icon} {cat.name}
+            </button>
+          ))}
+        </div>
+      </div>
 
-            <div className="calendar-scroll">
-                <table className="rental-table">
-                    <thead>
-                        <tr>
-                            <th className="item-header">Item</th>
-                            {days.map((day, idx) => (
-                                <th key={idx} className={`day-header ${idx === 0 ? 'today' : ''}`}>
-                                    <span className="day-name">{daysOfWeek[day.getDay()]}</span>
-                                    <span className="day-date">{day.getDate()}</span>
-                                </th>
-                            ))}
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {filteredItems.map(item => (
-                            <tr key={item.id}>
-                                <td className="item-info">
-                                    <strong>{item.name}</strong>
-                                    <span className="item-stock">Stok: {item.available}/{item.total}</span>
-                                    <span className="item-price">EGP {item.price}/hari</span>
-                                </td>
-                                {days.map((day, idx) => {
-                                    const rented = getRentedQuantity(item, day)
-                                    const available = item.total - rented
-                                    return (
-                                        <td
-                                            key={idx}
-                                            className={`day-cell ${available === 0 ? 'fully-rented' : rented > 0 ? 'partially-rented' : 'available'} ${idx === 0 ? 'today' : ''}`}
-                                            onClick={() => available > 0 && onRentItem?.(item.id, day)}
-                                            title={`${available} tersedia`}
-                                        >
-                                            <span className="availability">
-                                                {available === 0 ? '✗' : available}
-                                            </span>
-                                        </td>
-                                    )
-                                })}
-                            </tr>
-                        ))}
-                    </tbody>
-                </table>
-            </div>
+      <div className="calendar-scroll">
+        <table className="rental-table">
+          <thead>
+            <tr>
+              <th className="item-header">Item</th>
+              {days.map((day, idx) => (
+                <th key={idx} className={`day-header ${idx === 0 ? 'today' : ''}`}>
+                  <span className="day-name">{daysOfWeek[day.getDay()]}</span>
+                  <span className="day-date">{day.getDate()}</span>
+                </th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {filteredItems.map(item => (
+              <tr key={item.id}>
+                <td className="item-info">
+                  <strong>{item.name}</strong>
+                  <span className="item-stock">Stok: {item.available}/{item.total}</span>
+                  <span className="item-price">EGP {item.price}/hari</span>
+                </td>
+                {days.map((day, idx) => {
+                  const rented = getRentedQuantity(item, day)
+                  const available = item.total - rented
+                  return (
+                    <td
+                      key={idx}
+                      className={`day-cell ${available === 0 ? 'fully-rented' : rented > 0 ? 'partially-rented' : 'available'} ${idx === 0 ? 'today' : ''}`}
+                      onClick={() => available > 0 && onRentItem?.(item.id, day)}
+                      title={`${available} tersedia`}
+                    >
+                      <span className="availability" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        {available === 0 ? <X size={16} /> : available}
+                      </span>
+                    </td>
+                  )
+                })}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
 
-            <div className="legend">
-                <span className="legend-item"><span className="dot available"></span> Tersedia</span>
-                <span className="legend-item"><span className="dot partial"></span> Sebagian Tersewa</span>
-                <span className="legend-item"><span className="dot rented"></span> Habis</span>
-            </div>
+      <div className="legend">
+        <span className="legend-item"><span className="dot available"></span> Tersedia</span>
+        <span className="legend-item"><span className="dot partial"></span> Sebagian Tersewa</span>
+        <span className="legend-item"><span className="dot rented"></span> Habis</span>
+      </div>
 
-            <style jsx>{`
+      <style jsx>{`
         .rental-calendar {
           background: var(--color-bg-card);
           border-radius: var(--radius-xl);
@@ -287,6 +298,6 @@ export default function RentalCalendar({ items, onRentItem }: RentalCalendarProp
         .dot.partial { background: var(--color-warning); }
         .dot.rented { background: var(--color-error); }
       `}</style>
-        </div>
-    )
+    </div>
+  )
 }
