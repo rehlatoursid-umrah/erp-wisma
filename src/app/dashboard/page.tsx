@@ -410,7 +410,9 @@ export default function DashboardPage() {
         {activeTab === 'hotel' && (
           <div className="tab-content">
             <div className="tab-header">
-              <h2>🏨 Hotel & Homestay Calendar</h2>
+              <h2 style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <Hotel size={28} /> Hotel & Homestay Calendar
+              </h2>
               <button
                 className="btn btn-primary"
                 onClick={() => openBookingModal('hotel')}
@@ -435,7 +437,9 @@ export default function DashboardPage() {
         {activeTab === 'aula' && (
           <div className="tab-content">
             <div className="tab-header">
-              <h2>🏢 Auditorium Calendar</h2>
+              <h2 style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <Building2 size={28} /> Auditorium Calendar
+              </h2>
             </div>
             <AuditoriumCalendar />
           </div>
@@ -445,7 +449,9 @@ export default function DashboardPage() {
         {activeTab === 'visa' && (
           <div className="tab-content">
             <div className="tab-header">
-              <h2>✈️ Visa Inquiry Calendar</h2>
+              <h2 style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <Plane size={28} /> Visa Inquiry Calendar
+              </h2>
               <button
                 className="btn btn-primary"
                 onClick={() => openBookingModal('visa')}
@@ -469,7 +475,9 @@ export default function DashboardPage() {
         {activeTab === 'rental' && (
           <div className="tab-content">
             <div className="tab-header">
-              <h2>📦 Equipment Rental Calendar</h2>
+              <h2 style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <Package size={28} /> Equipment Rental Calendar
+              </h2>
               <button
                 className="btn btn-primary"
                 onClick={() => openBookingModal('rental')}
