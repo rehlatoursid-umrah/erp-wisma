@@ -775,103 +775,9 @@ export default function AuditoriumCalendar({
                         name: selectedBooking.bookerName,
                         event: selectedBooking.eventName,
                         date: selectedBooking.date.split('T')[0],
-                        total: selectedBooking.totalPrice.toString(),
-                        items: JSON.stringify(items)
-                      })
-                      window.open(`/api/booking/auditorium/invoice?${params.toString()}`, '_blank')
-                    }}
-                    style={{
-                      padding: '12px',
-                      borderRadius: '8px',
-                      border: '1px solid #d1d5db',
-                      background: 'white',
-                      color: '#374151',
-                      cursor: 'pointer',
-                      fontWeight: 600,
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      gap: '8px'
-                    }}
-                  >
-                    🧾 Preview Invoice
-                  </button>
-
-                  <button
-                    onClick={() => {
-                      if (!selectedBooking.date) return
-
-                      // Calculate detailed items (Duplicate logic - ideally refactor to function but inline for now)
-                      const duration = calculateDuration(selectedBooking.startTime, selectedBooking.endTime)
-                      const pricing = calculateHallPricing(duration)
-                      const afterHoursCount = calculateAfterHours(selectedBooking.startTime, selectedBooking.endTime)
-                      const afterHoursPrice = afterHoursCount * AFTER_HOURS_RATE
-
-                      const items = []
-
-                      // 1. Base Package
-                      items.push({
-                        item: `Sewa Aula (${pricing.basePackage.label})`,
-                        qty: 1,
-                        price: pricing.basePrice,
-                        total: pricing.basePrice
-                      })
-
-                      // 2. Extra Hours
-                      if (pricing.extraHours > 0) {
-                        items.push({
-                          item: `Extra Time (${pricing.extraHours} jam)`,
-                          qty: pricing.extraHours,
-                          price: EXTRA_HOUR_RATE,
-                          total: pricing.extraHoursPrice
-                        })
-                      }
-
-                      // 3. After Hours
-                      if (afterHoursCount > 0) {
-                        items.push({
-                          item: `Overnight Surcharge (${afterHoursCount} jam)`,
-                          qty: afterHoursCount,
-                          price: AFTER_HOURS_RATE,
-                          total: afterHoursPrice
-                        })
-                      }
-
-                      // 4. Services
-                      const services = selectedBooking.services
-                      if (services.acOption) {
-                        const opt = AC_OPTIONS.find(o => o.value === services.acOption)
-                        if (opt && opt.price > 0) items.push({ item: `AC (${opt.label})`, qty: 1, price: opt.price, total: opt.price })
-                      }
-                      if (services.chairOption) {
-                        const opt = CHAIR_OPTIONS.find(o => o.value === services.chairOption)
-                        if (opt && opt.price > 0) items.push({ item: `Kursi (${opt.label})`, qty: 1, price: opt.price, total: opt.price })
-                      }
-                      if (services.tableOption) {
-                        const opt = TABLE_OPTIONS.find(o => o.value === services.tableOption)
-                        if (opt && opt.price > 0) items.push({ item: `Meja (${opt.label})`, qty: 1, price: opt.price, total: opt.price })
-                      }
-                      if (services.projectorScreen) {
-                        const opt = PROJECTOR_SCREEN_OPTIONS.find(o => o.value === services.projectorScreen)
-                        if (opt && opt.price > 0) items.push({ item: `Projector/Screen (${opt.label})`, qty: 1, price: opt.price, total: opt.price })
-                      }
-                      if (services.plateOption) {
-                        const opt = PLATE_OPTIONS.find(o => o.value === services.plateOption)
-                        if (opt && opt.price > 0) items.push({ item: `Piring (${opt.label})`, qty: 1, price: opt.price, total: opt.price })
-                      }
-                      if (services.glassOption) {
-                        const opt = GLASS_OPTIONS.find(o => o.value === services.glassOption)
-                        if (opt && opt.price > 0) items.push({ item: `Gelas (${opt.label})`, qty: 1, price: opt.price, total: opt.price })
-                      }
-
-                      const params = new URLSearchParams({
-                        bookingId: selectedBooking.bookingId,
-                        name: selectedBooking.bookerName,
-                        event: selectedBooking.eventName,
-                        date: selectedBooking.date.split('T')[0],
                         time: `${selectedBooking.startTime} - ${selectedBooking.endTime}`,
                         total: selectedBooking.totalPrice.toString(),
-                        items: JSON.stringify(items) // Pass items for PDF too
+                        items: JSON.stringify(items)
                       })
                       window.open(`/api/booking/auditorium/pdf?${params.toString()}`, '_blank')
                     }}
@@ -891,46 +797,90 @@ export default function AuditoriumCalendar({
                   >
                     📄 Download PDF
                   </button>
+
+                  <button
+                    onClick={() => {
+                      const adminPhone = '201507049289'
+                      const message = `🔔 *Update Booking Auditorium*\n\n` +
+                        `📋 ID: ${selectedBooking.bookingId}\n` +
+                        `👤 Nama: ${selectedBooking.bookerName}\n` +
+                        `🎉 Acara: ${selectedBooking.eventName}\n` +
+                        `📅 Tanggal: ${selectedBooking.date ? selectedBooking.date.split('T')[0] : ''}\n` +
+                        `⏰ Waktu: ${selectedBooking.startTime} - ${selectedBooking.endTime}\n` +
+                        `💰 Total: ${selectedBooking.totalPrice.toLocaleString()} EGP\n` +
+                        `📊 Status: ${getStatusBadge(selectedBooking.status).label}\n\n` +
+                        `📱 WA Customer: ${selectedBooking.whatsapp}`
+                      window.open(`https://wa.me/${adminPhone}?text=${encodeURIComponent(message)}`, '_blank')
+                    }}
+                    style={{
+                      padding: '12px',
+                      borderRadius: '8px',
+                      border: 'none',
+                      background: '#3b82f6',
+                      color: 'white',
+                      cursor: 'pointer',
+                      fontWeight: 600,
+                      fontSize: '1rem',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: '8px'
+                    }}
+                  >
+                    📣 Broadcast Admin
+                  </button>
                 </div>
 
-                {/* Broadcast Admin (Optional Utility) */}
-                <button
-                  onClick={() => {
-                    const adminPhone = '201507049289'
-                    const message = `🔔 *Update Booking Auditorium*\n\n` +
-                      `📋 ID: ${selectedBooking.bookingId}\n` +
-                      `👤 Nama: ${selectedBooking.bookerName}\n` +
-                      `🎉 Acara: ${selectedBooking.eventName}\n` +
-                      `📅 Tanggal: ${selectedBooking.date ? selectedBooking.date.split('T')[0] : ''}\n` +
-                      `⏰ Waktu: ${selectedBooking.startTime} - ${selectedBooking.endTime}\n` +
-                      `💰 Total: ${selectedBooking.totalPrice.toLocaleString()} EGP\n` +
-                      `📊 Status: ${getStatusBadge(selectedBooking.status).label}\n\n` +
-                      `📱 WA Customer: ${selectedBooking.whatsapp}`
-                    window.open(`https://wa.me/${adminPhone}?text=${encodeURIComponent(message)}`, '_blank')
-                  }}
-                  style={{
-                    marginTop: '8px',
-                    padding: '12px',
-                    borderRadius: '8px',
-                    border: 'none',
-                    background: '#3b82f6',
-                    color: 'white',
-                    cursor: 'pointer',
-                    fontWeight: 600,
-                    fontSize: '1rem',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    gap: '8px'
-                  }}
-                >
-                  📣 Broadcast Admin
-                </button>
+                {/* 4. Cancel Booking (New) */}
+                {selectedBooking.status !== 'cancelled' && (
+                  <button
+                    onClick={async () => {
+                      if (!confirm('⚠️ Are you sure you want to CANCEL this booking?\n\nThis will:\n1. Update status to CANCELLED.\n2. PERMANENTLY DELETE any generated invoices (Draft or Paid).')) return;
+
+                      try {
+                        const res = await fetch('/api/booking/auditorium/cancel', {
+                          method: 'POST',
+                          headers: { 'Content-Type': 'application/json' },
+                          body: JSON.stringify({ bookingId: selectedBooking.bookingId })
+                        })
+                        const data = await res.json()
+
+                        if (res.ok) {
+                          alert('✅ Booking Cancelled & Invoices Deleted.')
+                          setSelectedBooking(null)
+                          fetchBookings()
+                        } else {
+                          alert('❌ Failed to cancel: ' + (data.error || 'Unknown error'))
+                        }
+                      } catch (e) {
+                        console.error(e)
+                        alert('Error cancelling booking')
+                      }
+                    }}
+                    style={{
+                      marginTop: '10px',
+                      padding: '12px',
+                      borderRadius: '8px',
+                      border: '1px solid #fee2e2',
+                      background: '#fef2f2',
+                      color: '#dc2626',
+                      cursor: 'pointer',
+                      fontWeight: 600,
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: '8px'
+                    }}
+                  >
+                    ❌ Cancel Booking
+                  </button>
+                )}
               </div>
             </div>
           </div>
         </div>
-      )}
+      )
+      }
 
       <style jsx>{`
         .auditorium-calendar {
@@ -1148,6 +1098,6 @@ export default function AuditoriumCalendar({
             to { transform: translateY(0); opacity: 1; }
         }
       `}</style>
-    </div>
+    </div >
   )
 }
