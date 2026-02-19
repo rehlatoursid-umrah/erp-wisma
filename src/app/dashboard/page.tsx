@@ -410,8 +410,8 @@ export default function DashboardPage() {
         {activeTab === 'hotel' && (
           <div className="tab-content">
             <div className="tab-header">
-              <h2 style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                <Hotel size={28} /> Hotel & Homestay Calendar
+              <h2 style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                <Hotel size={32} strokeWidth={1.5} /> Hotel Calendar
               </h2>
               <button
                 className="btn btn-primary"
@@ -437,8 +437,8 @@ export default function DashboardPage() {
         {activeTab === 'aula' && (
           <div className="tab-content">
             <div className="tab-header">
-              <h2 style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                <Building2 size={28} /> Auditorium Calendar
+              <h2 style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                <Building2 size={32} strokeWidth={1.5} /> Auditorium Schedule
               </h2>
             </div>
             <AuditoriumCalendar />
@@ -449,8 +449,8 @@ export default function DashboardPage() {
         {activeTab === 'visa' && (
           <div className="tab-content">
             <div className="tab-header">
-              <h2 style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                <Plane size={28} /> Visa Inquiry Calendar
+              <h2 style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                <Plane size={32} strokeWidth={1.5} /> Visa Inquiries
               </h2>
               <button
                 className="btn btn-primary"
@@ -475,8 +475,8 @@ export default function DashboardPage() {
         {activeTab === 'rental' && (
           <div className="tab-content">
             <div className="tab-header">
-              <h2 style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                <Package size={28} /> Equipment Rental Calendar
+              <h2 style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                <Package size={32} strokeWidth={1.5} /> Equipment Rentals
               </h2>
               <button
                 className="btn btn-primary"
