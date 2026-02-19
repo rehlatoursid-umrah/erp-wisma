@@ -553,11 +553,23 @@ export default function HotelCalendar({ onBookRoom, refreshTrigger = 0, onUpdate
                     <button
                       onClick={async () => {
                         if (!confirm('Confirm this booking? A DRAFT invoice will be created.')) return;
+
+                        // Prompt for Currency
+                        const useEGP = confirm('Create Invoice in EGP? (Click OK for EGP, Cancel for USD)');
+                        const selectedCurrency = useEGP ? 'EGP' : 'USD';
+
                         try {
                           // Calculate Total (Same logic as Paid)
                           const pricing = (selectedBooking as any).pricing || {}
                           const roomsTotal = pricing.roomsTotal || (selectedBooking.pricePerNight * selectedBooking.nights)
-                          const totalUSD = roomsTotal + (pricing.extraBedTotal || 0) + (pricing.pickupTotal || 0)
+                          // Note: If EGP selected, we treat the values as EGP directly (assuming user input was EGP-minded)
+                          // OR we should convert? 
+                          // Given the user report, they likely entered EGP values that got labeled USD. 
+                          // So we just switch the label.
+
+                          const totalAmount = roomsTotal + (pricing.extraBedTotal || 0) + (pricing.pickupTotal || 0) + (useEGP ? (pricing.mealsTotal || 0) : 0)
+                          // Added mealsTotal to EGP invoice if EGP selected, as meals are usually EGP. 
+                          // If USD selected, meals are usually excluded (paid separately).
 
                           const invoiceItems = [{
                             itemName: `Hotel Room ${selectedBooking.roomNumber} (${selectedBooking.nights} nights)`,
@@ -567,6 +579,7 @@ export default function HotelCalendar({ onBookRoom, refreshTrigger = 0, onUpdate
                           }]
                           if (pricing.extraBedTotal > 0) invoiceItems.push({ itemName: 'Extra Beds', quantity: 1, priceUnit: pricing.extraBedTotal, subtotal: pricing.extraBedTotal })
                           if (pricing.pickupTotal > 0) invoiceItems.push({ itemName: 'Airport Pickup', quantity: 1, priceUnit: pricing.pickupTotal, subtotal: pricing.pickupTotal })
+                          if (useEGP && pricing.mealsTotal > 0) invoiceItems.push({ itemName: 'Meals Package', quantity: 1, priceUnit: pricing.mealsTotal, subtotal: pricing.mealsTotal })
 
                           const res = await fetch('/api/finance/invoice', {
                             method: 'POST',
@@ -575,8 +588,8 @@ export default function HotelCalendar({ onBookRoom, refreshTrigger = 0, onUpdate
                               customerName: selectedBooking.guestName,
                               customerWA: selectedBooking.guestWhatsapp,
                               items: invoiceItems,
-                              totalAmount: totalUSD,
-                              currency: 'USD',
+                              totalAmount: totalAmount,
+                              currency: selectedCurrency,
                               bookingType: 'hotel',
                               relatedBooking: selectedBooking.originalId || selectedBooking.id.split('-')[0],
                               paymentStatus: 'pending', // DRAFT
@@ -619,11 +632,18 @@ export default function HotelCalendar({ onBookRoom, refreshTrigger = 0, onUpdate
                   {/* 2. Mark as Paid */}
                   <button
                     onClick={async () => {
-                      if (!confirm('Mark as PAID? This will create a FINAL invoice and cashflow entry.')) return;
+                      if (!confirm('Mark as PAID? This will create a FINAL invoice and Cashflow entry.')) return;
+
+                      // Prompt for Currency
+                      const useEGP = confirm('Payment in EGP? (Click OK for EGP, Cancel for USD)');
+                      const selectedCurrency = useEGP ? 'EGP' : 'USD';
+
                       try {
+                        // Calculate Total
                         const pricing = (selectedBooking as any).pricing || {}
                         const roomsTotal = pricing.roomsTotal || (selectedBooking.pricePerNight * selectedBooking.nights)
-                        const totalUSD = roomsTotal + (pricing.extraBedTotal || 0) + (pricing.pickupTotal || 0)
+
+                        const totalAmount = roomsTotal + (pricing.extraBedTotal || 0) + (pricing.pickupTotal || 0) + (useEGP ? (pricing.mealsTotal || 0) : 0)
 
                         const invoiceItems = [{
                           itemName: `Hotel Room ${selectedBooking.roomNumber} (${selectedBooking.nights} nights)`,
@@ -633,6 +653,7 @@ export default function HotelCalendar({ onBookRoom, refreshTrigger = 0, onUpdate
                         }]
                         if (pricing.extraBedTotal > 0) invoiceItems.push({ itemName: 'Extra Beds', quantity: 1, priceUnit: pricing.extraBedTotal, subtotal: pricing.extraBedTotal })
                         if (pricing.pickupTotal > 0) invoiceItems.push({ itemName: 'Airport Pickup', quantity: 1, priceUnit: pricing.pickupTotal, subtotal: pricing.pickupTotal })
+                        if (useEGP && pricing.mealsTotal > 0) invoiceItems.push({ itemName: 'Meals Package', quantity: 1, priceUnit: pricing.mealsTotal, subtotal: pricing.mealsTotal })
 
                         const res = await fetch('/api/finance/invoice', {
                           method: 'POST',
@@ -641,8 +662,8 @@ export default function HotelCalendar({ onBookRoom, refreshTrigger = 0, onUpdate
                             customerName: selectedBooking.guestName,
                             customerWA: selectedBooking.guestWhatsapp,
                             items: invoiceItems,
-                            totalAmount: totalUSD,
-                            currency: 'USD',
+                            totalAmount: totalAmount,
+                            currency: selectedCurrency,
                             bookingType: 'hotel',
                             relatedBooking: selectedBooking.originalId || selectedBooking.id.split('-')[0],
                             paymentStatus: 'paid', // PAID
