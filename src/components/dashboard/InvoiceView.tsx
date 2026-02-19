@@ -1,6 +1,22 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, ReactNode } from 'react'
+import {
+    FileText,
+    Plus,
+    RefreshCw,
+    Hotel,
+    Building2,
+    Plane,
+    Package,
+    MoreHorizontal,
+    CheckCircle,
+    Clock,
+    Eye,
+    CreditCard,
+    Trash2,
+    Banknote
+} from 'lucide-react'
 import ManualInvoiceModal from '@/components/invoice/ManualInvoiceModal'
 
 interface Transaction {
@@ -53,31 +69,31 @@ export default function InvoiceView({ onUpdate, refreshTrigger = 0 }: InvoiceVie
         fetchInvoices()
     }, [activeTab, refreshTrigger])
 
-    const tabs: { id: TabType, label: string }[] = [
+    const tabs: { id: TabType, label: ReactNode }[] = [
         { id: 'all', label: 'Semua' },
-        { id: 'hotel', label: '🏨 Hotel' },
-        { id: 'auditorium', label: '🎤 Aula' },
-        { id: 'visa_arrival', label: '✈️ Visa' },
-        { id: 'rental', label: '🚗 Rental' },
-        { id: 'manual', label: '📄 Lainnya' },
+        { id: 'hotel', label: <><Hotel size={16} /> Hotel</> },
+        { id: 'auditorium', label: <><Building2 size={16} /> Aula</> },
+        { id: 'visa_arrival', label: <><Plane size={16} /> Visa</> },
+        { id: 'rental', label: <><Package size={16} /> Rental</> },
+        { id: 'manual', label: <><MoreHorizontal size={16} /> Lainnya</> },
     ]
 
     return (
         <div className="invoice-view">
             <div className="header-actions">
-                <h2>📑 Daftar Invoice</h2>
+                <h2><FileText className="inline-icon" size={24} /> Daftar Invoice</h2>
                 <div className="action-buttons">
                     <button
                         onClick={() => setShowModal(true)}
                         className="btn-primary"
                     >
-                        ➕ Buat Invoice
+                        <Plus size={18} /> Buat Invoice
                     </button>
                     <button
                         onClick={fetchInvoices}
                         className="btn-refresh"
                     >
-                        🔄 Refresh
+                        <RefreshCw size={18} /> Refresh
                     </button>
                 </div>
             </div>
@@ -142,9 +158,9 @@ export default function InvoiceView({ onUpdate, refreshTrigger = 0 }: InvoiceVie
                                         <td>{inv.customerName}</td>
                                         <td>{inv.currency} {inv.totalAmount.toLocaleString()}</td>
                                         <td>
-                                            <span className={`badge status-${inv.paymentStatus}`}>
-                                                {inv.paymentStatus === 'paid' ? '✅ Lunas' :
-                                                    inv.paymentStatus === 'pending' ? '⏳ Pending' : inv.paymentStatus}
+                                            <span className={`badge status-${inv.paymentStatus}`} style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                                                {inv.paymentStatus === 'paid' ? <><CheckCircle size={14} /> Lunas</> :
+                                                    inv.paymentStatus === 'pending' ? <><Clock size={14} /> Pending</> : inv.paymentStatus}
                                             </span>
                                         </td>
                                         <td>
@@ -158,7 +174,7 @@ export default function InvoiceView({ onUpdate, refreshTrigger = 0 }: InvoiceVie
                                                         setShowModal(true)
                                                     }}
                                                 >
-                                                    📄
+                                                    <Eye size={18} />
                                                 </button>
 
                                                 {/* Mark as Paid (only if not paid) */}
@@ -195,7 +211,7 @@ export default function InvoiceView({ onUpdate, refreshTrigger = 0 }: InvoiceVie
                                                             }
                                                         }}
                                                     >
-                                                        💰
+                                                        <Banknote size={16} />
                                                     </button>
                                                 )}
 
@@ -220,7 +236,7 @@ export default function InvoiceView({ onUpdate, refreshTrigger = 0 }: InvoiceVie
                                                         }
                                                     }}
                                                 >
-                                                    ❌
+                                                    <Trash2 size={18} />
                                                 </button>
                                             </div>
                                         </td>
@@ -295,15 +311,18 @@ export default function InvoiceView({ onUpdate, refreshTrigger = 0 }: InvoiceVie
                 }
             .tab-btn {
                 padding: 8px 16px;
-            background: white;
-            border: 1px solid #e5e7eb;
-            border-radius: 20px;
-            cursor: pointer;
-            font-size: 0.9rem;
-            color: #6b7280;
-            white-space: nowrap;
-            transition: all 0.2s;
-                }
+                background: white;
+                border: 1px solid #e5e7eb;
+                border-radius: 20px;
+                cursor: pointer;
+                font-size: 0.9rem;
+                color: #6b7280;
+                white-space: nowrap;
+                transition: all 0.2s;
+                display: flex;
+                align-items: center;
+                gap: 6px;
+            }
             .tab-btn:hover {
                 background: #f9fafb;
                 }
@@ -350,13 +369,15 @@ export default function InvoiceView({ onUpdate, refreshTrigger = 0 }: InvoiceVie
 
             .btn-pay {
                 background: #2563eb;
-            color: white;
-            border: none;
-            padding: 6px 12px;
-            border-radius: 6px;
-            cursor: pointer;
-            font-size: 0.85rem;
-                }
+                color: white;
+                border: none;
+                padding: 6px 12px;
+                border-radius: 6px;
+                cursor: pointer;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
             .loading-state, .empty-state {
                 text-align: center;
             padding: 40px;
