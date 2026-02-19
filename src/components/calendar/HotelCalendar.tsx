@@ -683,43 +683,8 @@ export default function HotelCalendar({ onBookRoom, refreshTrigger = 0, onUpdate
                   </button>
                 </div>
 
-                {/* 3. Preview Invoice (WA) & Download PDF */}
+                {/* 3. Invoice (PDF) & Send WA Confirmation */}
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
-                  <button
-                    onClick={() => {
-                      const pricing = (selectedBooking as any).pricing || {}
-                      const params = new URLSearchParams({
-                        bookingId: selectedBooking.bookingId,
-                        name: selectedBooking.guestName,
-                        room: selectedBooking.roomNumber,
-                        nights: selectedBooking.nights.toString(),
-                        checkIn: selectedBooking.checkIn.split('T')[0],
-                        checkOut: selectedBooking.checkOut.split('T')[0],
-                        total: selectedBooking.totalPrice.toString(),
-                        currency: 'USD',
-                        extraBed: (pricing.extraBedTotal || 0).toString(),
-                        pickup: (pricing.pickupTotal || 0).toString(),
-                        meals: (pricing.mealsTotal || 0).toString()
-                      })
-                      window.open(`/api/booking/hotel/invoice?${params.toString()}`, '_blank')
-                    }}
-                    style={{
-                      padding: '12px',
-                      borderRadius: '8px',
-                      border: '1px solid #d1d5db',
-                      background: 'white',
-                      color: '#374151',
-                      cursor: 'pointer',
-                      fontWeight: 600,
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      gap: '8px'
-                    }}
-                  >
-                    <MessageSquare size={18} /> Invoice (WA)
-                  </button>
-
                   <button
                     onClick={() => {
                       const params = new URLSearchParams({
@@ -749,7 +714,29 @@ export default function HotelCalendar({ onBookRoom, refreshTrigger = 0, onUpdate
                       gap: '8px'
                     }}
                   >
-                    <Download size={18} /> Download PDF
+                    <Download size={18} /> Invoice (PDF)
+                  </button>
+
+                  <button
+                    onClick={() => {
+                      const message = `Halo ${selectedBooking.guestName},%0A%0ATerima kasih telah melakukan pemesanan di Wisma Nusantara Cairo.%0A%0ADetail Booking:%0AID: ${selectedBooking.bookingId}%0AKamar: ${selectedBooking.roomNumber}%0ACheck-in: ${selectedBooking.checkIn.split('T')[0]}%0ACheck-out: ${selectedBooking.checkOut.split('T')[0]}%0ADurasi: ${selectedBooking.nights} malam%0ATotal: $${selectedBooking.totalPrice}%0AStatus: ${selectedBooking.status.toUpperCase()}%0A%0ASilakan hubungi kami untuk informasi lebih lanjut.`
+                      window.open(`https://wa.me/${selectedBooking?.guestWhatsapp?.replace(/\D/g, '')}?text=${message}`, '_blank')
+                    }}
+                    style={{
+                      padding: '12px',
+                      borderRadius: '8px',
+                      border: '1px solid #d1d5db',
+                      background: 'white',
+                      color: '#374151',
+                      cursor: 'pointer',
+                      fontWeight: 600,
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: '8px'
+                    }}
+                  >
+                    <MessageSquare size={18} /> Kirim Booking confirmation (WA)
                   </button>
                 </div>
 
