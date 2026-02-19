@@ -265,7 +265,7 @@ export default function DashboardPage() {
             {/* Mini Calendars Grid */}
             <div className="mini-calendars">
               <div className="mini-calendar-card" onClick={() => setActiveTab('hotel')}>
-                <h4>🏨 Hotel - Minggu Ini</h4>
+                <h4><Hotel className="inline-icon" size={20} /> Hotel - Minggu Ini</h4>
                 <div className="mini-events">
                   {dashboardData.hotel && dashboardData.hotel.length === 0 ? <div className="text-muted" style={{ padding: 10, color: '#888' }}>Tidak ada booking minggu ini</div> :
                     dashboardData.hotel?.slice(0, 5).map((booking: any, idx) => {
@@ -299,7 +299,7 @@ export default function DashboardPage() {
               </div>
 
               <div className="mini-calendar-card" onClick={() => setActiveTab('aula')}>
-                <h4>🏢 Auditorium - Minggu Ini</h4>
+                <h4><Building2 className="inline-icon" size={20} /> Auditorium - Minggu Ini</h4>
                 <div className="mini-events">
                   {dashboardData.aula && dashboardData.aula.length === 0 ? <div className="text-muted" style={{ padding: 10, color: '#888' }}>Tidak ada booking minggu ini</div> :
                     dashboardData.aula?.slice(0, 3).map((booking: any, idx) => (
@@ -317,7 +317,7 @@ export default function DashboardPage() {
               </div>
 
               <div className="mini-calendar-card" onClick={() => setActiveTab('visa')}>
-                <h4>✈️ Visa Inquiries - Minggu Ini</h4>
+                <h4><Plane className="inline-icon" size={20} /> Visa Inquiries - Minggu Ini</h4>
                 <div className="mini-list">
                   {dashboardData.visa && dashboardData.visa.length === 0 ? <div className="text-muted" style={{ padding: 10, color: '#888' }}>Tidak ada inquiry minggu ini</div> :
                     dashboardData.visa?.map((item: any, idx) => (
@@ -338,7 +338,7 @@ export default function DashboardPage() {
               </div>
 
               <div className="mini-calendar-card" onClick={() => setActiveTab('rental')}>
-                <h4>📦 Rental Equipment - Minggu Ini</h4>
+                <h4><Package className="inline-icon" size={20} /> Rental Equipment - Minggu Ini</h4>
                 <div className="mini-list">
                   {dashboardData.rental && dashboardData.rental.length === 0 ? <div className="text-muted" style={{ padding: 10, color: '#888' }}>Tidak ada rental minggu ini</div> :
                     dashboardData.rental?.slice(0, 3).map((item: any, idx) => (
@@ -362,7 +362,7 @@ export default function DashboardPage() {
             {/* Recent Paid Invoices */}
             <div className="card invoices-card">
               <div className="card-header">
-                <h3>💰 Recent Paid Invoices</h3>
+                <h3><Receipt className="inline-icon" size={24} /> Recent Paid Invoices</h3>
                 <span className="badge badge-success">Verified Payment</span>
               </div>
               <table className="invoices-table">
