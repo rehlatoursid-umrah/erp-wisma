@@ -19,6 +19,7 @@ export default function SekretarisPortal() {
 
   // Arsip Bulanan State
   const [arsipYear, setArsipYear] = useState(new Date().getFullYear())
+  const [arsipPetugas, setArsipPetugas] = useState('')
   const [arsipData, setArsipData] = useState<{ month: number; count: number; totalHours: string }[]>([])
   const [arsipLoading, setArsipLoading] = useState(false)
   const [arsipPdfGen, setArsipPdfGen] = useState<number | null>(null)
@@ -43,15 +44,16 @@ export default function SekretarisPortal() {
     finally { setPiketLoading(false) }
   }
 
-  // Fetch arsip overview for selected year
+  // Fetch arsip overview for selected year + optional petugas
   const fetchArsipOverview = async () => {
     setArsipLoading(true)
     const results: { month: number; count: number; totalHours: string }[] = []
     try {
       const now = new Date()
-      const currentMonth = now.getFullYear() === arsipYear ? now.getMonth() + 1 : 12
-      for (let m = 1; m <= currentMonth; m++) {
+      const maxMonth = now.getFullYear() === arsipYear ? now.getMonth() + 1 : 12
+      for (let m = 1; m <= maxMonth; m++) {
         const params = new URLSearchParams({ month: String(m), year: String(arsipYear) })
+        if (arsipPetugas) params.set('petugas', arsipPetugas)
         const res = await fetch(`/api/laporan-piket?${params.toString()}`)
         const data = await res.json()
         const docs = Array.isArray(data) ? data : []
@@ -75,9 +77,13 @@ export default function SekretarisPortal() {
   useEffect(() => {
     if (activeTab === 'arsip_bulanan') fetchArsipOverview()
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeTab, arsipYear])
+  }, [activeTab, arsipYear, arsipPetugas])
 
-  // ── PDF Generation ──
+  // Helper: format array field
+  const fmtArr = (v: any) => Array.isArray(v) && v.length > 0 ? v.join(', ') : '-'
+  const fmtText = (v: any) => v || '-'
+
+  // ── PDF Generation (Full Detail) ──
   const generatePDF = async (month: number, year: number, petugasFilter?: string) => {
     const jsPDFModule = await import('jspdf')
     const jsPDF = jsPDFModule.default || jsPDFModule
@@ -95,22 +101,27 @@ export default function SekretarisPortal() {
       return
     }
 
-    const doc: any = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' })
+    const doc: any = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' })
     const monthName = MONTH_NAMES[month - 1]
     const pageW = doc.internal.pageSize.getWidth()
+    const pageH = doc.internal.pageSize.getHeight()
 
-    // ── Header ──
+    // ══════════════════════════════════════
+    // PAGE 1: COVER + SUMMARY TABLE
+    // ══════════════════════════════════════
     doc.setFillColor(139, 69, 19)
-    doc.rect(0, 0, pageW, 28, 'F')
+    doc.rect(0, 0, pageW, 35, 'F')
     doc.setTextColor(255, 255, 255)
-    doc.setFontSize(16)
+    doc.setFontSize(18)
     doc.setFont('helvetica', 'bold')
-    doc.text('REKAP LAPORAN PIKET KANTOR', pageW / 2, 12, { align: 'center' })
-    doc.setFontSize(10)
+    doc.text('REKAP LAPORAN PIKET KANTOR', pageW / 2, 14, { align: 'center' })
+    doc.setFontSize(11)
     doc.setFont('helvetica', 'normal')
-    doc.text(`Wisma Nusantara Cairo — ${monthName} ${year}${petugasFilter ? ` — ${petugasFilter}` : ''}`, pageW / 2, 20, { align: 'center' })
+    doc.text(`Wisma Nusantara Cairo`, pageW / 2, 22, { align: 'center' })
+    doc.setFontSize(10)
+    doc.text(`${monthName} ${year}${petugasFilter ? ` — ${petugasFilter}` : ''}`, pageW / 2, 30, { align: 'center' })
 
-    // ── Summary Box ──
+    // Summary stats
     let totalMins = 0
     let shiftComplete = 0
     data.forEach((d: any) => {
@@ -124,17 +135,29 @@ export default function SekretarisPortal() {
     const totalHrs = Math.floor(totalMins / 60)
     const totalMinsR = totalMins % 60
 
-    doc.setTextColor(80, 80, 80)
-    doc.setFontSize(9)
-    const summaryY = 34
-    doc.setFont('helvetica', 'bold')
-    doc.text(`Total Laporan: ${data.length}`, 14, summaryY)
-    doc.text(`Shift Lengkap: ${shiftComplete}`, 80, summaryY)
-    doc.text(`Total Jam Kerja: ${totalHrs}j ${totalMinsR}m`, 150, summaryY)
-    doc.setFont('helvetica', 'normal')
+    // Summary boxes
+    const boxY = 42
+    const boxW = (pageW - 28 - 16) / 3
+    const boxes = [
+      { label: 'Total Laporan', value: String(data.length), color: [30, 64, 175] },
+      { label: 'Shift Lengkap', value: String(shiftComplete), color: [22, 101, 52] },
+      { label: 'Total Jam Kerja', value: `${totalHrs}j ${totalMinsR}m`, color: [133, 77, 14] },
+    ]
+    boxes.forEach((b, i) => {
+      const x = 14 + i * (boxW + 8)
+      doc.setFillColor(249, 250, 251)
+      doc.roundedRect(x, boxY, boxW, 22, 3, 3, 'F')
+      doc.setTextColor(...(b.color as [number, number, number]))
+      doc.setFontSize(16)
+      doc.setFont('helvetica', 'bold')
+      doc.text(b.value, x + boxW / 2, boxY + 11, { align: 'center' })
+      doc.setFontSize(7)
+      doc.setFont('helvetica', 'normal')
+      doc.text(b.label, x + boxW / 2, boxY + 18, { align: 'center' })
+    })
 
-    // ── Table ──
-    const tableData = data.map((d: any, i: number) => {
+    // Overview table (compact)
+    const overviewData = data.map((d: any, i: number) => {
       let durasi = '-'
       if (d.jamMasuk && d.jamKeluar) {
         const [h1, m1] = d.jamMasuk.split(':').map(Number)
@@ -143,53 +166,140 @@ export default function SekretarisPortal() {
         durasi = `${Math.floor(diff / 60)}j ${diff % 60}m`
       }
       const tgl = d.tanggal ? new Date(d.tanggal).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' }) : '-'
-      const lampu = Array.isArray(d.lampu) ? d.lampu.join(', ') : '-'
-      const kebersihan = Array.isArray(d.kebersihan) ? d.kebersihan.join(', ') : '-'
-      const ruangan = Array.isArray(d.ruangan) ? d.ruangan.join(', ') : '-'
-
-      return [
-        i + 1,
-        tgl,
-        d.namaPetugas || '-',
-        d.jamMasuk || '-',
-        d.jamKeluar || '-',
-        durasi,
-        lampu,
-        kebersihan,
-        ruangan,
-        d.laporanKeamanan || 'Aman',
-        (d.kegiatanHariIni || '-').substring(0, 40),
-      ]
+      return [i + 1, tgl, d.namaPetugas || '-', d.jamMasuk || '-', d.jamKeluar || '-', durasi]
     })
 
     autoTable(doc, {
-      startY: 40,
-      head: [['No', 'Tanggal', 'Petugas', 'Masuk', 'Keluar', 'Durasi', 'Lampu', 'Kebersihan', 'Ruangan', 'Keamanan', 'Kegiatan']],
-      body: tableData,
-      styles: { fontSize: 7, cellPadding: 2 },
-      headStyles: { fillColor: [139, 69, 19], textColor: 255, fontStyle: 'bold', fontSize: 7 },
-      alternateRowStyles: { fillColor: [250, 248, 245] },
-      columnStyles: {
-        0: { cellWidth: 8 },
-        1: { cellWidth: 22 },
-        2: { cellWidth: 32 },
-        3: { cellWidth: 14 },
-        4: { cellWidth: 14 },
-        5: { cellWidth: 14 },
-        10: { cellWidth: 40 },
-      },
-      margin: { left: 8, right: 8 },
-      didDrawPage: (d: any) => {
-        // Footer
-        const pageH = doc.internal.pageSize.getHeight()
-        doc.setFontSize(7)
-        doc.setTextColor(150, 150, 150)
-        doc.text(`Dicetak: ${new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' })}`, 14, pageH - 6)
-        doc.text(`Halaman ${doc.internal.getNumberOfPages()}`, pageW - 14, pageH - 6, { align: 'right' })
-      }
+      startY: 70,
+      head: [['No', 'Tanggal', 'Petugas', 'Jam Masuk', 'Jam Keluar', 'Durasi']],
+      body: overviewData,
+      styles: { fontSize: 8, cellPadding: 3 },
+      headStyles: { fillColor: [139, 69, 19], textColor: 255, fontStyle: 'bold' },
+      alternateRowStyles: { fillColor: [254, 252, 249] },
+      margin: { left: 14, right: 14 },
     })
 
-    // ── Per-Person Summary Page ──
+    // ══════════════════════════════════════
+    // DETAIL PAGES: One section per entry
+    // ══════════════════════════════════════
+    data.forEach((d: any, idx: number) => {
+      doc.addPage()
+      const tgl = d.tanggal ? new Date(d.tanggal).toLocaleDateString('id-ID', { weekday: 'long', day: '2-digit', month: 'long', year: 'numeric' }) : '-'
+
+      // Header bar
+      doc.setFillColor(139, 69, 19)
+      doc.rect(0, 0, pageW, 20, 'F')
+      doc.setTextColor(255, 255, 255)
+      doc.setFontSize(11)
+      doc.setFont('helvetica', 'bold')
+      doc.text(`Laporan #${idx + 1} — ${d.namaPetugas || 'N/A'}`, 14, 9)
+      doc.setFontSize(9)
+      doc.setFont('helvetica', 'normal')
+      doc.text(tgl, 14, 16)
+
+      let durasi = '-'
+      if (d.jamMasuk && d.jamKeluar) {
+        const [h1, m1] = d.jamMasuk.split(':').map(Number)
+        const [h2, m2] = d.jamKeluar.split(':').map(Number)
+        const diff = (h2 * 60 + m2) - (h1 * 60 + m1)
+        durasi = `${Math.floor(diff / 60)}j ${diff % 60}m`
+      }
+      doc.text(`Durasi: ${durasi}`, pageW - 14, 9, { align: 'right' })
+
+      // Section builder
+      let curY = 26
+
+      const drawSectionTitle = (title: string) => {
+        if (curY > pageH - 30) { doc.addPage(); curY = 14 }
+        doc.setFillColor(245, 240, 235)
+        doc.roundedRect(14, curY, pageW - 28, 8, 2, 2, 'F')
+        doc.setTextColor(139, 69, 19)
+        doc.setFontSize(9)
+        doc.setFont('helvetica', 'bold')
+        doc.text(title, 18, curY + 5.5)
+        curY += 12
+      }
+
+      const drawField = (label: string, value: string) => {
+        if (curY > pageH - 15) { doc.addPage(); curY = 14 }
+        doc.setTextColor(100, 100, 100)
+        doc.setFontSize(7.5)
+        doc.setFont('helvetica', 'bold')
+        doc.text(label, 18, curY)
+        doc.setTextColor(30, 30, 30)
+        doc.setFont('helvetica', 'normal')
+        doc.setFontSize(8)
+        // Handle long text wrapping
+        const maxW = pageW - 80
+        const lines = doc.splitTextToSize(value, maxW)
+        doc.text(lines, 65, curY)
+        curY += Math.max(lines.length * 4, 5) + 1
+      }
+
+      const drawLongField = (label: string, value: string) => {
+        if (curY > pageH - 20) { doc.addPage(); curY = 14 }
+        doc.setTextColor(100, 100, 100)
+        doc.setFontSize(7.5)
+        doc.setFont('helvetica', 'bold')
+        doc.text(label, 18, curY)
+        curY += 5
+        doc.setTextColor(30, 30, 30)
+        doc.setFont('helvetica', 'normal')
+        doc.setFontSize(8)
+        const maxW = pageW - 36
+        const lines = doc.splitTextToSize(value || '-', maxW)
+        doc.text(lines, 18, curY)
+        curY += lines.length * 4 + 3
+      }
+
+      // ─── Section 1: Info Umum ───
+      drawSectionTitle('📋 INFO UMUM')
+      drawField('Email', fmtText(d.email))
+      drawField('Tanggal', tgl)
+      drawField('Nama Petugas', fmtText(d.namaPetugas))
+      drawField('Jam Masuk', fmtText(d.jamMasuk))
+      drawField('Jam Keluar', fmtText(d.jamKeluar))
+      drawField('Durasi Kerja', durasi)
+      drawField('Lampu', fmtArr(d.lampu))
+      drawField('Kebersihan', fmtArr(d.kebersihan))
+      drawField('Ruangan Diperiksa', `${fmtArr(d.ruangan)}${d.ruanganLain ? ` (Lainnya: ${d.ruanganLain})` : ''}`)
+      drawField('Laporan Keamanan', fmtText(d.laporanKeamanan))
+      drawField('Meteran Air', fmtText(d.meteranAir))
+      drawField('Meteran Listrik', fmtText(d.meteranListrik))
+      drawLongField('Kegiatan Hari Ini', fmtText(d.kegiatanHariIni))
+      drawLongField('Kegiatan Esok Hari', fmtText(d.kegiatanEsokHari))
+
+      // ─── Section 2: Hostel ───
+      drawSectionTitle('🏨 HOSTEL')
+      drawField('Kamar Terisi', fmtArr(d.kamarTerisi))
+      drawField('Snack', fmtArr(d.snack))
+      drawField('Beres Lobby', `${fmtArr(d.beresLobby)}${d.beresLobbyLain ? ` (Lainnya: ${d.beresLobbyLain})` : ''}`)
+      drawField('WiFi Hostel', fmtText(d.wifiHostel))
+      drawField('Ada Pembayaran?', fmtText(d.adaPembayaranHostel))
+      drawLongField('Rincian Pembayaran Hostel', fmtText(d.rincianPembayaranHostel))
+
+      // ─── Section 3: Auditorium ───
+      drawSectionTitle('🏛️ AUDITORIUM')
+      drawField('Penyewa 1', fmtText(d.penyewa1))
+      drawField('Nama Penyewa 1', fmtText(d.penyewa1Nama))
+      drawField('Rincian Biaya 1', fmtText(d.rincianBiaya1))
+      drawField('Total Biaya 1', fmtText(d.totalBiaya1))
+      drawField('Penyewa 2', fmtText(d.penyewa2))
+      drawField('Nama Penyewa 2', fmtText(d.penyewa2Nama))
+      drawField('Rincian Biaya 2', fmtText(d.rincianBiaya2))
+      drawField('Total Biaya 2', fmtText(d.totalBiaya2))
+      drawField('Pembayaran Lain', `${fmtArr(d.pembayaranLain)}${d.pembayaranLainCustom ? ` (${d.pembayaranLainCustom})` : ''}`)
+      drawLongField('Rincian Biaya Lain', fmtText(d.rincianBiayaLain))
+
+      // page footer
+      doc.setFontSize(6.5)
+      doc.setTextColor(180, 180, 180)
+      doc.text(`Halaman ${doc.internal.getNumberOfPages()}`, pageW - 14, pageH - 6, { align: 'right' })
+    })
+
+    // ══════════════════════════════════════
+    // LAST PAGE: Ringkasan Per Petugas
+    // ══════════════════════════════════════
     doc.addPage()
     doc.setFillColor(139, 69, 19)
     doc.rect(0, 0, pageW, 22, 'F')
@@ -198,7 +308,7 @@ export default function SekretarisPortal() {
     doc.setFont('helvetica', 'bold')
     doc.text(`RINGKASAN PER PETUGAS — ${monthName} ${year}`, pageW / 2, 14, { align: 'center' })
 
-    // Build per-person stats
+    // Build per-person stats — each submission is a separate row
     const personStats: Record<string, { count: number; totalMins: number; shifts: number }> = {}
     data.forEach((d: any) => {
       const name = d.namaPetugas || 'Tidak Diketahui'
@@ -220,17 +330,19 @@ export default function SekretarisPortal() {
 
     autoTable(doc, {
       startY: 28,
-      head: [['No', 'Nama Petugas', 'Total Laporan', 'Shift Lengkap', 'Total Jam Kerja']],
+      head: [['No', 'Nama Petugas', 'Jumlah Laporan', 'Shift Lengkap', 'Total Jam Kerja']],
       body: personTableData,
-      styles: { fontSize: 10, cellPadding: 4 },
+      styles: { fontSize: 10, cellPadding: 5 },
       headStyles: { fillColor: [139, 69, 19], textColor: 255, fontStyle: 'bold', fontSize: 10 },
-      alternateRowStyles: { fillColor: [250, 248, 245] },
-      columnStyles: {
-        0: { cellWidth: 12 },
-        1: { cellWidth: 70 },
-      },
+      alternateRowStyles: { fillColor: [254, 252, 249] },
+      columnStyles: { 0: { cellWidth: 12 }, 1: { cellWidth: 60 } },
       margin: { left: 14, right: 14 },
     })
+
+    // Footer on last page
+    doc.setFontSize(7)
+    doc.setTextColor(150, 150, 150)
+    doc.text(`Dicetak: ${new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' })}`, 14, pageH - 6)
 
     // Save
     const filename = `Rekap_Piket_${monthName}_${year}${petugasFilter ? `_${petugasFilter.replace(/\s+/g, '_')}` : ''}.pdf`
@@ -253,7 +365,7 @@ export default function SekretarisPortal() {
   const handleArsipDownload = async (month: number) => {
     setArsipPdfGen(month)
     try {
-      await generatePDF(month, arsipYear)
+      await generatePDF(month, arsipYear, arsipPetugas || undefined)
     } catch (err) {
       console.error(err)
       alert('Gagal generate PDF')
@@ -466,15 +578,22 @@ export default function SekretarisPortal() {
         {/* ═══════ ARSIP BULANAN TAB ═══════ */}
         {activeTab === 'arsip_bulanan' && (
           <div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '24px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '24px', flexWrap: 'wrap' }}>
               <h3 style={{ margin: 0, fontSize: '1.1rem' }}>📁 Arsip Rekap Piket Bulanan</h3>
               <select value={arsipYear} onChange={e => setArsipYear(Number(e.target.value))} style={{ padding: '8px 12px', borderRadius: '8px', border: '1px solid #d1d5db', fontSize: '0.9rem' }}>
                 {[2025, 2026, 2027].map(y => <option key={y} value={y}>{y}</option>)}
               </select>
+              <select value={arsipPetugas} onChange={e => setArsipPetugas(e.target.value)} style={{ padding: '8px 12px', borderRadius: '8px', border: '1px solid #d1d5db', fontSize: '0.9rem', minWidth: '200px' }}>
+                <option value=''>Semua Petugas</option>
+                {PETUGAS_LIST.map(p => <option key={p} value={p}>{p}</option>)}
+              </select>
             </div>
 
             {arsipLoading ? (
-              <div style={{ textAlign: 'center', padding: '3rem', color: '#6b7280' }}>Memuat arsip bulanan...</div>
+              <div style={{ textAlign: 'center', padding: '3rem', color: '#6b7280' }}>
+                <div style={{ fontSize: '2rem', marginBottom: '8px' }}>⏳</div>
+                Memuat arsip bulanan...
+              </div>
             ) : (
               <div className="arsip-grid">
                 {arsipData.map(item => (
@@ -510,77 +629,27 @@ export default function SekretarisPortal() {
       </main>
 
       <style jsx global>{`
-        .dashboard-layout {
-          display: flex;
-          min-height: 100vh;
-          background: var(--color-bg-primary);
-        }
-
-        .portal-header { 
-          margin-bottom: var(--spacing-xl);
-          animation: slideDown 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-        .portal-header h1 { 
-          margin-bottom: var(--spacing-xs);
-          font-size: 2rem;
-        }
+        .dashboard-layout { display: flex; min-height: 100vh; background: var(--color-bg-primary); }
+        .portal-header { margin-bottom: var(--spacing-xl); animation: slideDown 0.4s cubic-bezier(0.4, 0, 0.2, 1); }
+        .portal-header h1 { margin-bottom: var(--spacing-xs); font-size: 2rem; }
         .portal-header p { color: var(--color-text-muted); }
-
         .tabs { display: flex; gap: 1rem; margin-bottom: 2rem; flex-wrap: wrap; }
-        .tab {
-          padding: 0.75rem 1.25rem;
-          border: 1px solid #d1d5db;
-          border-radius: 0.5rem;
-          background: white;
-          cursor: pointer;
-          font-size: 0.92rem;
-          transition: all 0.2s;
-        }
+        .tab { padding: 0.75rem 1.25rem; border: 1px solid #d1d5db; border-radius: 0.5rem; background: white; cursor: pointer; font-size: 0.92rem; transition: all 0.2s; }
         .tab:hover { border-color: var(--color-primary, #8B4513); }
-        .tab.active {
-          background: var(--color-primary, #8B4513);
-          color: white;
-          border-color: var(--color-primary, #8B4513);
-        }
-
-        .portal-grid {
-          display: flex;
-          gap: var(--spacing-lg);
-          width: 100%;
-          animation: slideUp 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-
+        .tab.active { background: var(--color-primary, #8B4513); color: white; border-color: var(--color-primary, #8B4513); }
+        .portal-grid { display: flex; gap: var(--spacing-lg); width: 100%; animation: slideUp 0.4s cubic-bezier(0.4, 0, 0.2, 1); }
         .portal-grid > .card { flex: 1; min-width: 0; }
-
-        .card {
-          transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-          border: 1px solid transparent;
-        }
-        .card:hover {
-          transform: translateY(-4px);
-          box-shadow: var(--shadow-lg);
-          border-color: var(--color-primary-light);
-        }
+        .card { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); border: 1px solid transparent; }
+        .card:hover { transform: translateY(-4px); box-shadow: var(--shadow-lg); border-color: var(--color-primary-light); }
         .card-desc { color: var(--color-text-muted); font-size: 0.9375rem; margin-bottom: var(--spacing-lg); }
-
         .menu-list { display: flex; flex-direction: column; gap: var(--spacing-md); }
-        .menu-item {
-          display: flex; align-items: center; gap: var(--spacing-lg); padding: var(--spacing-lg);
-          background: var(--color-bg-secondary); border-radius: var(--radius-lg);
-          text-decoration: none; color: var(--color-text-primary);
-          transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); font-size: 1rem;
-        }
-        .menu-item:hover {
-          background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%);
-          color: white; transform: translateX(8px); box-shadow: var(--shadow-md);
-        }
-
+        .menu-item { display: flex; align-items: center; gap: var(--spacing-lg); padding: var(--spacing-lg); background: var(--color-bg-secondary); border-radius: var(--radius-lg); text-decoration: none; color: var(--color-text-primary); transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); font-size: 1rem; }
+        .menu-item:hover { background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%); color: white; transform: translateX(8px); box-shadow: var(--shadow-md); }
         .data-table { width: 100%; border-collapse: collapse; }
         .data-table th, .data-table td { padding: var(--spacing-md) var(--spacing-lg); text-align: left; border-bottom: 1px solid rgba(139, 69, 19, 0.1); }
         .data-table tr { transition: all 0.2s ease; }
         .data-table tbody tr:hover { background: var(--color-bg-secondary); }
         .data-table th { font-weight: 600; color: var(--color-text-secondary); font-size: 0.875rem; }
-
         .log-list { display: flex; flex-direction: column; gap: var(--spacing-md); }
         .log-item { display: flex; align-items: center; gap: var(--spacing-md); padding: var(--spacing-md); font-size: 0.9375rem; transition: all 0.2s ease; border-radius: var(--radius-md); }
         .log-item:hover { background: var(--color-bg-secondary); transform: translateX(4px); }
@@ -591,99 +660,22 @@ export default function SekretarisPortal() {
         .log-detail { flex: 1; }
         .log-time { color: var(--color-text-muted); font-size: 0.8125rem; }
 
-        /* ═══════ Arsip Bulanan Grid ═══════ */
-        .arsip-grid {
-          display: grid;
-          grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-          gap: 16px;
-          animation: slideUp 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-        }
+        .arsip-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 16px; animation: slideUp 0.4s cubic-bezier(0.4, 0, 0.2, 1); }
+        .arsip-folder { background: white; border: 1px solid #e5e7eb; border-radius: 16px; padding: 24px 20px; text-align: center; transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1); display: flex; flex-direction: column; align-items: center; gap: 8px; }
+        .arsip-folder:hover { transform: translateY(-4px); box-shadow: 0 8px 24px rgba(0,0,0,0.08); border-color: var(--color-primary, #8B4513); }
+        .arsip-folder.empty { opacity: 0.5; }
+        .arsip-folder.empty:hover { transform: none; box-shadow: none; border-color: #e5e7eb; }
+        .arsip-folder-icon { font-size: 2.5rem; line-height: 1; }
+        .arsip-folder-name { font-weight: 700; font-size: 1rem; color: var(--color-text-primary, #111); }
+        .arsip-folder-stats { font-size: 0.82rem; color: #6b7280; }
+        .arsip-download-btn { margin-top: 8px; padding: 8px 16px; border-radius: 8px; background: #dc2626; color: white; border: none; cursor: pointer; font-weight: 600; font-size: 0.82rem; transition: all 0.2s; }
+        .arsip-download-btn:hover { background: #b91c1c; transform: scale(1.04); }
+        .arsip-download-btn:disabled { opacity: 0.6; cursor: wait; }
+        .arsip-empty-label { margin-top: 4px; font-size: 0.78rem; color: #9ca3af; font-style: italic; }
 
-        .arsip-folder {
-          background: white;
-          border: 1px solid #e5e7eb;
-          border-radius: 16px;
-          padding: 24px 20px;
-          text-align: center;
-          transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-          gap: 8px;
-        }
-
-        .arsip-folder:hover {
-          transform: translateY(-4px);
-          box-shadow: 0 8px 24px rgba(0,0,0,0.08);
-          border-color: var(--color-primary, #8B4513);
-        }
-
-        .arsip-folder.empty {
-          opacity: 0.5;
-        }
-        .arsip-folder.empty:hover {
-          transform: none;
-          box-shadow: none;
-          border-color: #e5e7eb;
-        }
-
-        .arsip-folder-icon {
-          font-size: 2.5rem;
-          line-height: 1;
-        }
-
-        .arsip-folder-name {
-          font-weight: 700;
-          font-size: 1rem;
-          color: var(--color-text-primary, #111);
-        }
-
-        .arsip-folder-stats {
-          font-size: 0.82rem;
-          color: #6b7280;
-        }
-
-        .arsip-download-btn {
-          margin-top: 8px;
-          padding: 8px 16px;
-          border-radius: 8px;
-          background: #dc2626;
-          color: white;
-          border: none;
-          cursor: pointer;
-          font-weight: 600;
-          font-size: 0.82rem;
-          transition: all 0.2s;
-        }
-        .arsip-download-btn:hover {
-          background: #b91c1c;
-          transform: scale(1.04);
-        }
-        .arsip-download-btn:disabled {
-          opacity: 0.6;
-          cursor: wait;
-        }
-
-        .arsip-empty-label {
-          margin-top: 4px;
-          font-size: 0.78rem;
-          color: #9ca3af;
-          font-style: italic;
-        }
-
-        @keyframes slideUp {
-          from { opacity: 0; transform: translateY(20px); }
-          to { opacity: 1; transform: translateY(0); }
-        }
-        @keyframes slideDown {
-          from { opacity: 0; transform: translateY(-10px); }
-          to { opacity: 1; transform: translateY(0); }
-        }
-
-        @media (max-width: 968px) {
-          .portal-grid { flex-direction: column; }
-          .arsip-grid { grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); }
-        }
+        @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes slideDown { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+        @media (max-width: 968px) { .portal-grid { flex-direction: column; } .arsip-grid { grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); } }
       `}</style>
     </div>
   )
