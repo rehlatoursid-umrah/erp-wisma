@@ -13,7 +13,7 @@ export default function LaporanPiketPage() {
         <>
             <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
             <main className="main-content">
-                <Header onMenuToggle={() => setSidebarOpen(!sidebarOpen)} />
+                <Header onMenuClick={() => setSidebarOpen(!sidebarOpen)} />
 
                 <div style={{ marginBottom: 24 }}>
                     <h2 style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 4 }}>
