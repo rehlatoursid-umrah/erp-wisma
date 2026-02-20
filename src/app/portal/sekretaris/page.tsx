@@ -136,14 +136,18 @@ export default function SekretarisPortal() {
     doc.setFont('helvetica', 'normal')
 
     // ── Main Data Table (7 columns — matches UI) ──
+    const NORMAL_SHIFT_MINS = 14 * 60 // 14 hours = 840 minutes
+    const durasiMins: number[] = [] // track minutes per row for coloring
     const tableData = data.map((d: any, i: number) => {
       let durasi = '-'
+      let diffMins = 0
       if (d.jamMasuk && d.jamKeluar) {
         const [h1, m1] = d.jamMasuk.split(':').map(Number)
         const [h2, m2] = d.jamKeluar.split(':').map(Number)
-        const diff = (h2 * 60 + m2) - (h1 * 60 + m1)
-        durasi = `${Math.floor(diff / 60)}j ${diff % 60}m`
+        diffMins = (h2 * 60 + m2) - (h1 * 60 + m1)
+        durasi = `${Math.floor(diffMins / 60)}j ${diffMins % 60}m`
       }
+      durasiMins.push(diffMins)
       const tgl = d.tanggal ? new Date(d.tanggal).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' }) : '-'
       return [i + 1, tgl, d.namaPetugas || '-', d.jamMasuk || '-', d.jamKeluar || '-', durasi, d.kegiatanHariIni || '-']
     })
@@ -165,6 +169,16 @@ export default function SekretarisPortal() {
         6: { cellWidth: 'auto' },
       },
       margin: { left: 14, right: 14 },
+      didParseCell: (hookData: any) => {
+        // Color Durasi column green if > 14 hours
+        if (hookData.section === 'body' && hookData.column.index === 5) {
+          const rowIdx = hookData.row.index
+          if (durasiMins[rowIdx] && durasiMins[rowIdx] >= NORMAL_SHIFT_MINS) {
+            hookData.cell.styles.textColor = [22, 101, 52]
+            hookData.cell.styles.fontStyle = 'bold'
+          }
+        }
+      },
       didDrawPage: () => {
         // Footer on every page
         doc.setFontSize(7)
@@ -389,12 +403,14 @@ export default function SekretarisPortal() {
                 <tbody>
                   {piketData.map((d, i) => {
                     let durasi = '-'
+                    let diffMins = 0
                     if (d.jamMasuk && d.jamKeluar) {
                       const [h1, m1] = d.jamMasuk.split(':').map(Number)
                       const [h2, m2] = d.jamKeluar.split(':').map(Number)
-                      const diff = (h2 * 60 + m2) - (h1 * 60 + m1)
-                      durasi = `${Math.floor(diff / 60)}j ${diff % 60}m`
+                      diffMins = (h2 * 60 + m2) - (h1 * 60 + m1)
+                      durasi = `${Math.floor(diffMins / 60)}j ${diffMins % 60}m`
                     }
+                    const isOvertime = diffMins >= 14 * 60
                     const tgl = d.tanggal ? new Date(d.tanggal).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' }) : '-'
                     return (
                       <>
@@ -404,7 +420,7 @@ export default function SekretarisPortal() {
                           <td style={{ padding: '10px 14px', fontWeight: 500 }}>{d.namaPetugas || '-'}</td>
                           <td style={{ padding: '10px 14px' }}>{d.jamMasuk || '-'}</td>
                           <td style={{ padding: '10px 14px' }}>{d.jamKeluar || '-'}</td>
-                          <td style={{ padding: '10px 14px' }}>{durasi}</td>
+                          <td style={{ padding: '10px 14px', color: isOvertime ? '#166534' : undefined, fontWeight: isOvertime ? 700 : undefined, background: isOvertime ? '#dcfce7' : undefined, borderRadius: isOvertime ? '6px' : undefined }}>{durasi}</td>
                           <td style={{ padding: '10px 14px', maxWidth: '200px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{d.kegiatanHariIni || '-'}</td>
                           <td style={{ padding: '10px 14px', textAlign: 'center' }}>
                             <button style={{ background: 'none', border: '1px solid #d1d5db', borderRadius: '6px', padding: '4px 10px', cursor: 'pointer', fontSize: '0.8rem' }}>
