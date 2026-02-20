@@ -217,6 +217,7 @@ export async function GET(request: NextRequest) {
             color: #666;
             margin-top: 4px;
         }
+    </style>
 </head>
 <body>
     <div class="container">
