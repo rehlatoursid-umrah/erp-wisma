@@ -262,14 +262,55 @@ export default function LaporanPiketForm() {
 
     if (submitted) {
         return (
-            <div className="piket-success">
-                <div className="piket-success-icon">✨</div>
-                <h2>Laporan Terkirim!</h2>
-                <p>Terima kasih, laporan piket kantor telah berhasil tercatat di sistem.</p>
-                <div style={{ display: 'flex', justifyContent: 'center', gap: 12 }}>
-                    <button className="piket-btn primary" onClick={() => { setForm(initialFormData); setSubmitted(false); setStep(0) }}>
-                        Buat Laporan Lagi
-                    </button>
+            <div className="piket-success-page">
+                {/* Animated background circles */}
+                <div className="success-bg-circle c1" />
+                <div className="success-bg-circle c2" />
+                <div className="success-bg-circle c3" />
+
+                <div className="success-card">
+                    {/* Animated checkmark */}
+                    <div className="success-check-ring">
+                        <svg className="success-check-svg" viewBox="0 0 52 52">
+                            <circle className="success-check-circle" cx="26" cy="26" r="24" fill="none" />
+                            <path className="success-check-path" fill="none" d="M14 27l7 7 16-16" />
+                        </svg>
+                    </div>
+
+                    <h2 className="success-title">Laporan Berhasil Terkirim!</h2>
+                    <p className="success-subtitle">
+                        Laporan piket kantor telah tersimpan di sistem dan siap untuk direkapitulasi.
+                    </p>
+
+                    {/* Summary */}
+                    <div className="success-summary">
+                        <div className="success-summary-item">
+                            <span className="success-summary-label">Petugas</span>
+                            <span className="success-summary-value">{form.namaPetugas || '—'}</span>
+                        </div>
+                        <div className="success-summary-divider" />
+                        <div className="success-summary-item">
+                            <span className="success-summary-label">Tanggal</span>
+                            <span className="success-summary-value">
+                                {form.tanggal ? new Date(form.tanggal).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' }) : '—'}
+                            </span>
+                        </div>
+                        <div className="success-summary-divider" />
+                        <div className="success-summary-item">
+                            <span className="success-summary-label">Shift</span>
+                            <span className="success-summary-value">{form.jamMasuk || '--:--'} — {form.jamKeluar || '--:--'}</span>
+                        </div>
+                    </div>
+
+                    {/* Action buttons */}
+                    <div className="success-actions">
+                        <button className="piket-btn primary" onClick={() => { setForm(initialFormData); setSubmitted(false); setStep(0) }}>
+                            <ClipboardList size={18} /> Buat Laporan Baru
+                        </button>
+                        <a href="/portal/bpupd" className="piket-btn secondary" style={{ textDecoration: 'none' }}>
+                            Lihat Rekapitulasi →
+                        </a>
+                    </div>
                 </div>
             </div>
         )
@@ -917,40 +958,185 @@ export default function LaporanPiketForm() {
           box-shadow: 0 8px 16px rgba(34, 197, 94, 0.3);
         }
 
-        /* Success Screen */
-        .piket-success {
+        /* ═══════ Success Page ═══════ */
+        .piket-success-page {
+          position: relative;
+          min-height: 60vh;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          padding: 40px 20px;
+          overflow: hidden;
+        }
+
+        .success-bg-circle {
+          position: absolute;
+          border-radius: 50%;
+          opacity: 0.06;
+          pointer-events: none;
+        }
+        .success-bg-circle.c1 {
+          width: 400px; height: 400px;
+          background: var(--color-success, #22c55e);
+          top: -80px; right: -100px;
+          animation: floatCircle 6s ease-in-out infinite;
+        }
+        .success-bg-circle.c2 {
+          width: 250px; height: 250px;
+          background: var(--color-primary, #8B4513);
+          bottom: -40px; left: -60px;
+          animation: floatCircle 8s ease-in-out infinite reverse;
+        }
+        .success-bg-circle.c3 {
+          width: 180px; height: 180px;
+          background: #3b82f6;
+          top: 50%; left: 60%;
+          animation: floatCircle 7s ease-in-out infinite 1s;
+        }
+
+        @keyframes floatCircle {
+          0%, 100% { transform: translate(0, 0) scale(1); }
+          50% { transform: translate(15px, -20px) scale(1.08); }
+        }
+
+        .success-card {
+          position: relative;
+          z-index: 1;
           text-align: center;
-          padding: 80px 40px;
-          background: var(--color-bg-card);
-          border-radius: var(--radius-2xl);
-          box-shadow: var(--shadow-xl);
+          max-width: 520px;
+          width: 100%;
+          background: var(--color-bg-card, #fff);
+          border-radius: 24px;
+          padding: 48px 40px 40px;
+          box-shadow:
+            0 4px 6px rgba(0,0,0,0.04),
+            0 20px 50px rgba(0,0,0,0.08);
           border: 1px solid rgba(34, 197, 94, 0.1);
-          animation: slideUp var(--transition-base) ease-out;
+          animation: cardEntrance 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
         }
 
-        .piket-success-icon { 
-          font-size: 5rem; 
-          margin-bottom: 24px;
-          display: inline-block;
-          animation: spring var(--transition-spring);
+        @keyframes cardEntrance {
+          0% { opacity: 0; transform: translateY(30px) scale(0.96); }
+          100% { opacity: 1; transform: translateY(0) scale(1); }
         }
 
-        .piket-success h2 {
-          margin-bottom: 12px;
-          color: var(--color-success);
-          font-size: 2rem;
+        /* Animated SVG Checkmark */
+        .success-check-ring {
+          width: 80px;
+          height: 80px;
+          margin: 0 auto 24px;
+          animation: ringPop 0.5s 0.2s cubic-bezier(0.16, 1, 0.3, 1) both;
         }
 
-        .piket-success p {
-          color: var(--color-text-muted);
-          margin-bottom: 32px;
-          font-size: 1.1rem;
+        @keyframes ringPop {
+          0% { transform: scale(0); opacity: 0; }
+          60% { transform: scale(1.15); }
+          100% { transform: scale(1); opacity: 1; }
         }
 
-        @keyframes spring {
-          0% { transform: scale(0.5); }
-          70% { transform: scale(1.1); }
-          100% { transform: scale(1); }
+        .success-check-svg {
+          width: 80px;
+          height: 80px;
+        }
+
+        .success-check-circle {
+          stroke: var(--color-success, #22c55e);
+          stroke-width: 2;
+          stroke-dasharray: 166;
+          stroke-dashoffset: 166;
+          animation: strokeDraw 0.6s 0.4s cubic-bezier(0.65, 0, 0.45, 1) forwards;
+        }
+
+        .success-check-path {
+          stroke: var(--color-success, #22c55e);
+          stroke-width: 3;
+          stroke-linecap: round;
+          stroke-linejoin: round;
+          stroke-dasharray: 48;
+          stroke-dashoffset: 48;
+          animation: strokeDraw 0.4s 0.8s cubic-bezier(0.65, 0, 0.45, 1) forwards;
+        }
+
+        @keyframes strokeDraw {
+          to { stroke-dashoffset: 0; }
+        }
+
+        .success-title {
+          font-size: 1.6rem;
+          font-weight: 700;
+          color: var(--color-text-primary, #111);
+          margin-bottom: 8px;
+          animation: fadeSlideUp 0.5s 0.6s both;
+        }
+
+        .success-subtitle {
+          font-size: 0.95rem;
+          color: var(--color-text-muted, #6b7280);
+          line-height: 1.6;
+          margin-bottom: 28px;
+          animation: fadeSlideUp 0.5s 0.7s both;
+        }
+
+        @keyframes fadeSlideUp {
+          0% { opacity: 0; transform: translateY(12px); }
+          100% { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Summary strip */
+        .success-summary {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 0;
+          background: var(--color-bg-primary, #faf8f5);
+          border-radius: 14px;
+          padding: 16px 8px;
+          margin-bottom: 28px;
+          animation: fadeSlideUp 0.5s 0.8s both;
+        }
+
+        .success-summary-item {
+          flex: 1;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          gap: 4px;
+          padding: 0 12px;
+        }
+
+        .success-summary-label {
+          font-size: 0.72rem;
+          text-transform: uppercase;
+          letter-spacing: 0.06em;
+          color: var(--color-text-muted, #9ca3af);
+          font-weight: 600;
+        }
+
+        .success-summary-value {
+          font-size: 0.92rem;
+          font-weight: 600;
+          color: var(--color-text-primary, #111);
+        }
+
+        .success-summary-divider {
+          width: 1px;
+          height: 32px;
+          background: rgba(0,0,0,0.08);
+          flex-shrink: 0;
+        }
+
+        .success-actions {
+          display: flex;
+          justify-content: center;
+          gap: 12px;
+          animation: fadeSlideUp 0.5s 0.9s both;
+        }
+
+        @media (max-width: 500px) {
+          .success-card { padding: 36px 24px 32px; }
+          .success-summary { flex-direction: column; gap: 12px; }
+          .success-summary-divider { width: 60%; height: 1px; }
+          .success-actions { flex-direction: column; }
         }
       `}</style>
         </div>
