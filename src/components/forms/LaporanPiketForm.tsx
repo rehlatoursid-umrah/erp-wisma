@@ -308,9 +308,6 @@ export default function LaporanPiketForm() {
                             <button className="piket-btn primary" onClick={() => { setForm(initialFormData); setSubmitted(false); setStep(0) }}>
                                 <ClipboardList size={18} /> Buat Laporan Baru
                             </button>
-                            <a href="/portal/bpupd" className="piket-btn secondary" style={{ textDecoration: 'none' }}>
-                                Lihat Rekapitulasi →
-                            </a>
                         </div>
                     </div>
                 </div>
