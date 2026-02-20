@@ -505,7 +505,7 @@ export default function LaporanPiketForm() {
             </div>
 
             {/* Inline Styles */}
-            <style jsx>{`
+            <style jsx global>{`
         .piket-container {
           max-width: 900px;
           margin: 0 auto;
