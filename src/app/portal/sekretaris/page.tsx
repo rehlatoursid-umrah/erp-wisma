@@ -173,7 +173,7 @@ export default function SekretarisPortal() {
         // Color Durasi column green if > 14 hours
         if (hookData.section === 'body' && hookData.column.index === 5) {
           const rowIdx = hookData.row.index
-          if (durasiMins[rowIdx] && durasiMins[rowIdx] >= NORMAL_SHIFT_MINS) {
+          if (durasiMins[rowIdx] && durasiMins[rowIdx] > NORMAL_SHIFT_MINS) {
             hookData.cell.styles.textColor = [22, 101, 52]
             hookData.cell.styles.fontStyle = 'bold'
           }
@@ -410,7 +410,7 @@ export default function SekretarisPortal() {
                       diffMins = (h2 * 60 + m2) - (h1 * 60 + m1)
                       durasi = `${Math.floor(diffMins / 60)}j ${diffMins % 60}m`
                     }
-                    const isOvertime = diffMins >= 14 * 60
+                    const isOvertime = diffMins > 14 * 60
                     const tgl = d.tanggal ? new Date(d.tanggal).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' }) : '-'
                     return (
                       <>
