@@ -81,7 +81,7 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
                                     className={`nav-item ${pathname === item.href ? 'active' : ''}`}
                                 >
                                     <span className="nav-icon">
-                                        <item.icon size={20} color="black" />
+                                        <item.icon size={20} color="white" />
                                     </span>
                                     <span>{item.label}</span>
                                     {item.locked && <span className="nav-lock"><Lock size={12} /></span>}
@@ -94,11 +94,11 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
 
                 <div className="sidebar-footer">
                     <Link href="/settings" className="nav-item">
-                        <span className="nav-icon"><Settings size={20} color="black" /></span>
+                        <span className="nav-icon"><Settings size={20} color="white" /></span>
                         <span>Pengaturan</span>
                     </Link>
                     <button className="nav-item logout-btn">
-                        <span className="nav-icon"><LogOut size={20} color="black" /></span>
+                        <span className="nav-icon"><LogOut size={20} color="white" /></span>
                         <span>Keluar</span>
                     </button>
                 </div>
