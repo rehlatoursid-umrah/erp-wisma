@@ -709,51 +709,55 @@ export default function LaporanPiketForm() {
         /* Checkbox/Selectable Grid */
         .piket-check-grid {
           display: grid;
-          grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-          gap: 10px;
+          grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+          gap: 8px;
         }
 
         .piket-check-item {
           display: flex;
           align-items: center;
-          gap: 12px;
-          padding: 12px 16px;
-          border-radius: var(--radius-lg);
-          border: 1.5px solid rgba(139, 69, 19, 0.1);
-          background: var(--color-bg-secondary);
+          gap: 10px;
+          padding: 10px 14px;
+          border-radius: 10px;
+          border: 1.5px solid rgba(139, 69, 19, 0.08);
+          background: var(--color-bg-primary);
           cursor: pointer;
-          font-size: 0.95rem;
-          transition: all var(--transition-fast);
+          font-size: 0.88rem;
+          color: var(--color-text-secondary);
+          transition: all 0.2s ease;
           user-select: none;
           position: relative;
+          line-height: 1.4;
         }
 
         .piket-check-item:hover {
-          border-color: var(--color-primary);
-          background: rgba(139, 69, 19, 0.05);
-          transform: translateY(-1px);
+          border-color: rgba(139, 69, 19, 0.25);
+          background: rgba(139, 69, 19, 0.03);
         }
 
         .piket-check-item.checked {
           border-color: var(--color-primary);
-          background: rgba(139, 69, 19, 0.1);
-          color: var(--color-primary);
-          font-weight: 700;
-          box-shadow: var(--shadow-sm);
+          background: rgba(139, 69, 19, 0.06);
+          color: var(--color-text-primary);
         }
 
-        .piket-check-item input { position: absolute; opacity: 0; }
+        .piket-check-item input { 
+          position: absolute; 
+          opacity: 0; 
+          pointer-events: none;
+        }
 
         .piket-check-box {
-          width: 22px;
-          height: 22px;
-          border-radius: 6px;
-          border: 2.5px solid rgba(139, 69, 19, 0.2);
+          width: 18px;
+          height: 18px;
+          min-width: 18px;
+          border-radius: 5px;
+          border: 2px solid rgba(139, 69, 19, 0.18);
           display: flex;
           align-items: center;
           justify-content: center;
           color: transparent;
-          transition: all var(--transition-fast);
+          transition: all 0.2s ease;
           flex-shrink: 0;
           background: var(--color-bg-card);
         }
@@ -764,42 +768,54 @@ export default function LaporanPiketForm() {
           color: white;
         }
 
+        .piket-check-item.checked .piket-check-box svg {
+          width: 12px;
+          height: 12px;
+          stroke-width: 3;
+        }
+
         /* Radio Styling */
         .piket-radio-dot {
-          width: 22px;
-          height: 22px;
+          width: 18px;
+          height: 18px;
+          min-width: 18px;
           border-radius: 50%;
-          border: 2.5px solid rgba(139, 69, 19, 0.2);
+          border: 2px solid rgba(139, 69, 19, 0.18);
           position: relative;
           flex-shrink: 0;
-          transition: all var(--transition-fast);
+          transition: all 0.2s ease;
           background: var(--color-bg-card);
         }
 
         .piket-check-item.radio.checked .piket-radio-dot {
           border-color: var(--color-primary);
+          border-width: 2px;
         }
 
         .piket-check-item.radio.checked .piket-radio-dot::after {
           content: '';
           position: absolute;
-          top: 3px;
-          left: 3px;
-          width: 10px;
-          height: 10px;
+          top: 50%;
+          left: 50%;
+          transform: translate(-50%, -50%);
+          width: 8px;
+          height: 8px;
           border-radius: 50%;
           background: var(--color-primary);
         }
 
-        /* Small variant for dense grids (rooms) */
+        /* Dense variant for compact grids (rooms, etc.) */
         .piket-check-grid.dense {
-          grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+          grid-template-columns: repeat(auto-fill, minmax(90px, 1fr));
+          gap: 6px;
         }
         
         .piket-check-grid.dense .piket-check-item {
-          padding: 8px 12px;
-          font-size: 0.85rem;
+          padding: 8px 10px;
+          font-size: 0.82rem;
           justify-content: center;
+          text-align: center;
+          border-radius: 8px;
         }
         
         .piket-check-grid.dense .piket-check-box,
