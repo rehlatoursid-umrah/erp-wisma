@@ -11,6 +11,8 @@ export async function GET(request: NextRequest) {
     const total = searchParams.get('total') || '0'
     const currency = searchParams.get('currency') || 'EGP'
     const status = searchParams.get('status') || 'pending'
+    const isConfirmed = status === 'confirmed' || status === 'paid'
+    const statusText = isConfirmed ? '✅ Booking Confirmed' : '⏳ Menunggu Konfirmasi'
     const statusClass = isConfirmed ? 'confirmed' : 'pending'
 
     const itemsParam = searchParams.get('items')
