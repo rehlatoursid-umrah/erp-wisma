@@ -151,7 +151,7 @@ const initialFormData: FormData = {
 
 // ─── Reusable Sub-Components ─────────────────────────────────────────────────
 
-function MultiCheck({ label, options, selected, onChange, customKey, customValue, onCustomChange }: {
+function MultiCheck({ label, options, selected, onChange, customKey, customValue, onCustomChange, dense }: {
     label: string
     options: string[]
     selected: string[]
@@ -159,6 +159,7 @@ function MultiCheck({ label, options, selected, onChange, customKey, customValue
     customKey?: string
     customValue?: string
     onCustomChange?: (val: string) => void
+    dense?: boolean
 }) {
     const toggle = (opt: string) => {
         onChange(selected.includes(opt) ? selected.filter(s => s !== opt) : [...selected, opt])
@@ -166,11 +167,11 @@ function MultiCheck({ label, options, selected, onChange, customKey, customValue
     return (
         <div className="piket-field">
             <label className="piket-label">{label}</label>
-            <div className="piket-check-grid">
+            <div className={`piket-check-grid ${dense ? 'dense' : ''}`}>
                 {options.map(opt => (
                     <label key={opt} className={`piket-check-item ${selected.includes(opt) ? 'checked' : ''}`}>
                         <input type="checkbox" checked={selected.includes(opt)} onChange={() => toggle(opt)} />
-                        <span className="piket-check-box"><Check size={14} /></span>
+                        {!dense && <span className="piket-check-box"><Check size={14} /></span>}
                         <span>{opt}</span>
                     </label>
                 ))}
@@ -178,7 +179,7 @@ function MultiCheck({ label, options, selected, onChange, customKey, customValue
             {customKey && selected.includes(customKey) && (
                 <input
                     className="piket-input"
-                    style={{ marginTop: 8 }}
+                    style={{ marginTop: 12 }}
                     placeholder={`Sebutkan ${label.toLowerCase()}...`}
                     value={customValue || ''}
                     onChange={e => onCustomChange?.(e.target.value)}
@@ -212,7 +213,7 @@ function SingleSelect({ label, options, value, onChange, customKey, customValue,
             {customKey && value === customKey && (
                 <input
                     className="piket-input"
-                    style={{ marginTop: 8 }}
+                    style={{ marginTop: 12 }}
                     placeholder="Masukkan nama..."
                     value={customValue || ''}
                     onChange={e => onCustomChange?.(e.target.value)}
@@ -226,8 +227,8 @@ function SingleSelect({ label, options, value, onChange, customKey, customValue,
 
 const STEPS = [
     { title: 'Info Umum', icon: ClipboardList },
-    { title: 'Operasional Hostel', icon: Home },
-    { title: 'Operasional Auditorium', icon: Building2 },
+    { title: 'Hostel', icon: Home },
+    { title: 'Auditorium', icon: Building2 },
 ]
 
 // ─── Main Component ──────────────────────────────────────────────────────────
@@ -248,12 +249,14 @@ export default function LaporanPiketForm() {
     if (submitted) {
         return (
             <div className="piket-success">
-                <div className="piket-success-icon">✅</div>
-                <h2>Laporan Berhasil Dikirim!</h2>
-                <p>Terima kasih, laporan piket kantor telah tercatat.</p>
-                <button className="piket-btn primary" onClick={() => { setForm(initialFormData); setSubmitted(false); setStep(0) }}>
-                    Buat Laporan Baru
-                </button>
+                <div className="piket-success-icon">✨</div>
+                <h2>Laporan Terkirim!</h2>
+                <p>Terima kasih, laporan piket kantor telah berhasil tercatat di sistem.</p>
+                <div style={{ display: 'flex', justifyContent: 'center', gap: 12 }}>
+                    <button className="piket-btn primary" onClick={() => { setForm(initialFormData); setSubmitted(false); setStep(0) }}>
+                        Buat Laporan Lagi
+                    </button>
+                </div>
             </div>
         )
     }
@@ -261,92 +264,104 @@ export default function LaporanPiketForm() {
     return (
         <div className="piket-container">
             {/* Step Indicators */}
-            <div className="piket-steps">
-                {STEPS.map((s, i) => (
-                    <div key={i} className={`piket-step ${i === step ? 'active' : ''} ${i < step ? 'done' : ''}`} onClick={() => i < step && setStep(i)}>
-                        <div className="piket-step-circle">
-                            {i < step ? <Check size={18} /> : <s.icon size={18} />}
+            <div className="piket-steps-wrapper">
+                <div className="piket-step-line-bg" />
+                <div className="piket-step-line-progress" style={{ width: `${(step / (STEPS.length - 1)) * 100}%` }} />
+                <div className="piket-steps">
+                    {STEPS.map((s, i) => (
+                        <div key={i} className={`piket-step ${i === step ? 'active' : ''} ${i < step ? 'done' : ''}`} onClick={() => i < step && setStep(i)}>
+                            <div className="piket-step-circle">
+                                {i < step ? <Check size={20} /> : <s.icon size={20} />}
+                            </div>
+                            <span className="piket-step-label">{s.title}</span>
                         </div>
-                        <span className="piket-step-label">{s.title}</span>
-                    </div>
-                ))}
-                <div className="piket-step-line" style={{ width: `${(step / (STEPS.length - 1)) * 100}%` }} />
+                    ))}
+                </div>
             </div>
 
             {/* Form Body */}
-            <div className="piket-form-body">
+            <div className="piket-form-body shadow-xl">
                 {/* ──── PAGE 1 ──── */}
                 {step === 0 && (
-                    <div className="piket-page">
-                        <h3 className="piket-page-title">📋 Informasi Umum</h3>
+                    <div className="piket-page" key="page1">
+                        <h3 className="piket-page-title"><ClipboardList size={24} /> Informasi Umum</h3>
 
-                        <div className="piket-row">
-                            <div className="piket-field">
-                                <label className="piket-label">Email</label>
-                                <input className="piket-input" type="email" placeholder="email@contoh.com" value={form.email} onChange={e => set('email', e.target.value)} />
+                        <div className="piket-section">
+                            <div className="piket-row">
+                                <div className="piket-field">
+                                    <label className="piket-label">Email Petugas</label>
+                                    <input className="piket-input" type="email" placeholder="email@contoh.com" value={form.email} onChange={e => set('email', e.target.value)} />
+                                </div>
+                                <div className="piket-field">
+                                    <label className="piket-label">Tanggal Laporan</label>
+                                    <input className="piket-input" type="date" value={form.tanggal} onChange={e => set('tanggal', e.target.value)} />
+                                </div>
                             </div>
+
                             <div className="piket-field">
-                                <label className="piket-label">Tanggal</label>
-                                <input className="piket-input" type="date" value={form.tanggal} onChange={e => set('tanggal', e.target.value)} />
+                                <label className="piket-label">Nama Petugas Piket</label>
+                                <select className="piket-input" value={form.namaPetugas} onChange={e => set('namaPetugas', e.target.value)}>
+                                    <option value="">— Pilih Petugas —</option>
+                                    {PETUGAS_OPTIONS.map(p => <option key={p} value={p}>{p}</option>)}
+                                </select>
+                            </div>
+
+                            <div className="piket-row">
+                                <div className="piket-field">
+                                    <label className="piket-label">Jam Masuk</label>
+                                    <input className="piket-input" type="time" value={form.jamMasuk} onChange={e => set('jamMasuk', e.target.value)} />
+                                </div>
+                                <div className="piket-field">
+                                    <label className="piket-label">Jam Keluar</label>
+                                    <input className="piket-input" type="time" value={form.jamKeluar} onChange={e => set('jamKeluar', e.target.value)} />
+                                </div>
                             </div>
                         </div>
 
-                        <div className="piket-field">
-                            <label className="piket-label">Nama Petugas Piket Kantor</label>
-                            <select className="piket-input" value={form.namaPetugas} onChange={e => set('namaPetugas', e.target.value)}>
-                                <option value="">— Pilih Petugas —</option>
-                                {PETUGAS_OPTIONS.map(p => <option key={p} value={p}>{p}</option>)}
-                            </select>
-                        </div>
+                        <div className="piket-section">
+                            <h4 className="piket-section-title">Pemeliharaan & Keamanan</h4>
+                            <MultiCheck label="Lampu Pagi Hari" options={LAMPU_OPTIONS} selected={form.lampu} onChange={v => set('lampu', v)} />
 
-                        <div className="piket-row">
                             <div className="piket-field">
-                                <label className="piket-label">Jam Masuk Kantor</label>
-                                <input className="piket-input" type="time" value={form.jamMasuk} onChange={e => set('jamMasuk', e.target.value)} />
+                                <label className="piket-label">Laporan Keamanan & Insiden</label>
+                                <textarea className="piket-input piket-textarea" placeholder="Tuliskan jika ada insiden atau laporan keamanan khusus..." value={form.laporanKeamanan} onChange={e => set('laporanKeamanan', e.target.value)} />
                             </div>
+
+                            <MultiCheck label="Kebersihan Kantor" options={KEBERSIHAN_OPTIONS} selected={form.kebersihan} onChange={v => set('kebersihan', v)} />
+
+                            <MultiCheck
+                                label="Ruangan yang Digunakan"
+                                options={RUANGAN_OPTIONS}
+                                selected={form.ruangan}
+                                onChange={v => set('ruangan', v)}
+                                customKey="Yang lain"
+                                customValue={form.ruanganLain}
+                                onCustomChange={v => set('ruanganLain', v)}
+                                dense
+                            />
+                        </div>
+
+                        <div className="piket-section">
+                            <h4 className="piket-section-title">Log Aktivitas & Utilitas</h4>
                             <div className="piket-field">
-                                <label className="piket-label">Jam Keluar Kantor</label>
-                                <input className="piket-input" type="time" value={form.jamKeluar} onChange={e => set('jamKeluar', e.target.value)} />
+                                <label className="piket-label">Kegiatan Hari Ini</label>
+                                <textarea className="piket-input piket-textarea" placeholder="Apa saja yang dikerjakan hari ini?" value={form.kegiatanHariIni} onChange={e => set('kegiatanHariIni', e.target.value)} />
                             </div>
-                        </div>
 
-                        <MultiCheck label="Sudah mematikan lampu di pagi hari?" options={LAMPU_OPTIONS} selected={form.lampu} onChange={v => set('lampu', v)} />
-
-                        <div className="piket-field">
-                            <label className="piket-label">Laporan Keamanan</label>
-                            <textarea className="piket-input piket-textarea" placeholder="Tulis laporan keamanan..." value={form.laporanKeamanan} onChange={e => set('laporanKeamanan', e.target.value)} />
-                        </div>
-
-                        <MultiCheck label="Kebersihan Kantor" options={KEBERSIHAN_OPTIONS} selected={form.kebersihan} onChange={v => set('kebersihan', v)} />
-
-                        <MultiCheck
-                            label="Ruangan yang Digunakan"
-                            options={RUANGAN_OPTIONS}
-                            selected={form.ruangan}
-                            onChange={v => set('ruangan', v)}
-                            customKey="Yang lain"
-                            customValue={form.ruanganLain}
-                            onCustomChange={v => set('ruanganLain', v)}
-                        />
-
-                        <div className="piket-field">
-                            <label className="piket-label">Kegiatan Hari Ini</label>
-                            <textarea className="piket-input piket-textarea" placeholder="Deskripsikan kegiatan hari ini..." value={form.kegiatanHariIni} onChange={e => set('kegiatanHariIni', e.target.value)} />
-                        </div>
-
-                        <div className="piket-field">
-                            <label className="piket-label">Kegiatan Esok Hari</label>
-                            <textarea className="piket-input piket-textarea" placeholder="Deskripsikan kegiatan esok hari..." value={form.kegiatanEsokHari} onChange={e => set('kegiatanEsokHari', e.target.value)} />
-                        </div>
-
-                        <div className="piket-row">
                             <div className="piket-field">
-                                <label className="piket-label">Meteran Air</label>
-                                <input className="piket-input" type="text" placeholder="Angka meteran air" value={form.meteranAir} onChange={e => set('meteranAir', e.target.value)} />
+                                <label className="piket-label">Kegiatan Esok Hari (Rencana)</label>
+                                <textarea className="piket-input piket-textarea" placeholder="Rencana kegiatan untuk besok..." value={form.kegiatanEsokHari} onChange={e => set('kegiatanEsokHari', e.target.value)} />
                             </div>
-                            <div className="piket-field">
-                                <label className="piket-label">Meteran Listrik</label>
-                                <input className="piket-input" type="text" placeholder="Angka meteran listrik" value={form.meteranListrik} onChange={e => set('meteranListrik', e.target.value)} />
+
+                            <div className="piket-row">
+                                <div className="piket-field">
+                                    <label className="piket-label">Meteran Air (EGP)</label>
+                                    <input className="piket-input" type="text" placeholder="Angka meteran..." value={form.meteranAir} onChange={e => set('meteranAir', e.target.value)} />
+                                </div>
+                                <div className="piket-field">
+                                    <label className="piket-label">Meteran Listrik (EGP)</label>
+                                    <input className="piket-input" type="text" placeholder="Angka meteran..." value={form.meteranListrik} onChange={e => set('meteranListrik', e.target.value)} />
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -354,103 +369,117 @@ export default function LaporanPiketForm() {
 
                 {/* ──── PAGE 2 ──── */}
                 {step === 1 && (
-                    <div className="piket-page">
-                        <h3 className="piket-page-title">🏨 Operasional Hostel</h3>
+                    <div className="piket-page" key="page2">
+                        <h3 className="piket-page-title"><Home size={24} /> Operasional Hostel</h3>
 
-                        <MultiCheck label="Kamar yang Terisi" options={KAMAR_OPTIONS} selected={form.kamarTerisi} onChange={v => set('kamarTerisi', v)} />
-
-                        <MultiCheck label="Snack di Hostel" options={SNACK_OPTIONS} selected={form.snack} onChange={v => set('snack', v)} />
-
-                        <MultiCheck
-                            label="Beres-beres Lobby"
-                            options={LOBBY_OPTIONS}
-                            selected={form.beresLobby}
-                            onChange={v => set('beresLobby', v)}
-                            customKey="Yang lain"
-                            customValue={form.beresLobbyLain}
-                            onCustomChange={v => set('beresLobbyLain', v)}
-                        />
-
-                        <div className="piket-field">
-                            <label className="piket-label">Wifi Hostel</label>
-                            <input className="piket-input" type="text" placeholder="Status wifi hostel..." value={form.wifiHostel} onChange={e => set('wifiHostel', e.target.value)} />
+                        <div className="piket-section">
+                            <MultiCheck label="Kamar yang Terisi" options={KAMAR_OPTIONS} selected={form.kamarTerisi} onChange={v => set('kamarTerisi', v)} dense />
                         </div>
 
-                        <div className="piket-field">
-                            <label className="piket-label">Ada Pembayaran Hostel?</label>
-                            <input className="piket-input" type="text" placeholder="Ada / Tidak ada" value={form.adaPembayaranHostel} onChange={e => set('adaPembayaranHostel', e.target.value)} />
+                        <div className="piket-section">
+                            <MultiCheck label="Persediaan Snack & Dapur" options={SNACK_OPTIONS} selected={form.snack} onChange={v => set('snack', v)} />
                         </div>
 
-                        <div className="piket-field">
-                            <label className="piket-label">Rincian Pembayaran Hostel</label>
-                            <textarea className="piket-input piket-textarea" placeholder="Rincian pembayaran jika ada..." value={form.rincianPembayaranHostel} onChange={e => set('rincianPembayaranHostel', e.target.value)} />
+                        <div className="piket-section">
+                            <MultiCheck
+                                label="Beres-beres Area Lobby"
+                                options={LOBBY_OPTIONS}
+                                selected={form.beresLobby}
+                                onChange={v => set('beresLobby', v)}
+                                customKey="Yang lain"
+                                customValue={form.beresLobbyLain}
+                                onCustomChange={v => set('beresLobbyLain', v)}
+                            />
+                        </div>
+
+                        <div className="piket-section">
+                            <h4 className="piket-section-title">Teknis & Keuangan Hostel</h4>
+                            <div className="piket-row">
+                                <div className="piket-field">
+                                    <label className="piket-label">Kondisi Wifi Hostel</label>
+                                    <input className="piket-input" type="text" placeholder="Lancar / Gangguan / Rincian..." value={form.wifiHostel} onChange={e => set('wifiHostel', e.target.value)} />
+                                </div>
+                                <div className="piket-field">
+                                    <label className="piket-label">Status Pembayaran</label>
+                                    <input className="piket-input" type="text" placeholder="Ada Pelunasan? / Tidak..." value={form.adaPembayaranHostel} onChange={e => set('adaPembayaranHostel', e.target.value)} />
+                                </div>
+                            </div>
+
+                            <div className="piket-field">
+                                <label className="piket-label">Rincian Pembayaran Hostel</label>
+                                <textarea className="piket-input piket-textarea" placeholder="Nama tamu and jumlah pembayaran jika ada..." value={form.rincianPembayaranHostel} onChange={e => set('rincianPembayaranHostel', e.target.value)} />
+                            </div>
                         </div>
                     </div>
                 )}
 
                 {/* ──── PAGE 3 ──── */}
                 {step === 2 && (
-                    <div className="piket-page">
-                        <h3 className="piket-page-title">🏛️ Operasional Auditorium</h3>
+                    <div className="piket-page" key="page3">
+                        <h3 className="piket-page-title"><Building2 size={24} /> Operasional Auditorium</h3>
 
-                        {/* Penyewa 1 */}
-                        <div className="piket-section-card">
-                            <h4 className="piket-section-subtitle">Penyewa Pertama</h4>
-                            <SingleSelect
-                                label="Nama Penyewa Pertama"
-                                options={PENYEWA_OPTIONS}
-                                value={form.penyewa1}
-                                onChange={v => set('penyewa1', v)}
-                                customKey="Yang lain"
-                                customValue={form.penyewa1Nama}
-                                onCustomChange={v => set('penyewa1Nama', v)}
-                            />
-                            <div className="piket-field">
-                                <label className="piket-label">Rincian Biaya Penyewa Pertama</label>
-                                <input className="piket-input" type="text" placeholder="Contoh: Aula 4 jam + 1 jam extra + proyektor + 3 Kursi" value={form.rincianBiaya1} onChange={e => set('rincianBiaya1', e.target.value)} />
+                        <div className="piket-row">
+                            {/* Penyewa 1 */}
+                            <div className="piket-section-card">
+                                <h4 className="piket-section-subtitle">Penyewa Utama</h4>
+                                <SingleSelect
+                                    label="Nama Penyewa / Organisasi"
+                                    options={PENYEWA_OPTIONS}
+                                    value={form.penyewa1}
+                                    onChange={v => set('penyewa1', v)}
+                                    customKey="Yang lain"
+                                    customValue={form.penyewa1Nama}
+                                    onCustomChange={v => set('penyewa1Nama', v)}
+                                />
+                                <div className="piket-field">
+                                    <label className="piket-label">Rincian Sewa</label>
+                                    <input className="piket-input" type="text" placeholder="Aula 4 jam + proyektor..." value={form.rincianBiaya1} onChange={e => set('rincianBiaya1', e.target.value)} />
+                                </div>
+                                <div className="piket-field">
+                                    <label className="piket-label">Total Biaya (EGP)</label>
+                                    <input className="piket-input" type="text" placeholder="0" value={form.totalBiaya1} onChange={e => set('totalBiaya1', e.target.value)} />
+                                </div>
                             </div>
-                            <div className="piket-field">
-                                <label className="piket-label">Total Biaya Sewa Pertama</label>
-                                <input className="piket-input" type="text" placeholder="Contoh: 1500 EGP" value={form.totalBiaya1} onChange={e => set('totalBiaya1', e.target.value)} />
+
+                            {/* Penyewa 2 */}
+                            <div className="piket-section-card">
+                                <h4 className="piket-section-subtitle">Penyewa Tambahan</h4>
+                                <SingleSelect
+                                    label="Nama Penyewa / Organisasi"
+                                    options={PENYEWA_OPTIONS}
+                                    value={form.penyewa2}
+                                    onChange={v => set('penyewa2', v)}
+                                    customKey="Yang lain"
+                                    customValue={form.penyewa2Nama}
+                                    onCustomChange={v => set('penyewa2Nama', v)}
+                                />
+                                <div className="piket-field">
+                                    <label className="piket-label">Rincian Sewa</label>
+                                    <input className="piket-input" type="text" placeholder="..." value={form.rincianBiaya2} onChange={e => set('rincianBiaya2', e.target.value)} />
+                                </div>
+                                <div className="piket-field">
+                                    <label className="piket-label">Total Biaya (EGP)</label>
+                                    <input className="piket-input" type="text" placeholder="0" value={form.totalBiaya2} onChange={e => set('totalBiaya2', e.target.value)} />
+                                </div>
                             </div>
                         </div>
 
-                        {/* Penyewa 2 */}
-                        <div className="piket-section-card">
-                            <h4 className="piket-section-subtitle">Penyewa Kedua</h4>
-                            <SingleSelect
-                                label="Nama Penyewa Kedua"
-                                options={PENYEWA_OPTIONS}
-                                value={form.penyewa2}
-                                onChange={v => set('penyewa2', v)}
+                        <div className="piket-section">
+                            <h4 className="piket-section-title">Lain-lain</h4>
+                            <MultiCheck
+                                label="Item Pembayaran Lainnya"
+                                options={PEMBAYARAN_LAIN_OPTIONS}
+                                selected={form.pembayaranLain}
+                                onChange={v => set('pembayaranLain', v)}
                                 customKey="Yang lain"
-                                customValue={form.penyewa2Nama}
-                                onCustomChange={v => set('penyewa2Nama', v)}
+                                customValue={form.pembayaranLainCustom}
+                                onCustomChange={v => set('pembayaranLainCustom', v)}
                             />
-                            <div className="piket-field">
-                                <label className="piket-label">Rincian Biaya Penyewa Kedua</label>
-                                <input className="piket-input" type="text" placeholder="Contoh: Aula 4 jam + 1 jam extra + proyektor + 3 Kursi" value={form.rincianBiaya2} onChange={e => set('rincianBiaya2', e.target.value)} />
-                            </div>
-                            <div className="piket-field">
-                                <label className="piket-label">Total Biaya Sewa Kedua</label>
-                                <input className="piket-input" type="text" placeholder="Contoh: 1500 EGP" value={form.totalBiaya2} onChange={e => set('totalBiaya2', e.target.value)} />
-                            </div>
-                        </div>
 
-                        {/* Pembayaran Lainnya */}
-                        <MultiCheck
-                            label="Pembayaran Lainnya"
-                            options={PEMBAYARAN_LAIN_OPTIONS}
-                            selected={form.pembayaranLain}
-                            onChange={v => set('pembayaranLain', v)}
-                            customKey="Yang lain"
-                            customValue={form.pembayaranLainCustom}
-                            onCustomChange={v => set('pembayaranLainCustom', v)}
-                        />
-
-                        <div className="piket-field">
-                            <label className="piket-label">Rincian Biaya</label>
-                            <textarea className="piket-input piket-textarea" placeholder="Contoh: PPMI bayar Sewa Ruangan 1 bulan (1000 LE)" value={form.rincianBiayaLain} onChange={e => set('rincianBiayaLain', e.target.value)} />
+                            <div className="piket-field">
+                                <label className="piket-label">Rincian Biaya Tambahan</label>
+                                <textarea className="piket-input piket-textarea" placeholder="Contoh: Sewa Kursi 50 pcs (500 EGP)" value={form.rincianBiayaLain} onChange={e => set('rincianBiayaLain', e.target.value)} />
+                            </div>
                         </div>
                     </div>
                 )}
@@ -460,17 +489,17 @@ export default function LaporanPiketForm() {
             <div className="piket-nav">
                 {step > 0 && (
                     <button className="piket-btn secondary" onClick={() => setStep(step - 1)}>
-                        <ChevronLeft size={18} /> Sebelumnya
+                        <ChevronLeft size={20} /> Kembali
                     </button>
                 )}
                 <div style={{ flex: 1 }} />
                 {step < STEPS.length - 1 ? (
                     <button className="piket-btn primary" onClick={() => setStep(step + 1)}>
-                        Selanjutnya <ChevronRight size={18} />
+                        Lanjut <ChevronRight size={20} />
                     </button>
                 ) : (
                     <button className="piket-btn submit" onClick={handleSubmit}>
-                        <Send size={18} /> Kirim Laporan
+                        Kirim Laporan <Send size={20} />
                     </button>
                 )}
             </div>
@@ -478,28 +507,64 @@ export default function LaporanPiketForm() {
             {/* Inline Styles */}
             <style jsx>{`
         .piket-container {
-          max-width: 800px;
+          max-width: 900px;
           margin: 0 auto;
+          padding: 20px 0;
+          animation: fadeIn var(--transition-base) ease-out;
         }
 
         /* Step Indicators */
+        .piket-steps-wrapper {
+          position: relative;
+          margin-bottom: 40px;
+          padding: 0 40px;
+        }
+        
         .piket-steps {
           display: flex;
-          justify-content: center;
-          gap: 48px;
-          margin-bottom: 32px;
+          justify-content: space-between;
+          align-items: center;
           position: relative;
-          padding: 0 24px;
+          z-index: 1;
         }
+
+        .piket-step-line-bg {
+          position: absolute;
+          top: 24px;
+          left: 40px;
+          right: 40px;
+          height: 2px;
+          background: var(--color-bg-secondary);
+          z-index: 0;
+        }
+
+        .piket-step-line-progress {
+          position: absolute;
+          top: 24px;
+          left: 40px;
+          height: 2px;
+          background: var(--color-primary);
+          transition: width var(--transition-slow);
+          z-index: 0;
+        }
+
         .piket-step {
           display: flex;
           flex-direction: column;
           align-items: center;
-          gap: 8px;
+          gap: 10px;
           cursor: default;
-          z-index: 1;
+          transition: transform var(--transition-base);
         }
-        .piket-step.done { cursor: pointer; }
+
+        .piket-step.done { 
+          cursor: pointer; 
+        }
+        
+        .piket-step.done:hover {
+          transform: translateY(-2px);
+        }
+
         .piket-step-circle {
           width: 48px;
           height: 48px;
@@ -507,156 +572,214 @@ export default function LaporanPiketForm() {
           display: flex;
           align-items: center;
           justify-content: center;
-          background: var(--color-bg-secondary);
+          background: var(--color-bg-card);
           color: var(--color-text-muted);
           border: 2px solid var(--color-bg-secondary);
-          transition: all 0.3s;
+          transition: all var(--transition-base);
+          box-shadow: var(--shadow-sm);
         }
+
         .piket-step.active .piket-step-circle {
           background: var(--color-primary);
           color: white;
           border-color: var(--color-primary);
-          box-shadow: 0 4px 12px rgba(139, 69, 19, 0.3);
+          box-shadow: 0 8px 16px rgba(139, 69, 19, 0.2);
+          transform: scale(1.1);
         }
+
         .piket-step.done .piket-step-circle {
           background: var(--color-success);
           color: white;
           border-color: var(--color-success);
         }
+
         .piket-step-label {
-          font-size: 0.8rem;
+          font-size: 0.85rem;
           font-weight: 600;
           color: var(--color-text-muted);
+          transition: color var(--transition-base);
+          text-align: center;
+          max-width: 120px;
         }
-        .piket-step.active .piket-step-label { color: var(--color-primary); }
-        .piket-step.done .piket-step-label { color: var(--color-success); }
 
-        .piket-step-line {
-          position: absolute;
-          top: 24px;
-          left: 72px;
-          height: 2px;
-          background: var(--color-primary);
-          transition: width 0.5s;
-          z-index: 0;
+        .piket-step.active .piket-step-label { 
+          color: var(--color-primary); 
+          font-weight: 700;
+        }
+        .piket-step.done .piket-step-label { 
+          color: var(--color-success); 
         }
 
         /* Form Body */
         .piket-form-body {
           background: var(--color-bg-card);
-          border-radius: var(--radius-xl);
-          box-shadow: var(--shadow-md);
-          padding: 32px;
-          border: 1px solid rgba(139, 69, 19, 0.1);
+          border-radius: var(--radius-2xl);
+          box-shadow: var(--shadow-xl);
+          padding: 40px;
+          border: 1px solid rgba(139, 69, 19, 0.08);
+          position: relative;
+          overflow: hidden;
+          min-height: 400px;
+        }
+
+        .piket-page {
+          animation: slideUp var(--transition-base) ease-out;
         }
 
         .piket-page-title {
-          font-size: 1.25rem;
+          font-size: 1.5rem;
           margin-bottom: 24px;
-          padding-bottom: 12px;
-          border-bottom: 2px solid var(--color-bg-secondary);
+          display: flex;
+          align-items: center;
+          gap: 12px;
           color: var(--color-primary);
+          border-bottom: 1px solid var(--color-bg-secondary);
+          padding-bottom: 16px;
+        }
+
+        /* Grouping */
+        .piket-section {
+          margin-bottom: 32px;
+        }
+        
+        .piket-section-title {
+           font-size: 0.9rem;
+           text-transform: uppercase;
+           letter-spacing: 0.05em;
+           color: var(--color-text-muted);
+           margin-bottom: 16px;
+           font-weight: 700;
         }
 
         /* Fields */
-        .piket-field { margin-bottom: 20px; }
+        .piket-field { 
+          margin-bottom: 24px; 
+        }
+
         .piket-label {
           display: block;
-          margin-bottom: 6px;
-          font-size: 0.875rem;
+          margin-bottom: 8px;
+          font-size: 0.9rem;
           font-weight: 600;
           color: var(--color-text-secondary);
         }
+
         .piket-input {
           width: 100%;
-          padding: 10px 14px;
-          font-size: 0.95rem;
-          border: 1px solid rgba(139, 69, 19, 0.2);
-          border-radius: var(--radius-md);
-          background: var(--color-bg-card);
+          padding: 12px 16px;
+          font-size: 1rem;
+          border: 1.5px solid rgba(139, 69, 19, 0.1);
+          border-radius: var(--radius-lg);
+          background: var(--color-bg-primary);
           color: var(--color-text-primary);
-          transition: border-color 0.2s, box-shadow 0.2s;
+          transition: all var(--transition-fast);
           font-family: inherit;
         }
+
         .piket-input:focus {
           outline: none;
           border-color: var(--color-primary);
-          box-shadow: 0 0 0 3px rgba(139, 69, 19, 0.1);
+          background: var(--color-bg-card);
+          box-shadow: 0 0 0 4px rgba(139, 69, 19, 0.08);
         }
+
+        .piket-input::placeholder {
+          color: var(--color-text-muted);
+          opacity: 0.6;
+        }
+
         .piket-textarea {
-          min-height: 80px;
+          min-height: 100px;
           resize: vertical;
         }
+
         .piket-row {
           display: grid;
           grid-template-columns: 1fr 1fr;
-          gap: 16px;
-        }
-        @media (max-width: 600px) {
-          .piket-row { grid-template-columns: 1fr; }
+          gap: 20px;
         }
 
-        /* Checkbox Grid */
-        .piket-check-grid {
-          display: flex;
-          flex-wrap: wrap;
-          gap: 8px;
+        @media (max-width: 600px) {
+          .piket-row { grid-template-columns: 1fr; }
+          .piket-steps-wrapper { padding: 0 10px; }
+          .piket-steps { gap: 10px; }
+          .piket-step-line-bg, .piket-step-line-progress { display: none; }
         }
+
+        /* Checkbox/Selectable Grid */
+        .piket-check-grid {
+          display: grid;
+          grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+          gap: 10px;
+        }
+
         .piket-check-item {
           display: flex;
           align-items: center;
-          gap: 8px;
-          padding: 8px 14px;
-          border-radius: var(--radius-md);
-          border: 1px solid rgba(139, 69, 19, 0.15);
+          gap: 12px;
+          padding: 12px 16px;
+          border-radius: var(--radius-lg);
+          border: 1.5px solid rgba(139, 69, 19, 0.1);
           background: var(--color-bg-secondary);
           cursor: pointer;
-          font-size: 0.875rem;
-          transition: all 0.2s;
+          font-size: 0.95rem;
+          transition: all var(--transition-fast);
           user-select: none;
+          position: relative;
         }
+
         .piket-check-item:hover {
           border-color: var(--color-primary);
           background: rgba(139, 69, 19, 0.05);
+          transform: translateY(-1px);
         }
+
         .piket-check-item.checked {
           border-color: var(--color-primary);
           background: rgba(139, 69, 19, 0.1);
           color: var(--color-primary);
-          font-weight: 600;
+          font-weight: 700;
+          box-shadow: var(--shadow-sm);
         }
-        .piket-check-item input { display: none; }
+
+        .piket-check-item input { position: absolute; opacity: 0; }
+
         .piket-check-box {
-          width: 20px;
-          height: 20px;
-          border-radius: 4px;
-          border: 2px solid rgba(139, 69, 19, 0.3);
+          width: 22px;
+          height: 22px;
+          border-radius: 6px;
+          border: 2.5px solid rgba(139, 69, 19, 0.2);
           display: flex;
           align-items: center;
           justify-content: center;
           color: transparent;
-          transition: all 0.2s;
+          transition: all var(--transition-fast);
           flex-shrink: 0;
+          background: var(--color-bg-card);
         }
+
         .piket-check-item.checked .piket-check-box {
           background: var(--color-primary);
           border-color: var(--color-primary);
           color: white;
         }
 
-        /* Radio */
+        /* Radio Styling */
         .piket-radio-dot {
-          width: 20px;
-          height: 20px;
+          width: 22px;
+          height: 22px;
           border-radius: 50%;
-          border: 2px solid rgba(139, 69, 19, 0.3);
+          border: 2.5px solid rgba(139, 69, 19, 0.2);
           position: relative;
           flex-shrink: 0;
-          transition: all 0.2s;
+          transition: all var(--transition-fast);
+          background: var(--color-bg-card);
         }
+
         .piket-check-item.radio.checked .piket-radio-dot {
           border-color: var(--color-primary);
         }
+
         .piket-check-item.radio.checked .piket-radio-dot::after {
           content: '';
           position: absolute;
@@ -668,80 +791,136 @@ export default function LaporanPiketForm() {
           background: var(--color-primary);
         }
 
+        /* Small variant for dense grids (rooms) */
+        .piket-check-grid.dense {
+          grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+        }
+        
+        .piket-check-grid.dense .piket-check-item {
+          padding: 8px 12px;
+          font-size: 0.85rem;
+          justify-content: center;
+        }
+        
+        .piket-check-grid.dense .piket-check-box,
+        .piket-check-grid.dense .piket-radio-dot {
+          display: none;
+        }
+
         /* Section Cards (Page 3) */
         .piket-section-card {
-          background: var(--color-bg-secondary);
-          border-radius: var(--radius-lg);
-          padding: 20px;
-          margin-bottom: 20px;
-          border: 1px solid rgba(139, 69, 19, 0.08);
+          background: var(--color-bg-primary);
+          border-radius: var(--radius-xl);
+          padding: 24px;
+          margin-bottom: 24px;
+          border: 1.5px solid rgba(139, 69, 19, 0.06);
+          transition: border-color var(--transition-base);
         }
+        
+        .piket-section-card:hover {
+          border-color: rgba(139, 69, 19, 0.15);
+        }
+
         .piket-section-subtitle {
-          font-size: 1rem;
-          color: var(--color-primary);
-          margin-bottom: 16px;
+          font-size: 1.1rem;
+          color: var(--color-primary-dark);
+          margin-bottom: 20px;
+          font-weight: 700;
+          display: flex;
+          align-items: center;
+          gap: 8px;
         }
 
         /* Navigation */
         .piket-nav {
           display: flex;
-          gap: 12px;
-          margin-top: 24px;
+          gap: 16px;
+          margin-top: 32px;
+          padding: 0 4px;
         }
+
         .piket-btn {
           display: inline-flex;
           align-items: center;
-          gap: 8px;
-          padding: 12px 24px;
-          font-size: 0.95rem;
-          font-weight: 600;
+          gap: 10px;
+          padding: 14px 28px;
+          font-size: 1rem;
+          font-weight: 700;
           border: none;
-          border-radius: var(--radius-md);
+          border-radius: var(--radius-lg);
           cursor: pointer;
-          transition: all 0.2s;
+          transition: all var(--transition-base);
           font-family: inherit;
         }
+
         .piket-btn.primary {
           background: linear-gradient(135deg, var(--color-primary), var(--color-primary-dark));
           color: white;
+          box-shadow: 0 4px 12px rgba(139, 69, 19, 0.2);
         }
+
         .piket-btn.primary:hover {
-          transform: translateY(-1px);
-          box-shadow: 0 4px 12px rgba(139, 69, 19, 0.3);
+          transform: translateY(-2px);
+          box-shadow: 0 8px 16px rgba(139, 69, 19, 0.3);
         }
+
         .piket-btn.secondary {
-          background: var(--color-bg-secondary);
-          color: var(--color-text-primary);
-          border: 1px solid rgba(139, 69, 19, 0.2);
+          background: var(--color-bg-card);
+          color: var(--color-text-secondary);
+          border: 1.5px solid rgba(139, 69, 19, 0.15);
         }
+
         .piket-btn.secondary:hover {
-          background: rgba(139, 69, 19, 0.05);
+          background: var(--color-bg-secondary);
+          border-color: var(--color-primary);
+          color: var(--color-primary);
         }
+
         .piket-btn.submit {
           background: linear-gradient(135deg, var(--color-success), #16a34a);
           color: white;
-        }
-        .piket-btn.submit:hover {
-          transform: translateY(-1px);
-          box-shadow: 0 4px 12px rgba(34, 197, 94, 0.3);
+          box-shadow: 0 4px 12px rgba(34, 197, 94, 0.2);
         }
 
-        /* Success */
+        .piket-btn.submit:hover {
+          transform: translateY(-2px);
+          box-shadow: 0 8px 16px rgba(34, 197, 94, 0.3);
+        }
+
+        /* Success Screen */
         .piket-success {
           text-align: center;
           padding: 80px 40px;
           background: var(--color-bg-card);
-          border-radius: var(--radius-xl);
-          box-shadow: var(--shadow-md);
+          border-radius: var(--radius-2xl);
+          box-shadow: var(--shadow-xl);
+          border: 1px solid rgba(34, 197, 94, 0.1);
+          animation: slideUp var(--transition-base) ease-out;
         }
-        .piket-success-icon { font-size: 4rem; margin-bottom: 16px; }
+
+        .piket-success-icon { 
+          font-size: 5rem; 
+          margin-bottom: 24px;
+          display: inline-block;
+          animation: spring var(--transition-spring);
+        }
+
         .piket-success h2 {
-          margin-bottom: 8px;
+          margin-bottom: 12px;
           color: var(--color-success);
+          font-size: 2rem;
         }
+
         .piket-success p {
           color: var(--color-text-muted);
-          margin-bottom: 24px;
+          margin-bottom: 32px;
+          font-size: 1.1rem;
+        }
+
+        @keyframes spring {
+          0% { transform: scale(0.5); }
+          70% { transform: scale(1.1); }
+          100% { transform: scale(1); }
         }
       `}</style>
         </div>
