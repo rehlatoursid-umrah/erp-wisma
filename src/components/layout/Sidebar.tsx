@@ -11,6 +11,7 @@ import {
     Briefcase,
     BarChart3,
     LineChart,
+    ClipboardList,
     Settings,
     LogOut,
     Building2,
@@ -44,6 +45,7 @@ const navItems = [
         items: [
             { href: '/transactions', icon: BarChart3, label: 'Transaksi' },
             { href: '/reports', icon: LineChart, label: 'Laporan' },
+            { href: '/laporan-piket', icon: ClipboardList, label: 'Laporan Piket' },
         ]
     },
 ]
