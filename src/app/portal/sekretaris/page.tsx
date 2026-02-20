@@ -79,11 +79,7 @@ export default function SekretarisPortal() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeTab, arsipYear, arsipPetugas])
 
-  // Helper: format array field
-  const fmtArr = (v: any) => Array.isArray(v) && v.length > 0 ? v.join(', ') : '-'
-  const fmtText = (v: any) => v || '-'
-
-  // ── PDF Generation (Full Detail) ──
+  // ── PDF Generation (Clean Table) ──
   const generatePDF = async (month: number, year: number, petugasFilter?: string) => {
     const jsPDFModule = await import('jspdf')
     const jsPDF = jsPDFModule.default || jsPDFModule
@@ -101,27 +97,23 @@ export default function SekretarisPortal() {
       return
     }
 
-    const doc: any = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' })
+    const doc: any = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' })
     const monthName = MONTH_NAMES[month - 1]
     const pageW = doc.internal.pageSize.getWidth()
     const pageH = doc.internal.pageSize.getHeight()
 
-    // ══════════════════════════════════════
-    // PAGE 1: COVER + SUMMARY TABLE
-    // ══════════════════════════════════════
+    // ── Header ──
     doc.setFillColor(139, 69, 19)
-    doc.rect(0, 0, pageW, 35, 'F')
+    doc.rect(0, 0, pageW, 28, 'F')
     doc.setTextColor(255, 255, 255)
-    doc.setFontSize(18)
+    doc.setFontSize(16)
     doc.setFont('helvetica', 'bold')
-    doc.text('REKAP LAPORAN PIKET KANTOR', pageW / 2, 14, { align: 'center' })
-    doc.setFontSize(11)
-    doc.setFont('helvetica', 'normal')
-    doc.text(`Wisma Nusantara Cairo`, pageW / 2, 22, { align: 'center' })
+    doc.text('REKAP LAPORAN PIKET KANTOR', pageW / 2, 12, { align: 'center' })
     doc.setFontSize(10)
-    doc.text(`${monthName} ${year}${petugasFilter ? ` — ${petugasFilter}` : ''}`, pageW / 2, 30, { align: 'center' })
+    doc.setFont('helvetica', 'normal')
+    doc.text(`Wisma Nusantara Cairo — ${monthName} ${year}${petugasFilter ? ` — ${petugasFilter}` : ''}`, pageW / 2, 20, { align: 'center' })
 
-    // Summary stats
+    // ── Summary Stats ──
     let totalMins = 0
     let shiftComplete = 0
     data.forEach((d: any) => {
@@ -135,29 +127,16 @@ export default function SekretarisPortal() {
     const totalHrs = Math.floor(totalMins / 60)
     const totalMinsR = totalMins % 60
 
-    // Summary boxes
-    const boxY = 42
-    const boxW = (pageW - 28 - 16) / 3
-    const boxes = [
-      { label: 'Total Laporan', value: String(data.length), color: [30, 64, 175] },
-      { label: 'Shift Lengkap', value: String(shiftComplete), color: [22, 101, 52] },
-      { label: 'Total Jam Kerja', value: `${totalHrs}j ${totalMinsR}m`, color: [133, 77, 14] },
-    ]
-    boxes.forEach((b, i) => {
-      const x = 14 + i * (boxW + 8)
-      doc.setFillColor(249, 250, 251)
-      doc.roundedRect(x, boxY, boxW, 22, 3, 3, 'F')
-      doc.setTextColor(...(b.color as [number, number, number]))
-      doc.setFontSize(16)
-      doc.setFont('helvetica', 'bold')
-      doc.text(b.value, x + boxW / 2, boxY + 11, { align: 'center' })
-      doc.setFontSize(7)
-      doc.setFont('helvetica', 'normal')
-      doc.text(b.label, x + boxW / 2, boxY + 18, { align: 'center' })
-    })
+    doc.setTextColor(80, 80, 80)
+    doc.setFontSize(9)
+    doc.setFont('helvetica', 'bold')
+    doc.text(`Total Laporan: ${data.length}`, 14, 34)
+    doc.text(`Shift Lengkap: ${shiftComplete}`, 90, 34)
+    doc.text(`Total Jam Kerja: ${totalHrs}j ${totalMinsR}m`, 170, 34)
+    doc.setFont('helvetica', 'normal')
 
-    // Overview table (compact)
-    const overviewData = data.map((d: any, i: number) => {
+    // ── Main Data Table (7 columns — matches UI) ──
+    const tableData = data.map((d: any, i: number) => {
       let durasi = '-'
       if (d.jamMasuk && d.jamKeluar) {
         const [h1, m1] = d.jamMasuk.split(':').map(Number)
@@ -166,136 +145,37 @@ export default function SekretarisPortal() {
         durasi = `${Math.floor(diff / 60)}j ${diff % 60}m`
       }
       const tgl = d.tanggal ? new Date(d.tanggal).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' }) : '-'
-      return [i + 1, tgl, d.namaPetugas || '-', d.jamMasuk || '-', d.jamKeluar || '-', durasi]
+      return [i + 1, tgl, d.namaPetugas || '-', d.jamMasuk || '-', d.jamKeluar || '-', durasi, d.kegiatanHariIni || '-']
     })
 
     autoTable(doc, {
-      startY: 70,
-      head: [['No', 'Tanggal', 'Petugas', 'Jam Masuk', 'Jam Keluar', 'Durasi']],
-      body: overviewData,
-      styles: { fontSize: 8, cellPadding: 3 },
-      headStyles: { fillColor: [139, 69, 19], textColor: 255, fontStyle: 'bold' },
+      startY: 40,
+      head: [['No', 'Tanggal', 'Petugas', 'Masuk', 'Keluar', 'Durasi', 'Kegiatan']],
+      body: tableData,
+      styles: { fontSize: 9, cellPadding: 4, lineColor: [220, 220, 220], lineWidth: 0.2 },
+      headStyles: { fillColor: [139, 69, 19], textColor: 255, fontStyle: 'bold', fontSize: 9 },
       alternateRowStyles: { fillColor: [254, 252, 249] },
+      columnStyles: {
+        0: { cellWidth: 12, halign: 'center' },
+        1: { cellWidth: 30 },
+        2: { cellWidth: 50 },
+        3: { cellWidth: 20, halign: 'center' },
+        4: { cellWidth: 20, halign: 'center' },
+        5: { cellWidth: 22, halign: 'center' },
+        6: { cellWidth: 'auto' },
+      },
       margin: { left: 14, right: 14 },
+      didDrawPage: () => {
+        // Footer on every page
+        doc.setFontSize(7)
+        doc.setTextColor(150, 150, 150)
+        doc.text(`Dicetak: ${new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' })}`, 14, pageH - 6)
+        doc.text(`Halaman ${doc.internal.getNumberOfPages()}`, pageW - 14, pageH - 6, { align: 'right' })
+      }
     })
 
-    // ══════════════════════════════════════
-    // DETAIL PAGES: One section per entry
-    // ══════════════════════════════════════
-    data.forEach((d: any, idx: number) => {
-      doc.addPage()
-      const tgl = d.tanggal ? new Date(d.tanggal).toLocaleDateString('id-ID', { weekday: 'long', day: '2-digit', month: 'long', year: 'numeric' }) : '-'
 
-      // Header bar
-      doc.setFillColor(139, 69, 19)
-      doc.rect(0, 0, pageW, 20, 'F')
-      doc.setTextColor(255, 255, 255)
-      doc.setFontSize(11)
-      doc.setFont('helvetica', 'bold')
-      doc.text(`Laporan #${idx + 1} — ${d.namaPetugas || 'N/A'}`, 14, 9)
-      doc.setFontSize(9)
-      doc.setFont('helvetica', 'normal')
-      doc.text(tgl, 14, 16)
 
-      let durasi = '-'
-      if (d.jamMasuk && d.jamKeluar) {
-        const [h1, m1] = d.jamMasuk.split(':').map(Number)
-        const [h2, m2] = d.jamKeluar.split(':').map(Number)
-        const diff = (h2 * 60 + m2) - (h1 * 60 + m1)
-        durasi = `${Math.floor(diff / 60)}j ${diff % 60}m`
-      }
-      doc.text(`Durasi: ${durasi}`, pageW - 14, 9, { align: 'right' })
-
-      // Section builder
-      let curY = 26
-
-      const drawSectionTitle = (title: string) => {
-        if (curY > pageH - 30) { doc.addPage(); curY = 14 }
-        doc.setFillColor(245, 240, 235)
-        doc.roundedRect(14, curY, pageW - 28, 8, 2, 2, 'F')
-        doc.setTextColor(139, 69, 19)
-        doc.setFontSize(9)
-        doc.setFont('helvetica', 'bold')
-        doc.text(title, 18, curY + 5.5)
-        curY += 12
-      }
-
-      const drawField = (label: string, value: string) => {
-        if (curY > pageH - 15) { doc.addPage(); curY = 14 }
-        doc.setTextColor(100, 100, 100)
-        doc.setFontSize(7.5)
-        doc.setFont('helvetica', 'bold')
-        doc.text(label, 18, curY)
-        doc.setTextColor(30, 30, 30)
-        doc.setFont('helvetica', 'normal')
-        doc.setFontSize(8)
-        // Handle long text wrapping
-        const maxW = pageW - 80
-        const lines = doc.splitTextToSize(value, maxW)
-        doc.text(lines, 65, curY)
-        curY += Math.max(lines.length * 4, 5) + 1
-      }
-
-      const drawLongField = (label: string, value: string) => {
-        if (curY > pageH - 20) { doc.addPage(); curY = 14 }
-        doc.setTextColor(100, 100, 100)
-        doc.setFontSize(7.5)
-        doc.setFont('helvetica', 'bold')
-        doc.text(label, 18, curY)
-        curY += 5
-        doc.setTextColor(30, 30, 30)
-        doc.setFont('helvetica', 'normal')
-        doc.setFontSize(8)
-        const maxW = pageW - 36
-        const lines = doc.splitTextToSize(value || '-', maxW)
-        doc.text(lines, 18, curY)
-        curY += lines.length * 4 + 3
-      }
-
-      // ─── Section 1: Info Umum ───
-      drawSectionTitle('📋 INFO UMUM')
-      drawField('Email', fmtText(d.email))
-      drawField('Tanggal', tgl)
-      drawField('Nama Petugas', fmtText(d.namaPetugas))
-      drawField('Jam Masuk', fmtText(d.jamMasuk))
-      drawField('Jam Keluar', fmtText(d.jamKeluar))
-      drawField('Durasi Kerja', durasi)
-      drawField('Lampu', fmtArr(d.lampu))
-      drawField('Kebersihan', fmtArr(d.kebersihan))
-      drawField('Ruangan Diperiksa', `${fmtArr(d.ruangan)}${d.ruanganLain ? ` (Lainnya: ${d.ruanganLain})` : ''}`)
-      drawField('Laporan Keamanan', fmtText(d.laporanKeamanan))
-      drawField('Meteran Air', fmtText(d.meteranAir))
-      drawField('Meteran Listrik', fmtText(d.meteranListrik))
-      drawLongField('Kegiatan Hari Ini', fmtText(d.kegiatanHariIni))
-      drawLongField('Kegiatan Esok Hari', fmtText(d.kegiatanEsokHari))
-
-      // ─── Section 2: Hostel ───
-      drawSectionTitle('🏨 HOSTEL')
-      drawField('Kamar Terisi', fmtArr(d.kamarTerisi))
-      drawField('Snack', fmtArr(d.snack))
-      drawField('Beres Lobby', `${fmtArr(d.beresLobby)}${d.beresLobbyLain ? ` (Lainnya: ${d.beresLobbyLain})` : ''}`)
-      drawField('WiFi Hostel', fmtText(d.wifiHostel))
-      drawField('Ada Pembayaran?', fmtText(d.adaPembayaranHostel))
-      drawLongField('Rincian Pembayaran Hostel', fmtText(d.rincianPembayaranHostel))
-
-      // ─── Section 3: Auditorium ───
-      drawSectionTitle('🏛️ AUDITORIUM')
-      drawField('Penyewa 1', fmtText(d.penyewa1))
-      drawField('Nama Penyewa 1', fmtText(d.penyewa1Nama))
-      drawField('Rincian Biaya 1', fmtText(d.rincianBiaya1))
-      drawField('Total Biaya 1', fmtText(d.totalBiaya1))
-      drawField('Penyewa 2', fmtText(d.penyewa2))
-      drawField('Nama Penyewa 2', fmtText(d.penyewa2Nama))
-      drawField('Rincian Biaya 2', fmtText(d.rincianBiaya2))
-      drawField('Total Biaya 2', fmtText(d.totalBiaya2))
-      drawField('Pembayaran Lain', `${fmtArr(d.pembayaranLain)}${d.pembayaranLainCustom ? ` (${d.pembayaranLainCustom})` : ''}`)
-      drawLongField('Rincian Biaya Lain', fmtText(d.rincianBiayaLain))
-
-      // page footer
-      doc.setFontSize(6.5)
-      doc.setTextColor(180, 180, 180)
-      doc.text(`Halaman ${doc.internal.getNumberOfPages()}`, pageW - 14, pageH - 6, { align: 'right' })
-    })
 
     // ══════════════════════════════════════
     // LAST PAGE: Ringkasan Per Petugas
