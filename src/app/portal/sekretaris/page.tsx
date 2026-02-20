@@ -79,7 +79,8 @@ export default function SekretarisPortal() {
 
   // ── PDF Generation ──
   const generatePDF = async (month: number, year: number, petugasFilter?: string) => {
-    const { jsPDF } = await import('jspdf')
+    const jsPDFModule = await import('jspdf')
+    const jsPDF = jsPDFModule.default || jsPDFModule
     const autoTable = (await import('jspdf-autotable')).default
 
     // Fetch data for the PDF
@@ -94,7 +95,7 @@ export default function SekretarisPortal() {
       return
     }
 
-    const doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' })
+    const doc: any = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' })
     const monthName = MONTH_NAMES[month - 1]
     const pageW = doc.internal.pageSize.getWidth()
 
@@ -184,7 +185,7 @@ export default function SekretarisPortal() {
         doc.setFontSize(7)
         doc.setTextColor(150, 150, 150)
         doc.text(`Dicetak: ${new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' })}`, 14, pageH - 6)
-        doc.text(`Halaman ${doc.getCurrentPageInfo().pageNumber}`, pageW - 14, pageH - 6, { align: 'right' })
+        doc.text(`Halaman ${doc.internal.getNumberOfPages()}`, pageW - 14, pageH - 6, { align: 'right' })
       }
     })
 
