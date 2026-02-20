@@ -15,6 +15,7 @@ import { Cashflow } from './collections/Cashflow'
 import { Media } from './collections/Media'
 import { AuditoriumBookings } from './collections/AuditoriumBookings'
 import { HotelBookings } from './collections/HotelBookings'
+import { LaporanPiket } from './collections/LaporanPiket'
 
 const filename = fileURLToPath(import.meta.url)
 const dirname = path.dirname(filename)
@@ -38,6 +39,7 @@ export default buildConfig({
         Media,
         AuditoriumBookings,
         HotelBookings,
+        LaporanPiket,
     ],
     editor: lexicalEditor(),
     secret: process.env.PAYLOAD_SECRET || 'default-secret-change-me',

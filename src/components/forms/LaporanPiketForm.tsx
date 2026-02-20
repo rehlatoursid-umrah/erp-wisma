@@ -237,13 +237,27 @@ export default function LaporanPiketForm() {
     const [step, setStep] = useState(0)
     const [form, setForm] = useState<FormData>(initialFormData)
     const [submitted, setSubmitted] = useState(false)
+    const [submitting, setSubmitting] = useState(false)
 
     const set = <K extends keyof FormData>(key: K, value: FormData[K]) =>
         setForm(prev => ({ ...prev, [key]: value }))
 
-    const handleSubmit = () => {
-        console.log('📋 Laporan Piket Submitted:', form)
-        setSubmitted(true)
+    const handleSubmit = async () => {
+        setSubmitting(true)
+        try {
+            const res = await fetch('/api/laporan-piket', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(form),
+            })
+            if (!res.ok) throw new Error('Failed to submit')
+            setSubmitted(true)
+        } catch (err) {
+            console.error(err)
+            alert('Gagal mengirim laporan. Silakan coba lagi.')
+        } finally {
+            setSubmitting(false)
+        }
     }
 
     if (submitted) {
@@ -498,8 +512,8 @@ export default function LaporanPiketForm() {
                         Lanjut <ChevronRight size={20} />
                     </button>
                 ) : (
-                    <button className="piket-btn submit" onClick={handleSubmit}>
-                        Kirim Laporan <Send size={20} />
+                    <button className="piket-btn submit" onClick={handleSubmit} disabled={submitting}>
+                        {submitting ? 'Mengirim...' : 'Kirim Laporan'} <Send size={20} />
                     </button>
                 )}
             </div>
