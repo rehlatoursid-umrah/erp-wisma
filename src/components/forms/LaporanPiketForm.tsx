@@ -260,304 +260,305 @@ export default function LaporanPiketForm() {
         }
     }
 
-    if (submitted) {
-        return (
-            <div className="piket-success-page">
-                {/* Animated background circles */}
-                <div className="success-bg-circle c1" />
-                <div className="success-bg-circle c2" />
-                <div className="success-bg-circle c3" />
-
-                <div className="success-card">
-                    {/* Animated checkmark */}
-                    <div className="success-check-ring">
-                        <svg className="success-check-svg" viewBox="0 0 52 52">
-                            <circle className="success-check-circle" cx="26" cy="26" r="24" fill="none" />
-                            <path className="success-check-path" fill="none" d="M14 27l7 7 16-16" />
-                        </svg>
-                    </div>
-
-                    <h2 className="success-title">Laporan Berhasil Terkirim!</h2>
-                    <p className="success-subtitle">
-                        Laporan piket kantor telah tersimpan di sistem dan siap untuk direkapitulasi.
-                    </p>
-
-                    {/* Summary */}
-                    <div className="success-summary">
-                        <div className="success-summary-item">
-                            <span className="success-summary-label">Petugas</span>
-                            <span className="success-summary-value">{form.namaPetugas || '—'}</span>
-                        </div>
-                        <div className="success-summary-divider" />
-                        <div className="success-summary-item">
-                            <span className="success-summary-label">Tanggal</span>
-                            <span className="success-summary-value">
-                                {form.tanggal ? new Date(form.tanggal).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' }) : '—'}
-                            </span>
-                        </div>
-                        <div className="success-summary-divider" />
-                        <div className="success-summary-item">
-                            <span className="success-summary-label">Shift</span>
-                            <span className="success-summary-value">{form.jamMasuk || '--:--'} — {form.jamKeluar || '--:--'}</span>
-                        </div>
-                    </div>
-
-                    {/* Action buttons */}
-                    <div className="success-actions">
-                        <button className="piket-btn primary" onClick={() => { setForm(initialFormData); setSubmitted(false); setStep(0) }}>
-                            <ClipboardList size={18} /> Buat Laporan Baru
-                        </button>
-                        <a href="/portal/bpupd" className="piket-btn secondary" style={{ textDecoration: 'none' }}>
-                            Lihat Rekapitulasi →
-                        </a>
-                    </div>
-                </div>
-            </div>
-        )
-    }
-
     return (
-        <div className="piket-container">
-            {/* Step Indicators */}
-            <div className="piket-steps-wrapper">
-                <div className="piket-step-line-bg" />
-                <div className="piket-step-line-progress" style={{ width: `${(step / (STEPS.length - 1)) * 100}%` }} />
-                <div className="piket-steps">
-                    {STEPS.map((s, i) => (
-                        <div key={i} className={`piket-step ${i === step ? 'active' : ''} ${i < step ? 'done' : ''}`} onClick={() => i < step && setStep(i)}>
-                            <div className="piket-step-circle">
-                                {i < step ? <Check size={20} /> : <s.icon size={20} />}
-                            </div>
-                            <span className="piket-step-label">{s.title}</span>
+        <div>
+            {submitted ? (
+                <div className="piket-success-page">
+                    {/* Animated background circles */}
+                    <div className="success-bg-circle c1" />
+                    <div className="success-bg-circle c2" />
+                    <div className="success-bg-circle c3" />
+
+                    <div className="success-card">
+                        {/* Animated checkmark */}
+                        <div className="success-check-ring">
+                            <svg className="success-check-svg" viewBox="0 0 52 52">
+                                <circle className="success-check-circle" cx="26" cy="26" r="24" fill="none" />
+                                <path className="success-check-path" fill="none" d="M14 27l7 7 16-16" />
+                            </svg>
                         </div>
-                    ))}
+
+                        <h2 className="success-title">Laporan Berhasil Terkirim!</h2>
+                        <p className="success-subtitle">
+                            Laporan piket kantor telah tersimpan di sistem dan siap untuk direkapitulasi.
+                        </p>
+
+                        {/* Summary */}
+                        <div className="success-summary">
+                            <div className="success-summary-item">
+                                <span className="success-summary-label">Petugas</span>
+                                <span className="success-summary-value">{form.namaPetugas || '—'}</span>
+                            </div>
+                            <div className="success-summary-divider" />
+                            <div className="success-summary-item">
+                                <span className="success-summary-label">Tanggal</span>
+                                <span className="success-summary-value">
+                                    {form.tanggal ? new Date(form.tanggal).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' }) : '—'}
+                                </span>
+                            </div>
+                            <div className="success-summary-divider" />
+                            <div className="success-summary-item">
+                                <span className="success-summary-label">Shift</span>
+                                <span className="success-summary-value">{form.jamMasuk || '--:--'} — {form.jamKeluar || '--:--'}</span>
+                            </div>
+                        </div>
+
+                        {/* Action buttons */}
+                        <div className="success-actions">
+                            <button className="piket-btn primary" onClick={() => { setForm(initialFormData); setSubmitted(false); setStep(0) }}>
+                                <ClipboardList size={18} /> Buat Laporan Baru
+                            </button>
+                            <a href="/portal/bpupd" className="piket-btn secondary" style={{ textDecoration: 'none' }}>
+                                Lihat Rekapitulasi →
+                            </a>
+                        </div>
+                    </div>
                 </div>
-            </div>
-
-            {/* Form Body */}
-            <div className="piket-form-body shadow-xl">
-                {/* ──── PAGE 1 ──── */}
-                {step === 0 && (
-                    <div className="piket-page" key="page1">
-                        <h3 className="piket-page-title"><ClipboardList size={24} /> Informasi Umum</h3>
-
-                        <div className="piket-section">
-                            <div className="piket-row">
-                                <div className="piket-field">
-                                    <label className="piket-label">Email Petugas</label>
-                                    <input className="piket-input" type="email" placeholder="email@contoh.com" value={form.email} onChange={e => set('email', e.target.value)} />
+            ) : (
+                <div className="piket-container">
+                    {/* Step Indicators */}
+                    <div className="piket-steps-wrapper">
+                        <div className="piket-step-line-bg" />
+                        <div className="piket-step-line-progress" style={{ width: `${(step / (STEPS.length - 1)) * 100}%` }} />
+                        <div className="piket-steps">
+                            {STEPS.map((s, i) => (
+                                <div key={i} className={`piket-step ${i === step ? 'active' : ''} ${i < step ? 'done' : ''}`} onClick={() => i < step && setStep(i)}>
+                                    <div className="piket-step-circle">
+                                        {i < step ? <Check size={20} /> : <s.icon size={20} />}
+                                    </div>
+                                    <span className="piket-step-label">{s.title}</span>
                                 </div>
-                                <div className="piket-field">
-                                    <label className="piket-label">Tanggal Laporan</label>
-                                    <input className="piket-input" type="date" value={form.tanggal} onChange={e => set('tanggal', e.target.value)} />
-                                </div>
-                            </div>
-
-                            <div className="piket-field">
-                                <label className="piket-label">Nama Petugas Piket</label>
-                                <select className="piket-input" value={form.namaPetugas} onChange={e => set('namaPetugas', e.target.value)}>
-                                    <option value="">— Pilih Petugas —</option>
-                                    {PETUGAS_OPTIONS.map(p => <option key={p} value={p}>{p}</option>)}
-                                </select>
-                            </div>
-
-                            <div className="piket-row">
-                                <div className="piket-field">
-                                    <label className="piket-label">Jam Masuk</label>
-                                    <input className="piket-input" type="time" value={form.jamMasuk} onChange={e => set('jamMasuk', e.target.value)} />
-                                </div>
-                                <div className="piket-field">
-                                    <label className="piket-label">Jam Keluar</label>
-                                    <input className="piket-input" type="time" value={form.jamKeluar} onChange={e => set('jamKeluar', e.target.value)} />
-                                </div>
-                            </div>
-                        </div>
-
-                        <div className="piket-section">
-                            <h4 className="piket-section-title">Pemeliharaan & Keamanan</h4>
-                            <MultiCheck label="Lampu Pagi Hari" options={LAMPU_OPTIONS} selected={form.lampu} onChange={v => set('lampu', v)} />
-
-                            <div className="piket-field">
-                                <label className="piket-label">Laporan Keamanan & Insiden</label>
-                                <textarea className="piket-input piket-textarea" placeholder="Tuliskan jika ada insiden atau laporan keamanan khusus..." value={form.laporanKeamanan} onChange={e => set('laporanKeamanan', e.target.value)} />
-                            </div>
-
-                            <MultiCheck label="Kebersihan Kantor" options={KEBERSIHAN_OPTIONS} selected={form.kebersihan} onChange={v => set('kebersihan', v)} />
-
-                            <MultiCheck
-                                label="Ruangan yang Digunakan"
-                                options={RUANGAN_OPTIONS}
-                                selected={form.ruangan}
-                                onChange={v => set('ruangan', v)}
-                                customKey="Yang lain"
-                                customValue={form.ruanganLain}
-                                onCustomChange={v => set('ruanganLain', v)}
-                                dense
-                            />
-                        </div>
-
-                        <div className="piket-section">
-                            <h4 className="piket-section-title">Log Aktivitas & Utilitas</h4>
-                            <div className="piket-field">
-                                <label className="piket-label">Kegiatan Hari Ini</label>
-                                <textarea className="piket-input piket-textarea" placeholder="Apa saja yang dikerjakan hari ini?" value={form.kegiatanHariIni} onChange={e => set('kegiatanHariIni', e.target.value)} />
-                            </div>
-
-                            <div className="piket-field">
-                                <label className="piket-label">Kegiatan Esok Hari (Rencana)</label>
-                                <textarea className="piket-input piket-textarea" placeholder="Rencana kegiatan untuk besok..." value={form.kegiatanEsokHari} onChange={e => set('kegiatanEsokHari', e.target.value)} />
-                            </div>
-
-                            <div className="piket-row">
-                                <div className="piket-field">
-                                    <label className="piket-label">Meteran Air (EGP)</label>
-                                    <input className="piket-input" type="text" placeholder="Angka meteran..." value={form.meteranAir} onChange={e => set('meteranAir', e.target.value)} />
-                                </div>
-                                <div className="piket-field">
-                                    <label className="piket-label">Meteran Listrik (EGP)</label>
-                                    <input className="piket-input" type="text" placeholder="Angka meteran..." value={form.meteranListrik} onChange={e => set('meteranListrik', e.target.value)} />
-                                </div>
-                            </div>
+                            ))}
                         </div>
                     </div>
-                )}
 
-                {/* ──── PAGE 2 ──── */}
-                {step === 1 && (
-                    <div className="piket-page" key="page2">
-                        <h3 className="piket-page-title"><Home size={24} /> Operasional Hostel</h3>
+                    {/* Form Body */}
+                    <div className="piket-form-body shadow-xl">
+                        {/* ──── PAGE 1 ──── */}
+                        {step === 0 && (
+                            <div className="piket-page" key="page1">
+                                <h3 className="piket-page-title"><ClipboardList size={24} /> Informasi Umum</h3>
 
-                        <div className="piket-section">
-                            <MultiCheck label="Kamar yang Terisi" options={KAMAR_OPTIONS} selected={form.kamarTerisi} onChange={v => set('kamarTerisi', v)} dense />
-                        </div>
+                                <div className="piket-section">
+                                    <div className="piket-row">
+                                        <div className="piket-field">
+                                            <label className="piket-label">Email Petugas</label>
+                                            <input className="piket-input" type="email" placeholder="email@contoh.com" value={form.email} onChange={e => set('email', e.target.value)} />
+                                        </div>
+                                        <div className="piket-field">
+                                            <label className="piket-label">Tanggal Laporan</label>
+                                            <input className="piket-input" type="date" value={form.tanggal} onChange={e => set('tanggal', e.target.value)} />
+                                        </div>
+                                    </div>
 
-                        <div className="piket-section">
-                            <MultiCheck label="Persediaan Snack & Dapur" options={SNACK_OPTIONS} selected={form.snack} onChange={v => set('snack', v)} />
-                        </div>
+                                    <div className="piket-field">
+                                        <label className="piket-label">Nama Petugas Piket</label>
+                                        <select className="piket-input" value={form.namaPetugas} onChange={e => set('namaPetugas', e.target.value)}>
+                                            <option value="">— Pilih Petugas —</option>
+                                            {PETUGAS_OPTIONS.map(p => <option key={p} value={p}>{p}</option>)}
+                                        </select>
+                                    </div>
 
-                        <div className="piket-section">
-                            <MultiCheck
-                                label="Beres-beres Area Lobby"
-                                options={LOBBY_OPTIONS}
-                                selected={form.beresLobby}
-                                onChange={v => set('beresLobby', v)}
-                                customKey="Yang lain"
-                                customValue={form.beresLobbyLain}
-                                onCustomChange={v => set('beresLobbyLain', v)}
-                            />
-                        </div>
-
-                        <div className="piket-section">
-                            <h4 className="piket-section-title">Teknis & Keuangan Hostel</h4>
-                            <div className="piket-row">
-                                <div className="piket-field">
-                                    <label className="piket-label">Kondisi Wifi Hostel</label>
-                                    <input className="piket-input" type="text" placeholder="Lancar / Gangguan / Rincian..." value={form.wifiHostel} onChange={e => set('wifiHostel', e.target.value)} />
+                                    <div className="piket-row">
+                                        <div className="piket-field">
+                                            <label className="piket-label">Jam Masuk</label>
+                                            <input className="piket-input" type="time" value={form.jamMasuk} onChange={e => set('jamMasuk', e.target.value)} />
+                                        </div>
+                                        <div className="piket-field">
+                                            <label className="piket-label">Jam Keluar</label>
+                                            <input className="piket-input" type="time" value={form.jamKeluar} onChange={e => set('jamKeluar', e.target.value)} />
+                                        </div>
+                                    </div>
                                 </div>
-                                <div className="piket-field">
-                                    <label className="piket-label">Status Pembayaran</label>
-                                    <input className="piket-input" type="text" placeholder="Ada Pelunasan? / Tidak..." value={form.adaPembayaranHostel} onChange={e => set('adaPembayaranHostel', e.target.value)} />
+
+                                <div className="piket-section">
+                                    <h4 className="piket-section-title">Pemeliharaan & Keamanan</h4>
+                                    <MultiCheck label="Lampu Pagi Hari" options={LAMPU_OPTIONS} selected={form.lampu} onChange={v => set('lampu', v)} />
+
+                                    <div className="piket-field">
+                                        <label className="piket-label">Laporan Keamanan & Insiden</label>
+                                        <textarea className="piket-input piket-textarea" placeholder="Tuliskan jika ada insiden atau laporan keamanan khusus..." value={form.laporanKeamanan} onChange={e => set('laporanKeamanan', e.target.value)} />
+                                    </div>
+
+                                    <MultiCheck label="Kebersihan Kantor" options={KEBERSIHAN_OPTIONS} selected={form.kebersihan} onChange={v => set('kebersihan', v)} />
+
+                                    <MultiCheck
+                                        label="Ruangan yang Digunakan"
+                                        options={RUANGAN_OPTIONS}
+                                        selected={form.ruangan}
+                                        onChange={v => set('ruangan', v)}
+                                        customKey="Yang lain"
+                                        customValue={form.ruanganLain}
+                                        onCustomChange={v => set('ruanganLain', v)}
+                                        dense
+                                    />
+                                </div>
+
+                                <div className="piket-section">
+                                    <h4 className="piket-section-title">Log Aktivitas & Utilitas</h4>
+                                    <div className="piket-field">
+                                        <label className="piket-label">Kegiatan Hari Ini</label>
+                                        <textarea className="piket-input piket-textarea" placeholder="Apa saja yang dikerjakan hari ini?" value={form.kegiatanHariIni} onChange={e => set('kegiatanHariIni', e.target.value)} />
+                                    </div>
+
+                                    <div className="piket-field">
+                                        <label className="piket-label">Kegiatan Esok Hari (Rencana)</label>
+                                        <textarea className="piket-input piket-textarea" placeholder="Rencana kegiatan untuk besok..." value={form.kegiatanEsokHari} onChange={e => set('kegiatanEsokHari', e.target.value)} />
+                                    </div>
+
+                                    <div className="piket-row">
+                                        <div className="piket-field">
+                                            <label className="piket-label">Meteran Air (EGP)</label>
+                                            <input className="piket-input" type="text" placeholder="Angka meteran..." value={form.meteranAir} onChange={e => set('meteranAir', e.target.value)} />
+                                        </div>
+                                        <div className="piket-field">
+                                            <label className="piket-label">Meteran Listrik (EGP)</label>
+                                            <input className="piket-input" type="text" placeholder="Angka meteran..." value={form.meteranListrik} onChange={e => set('meteranListrik', e.target.value)} />
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
+                        )}
 
-                            <div className="piket-field">
-                                <label className="piket-label">Rincian Pembayaran Hostel</label>
-                                <textarea className="piket-input piket-textarea" placeholder="Nama tamu and jumlah pembayaran jika ada..." value={form.rincianPembayaranHostel} onChange={e => set('rincianPembayaranHostel', e.target.value)} />
+                        {/* ──── PAGE 2 ──── */}
+                        {step === 1 && (
+                            <div className="piket-page" key="page2">
+                                <h3 className="piket-page-title"><Home size={24} /> Operasional Hostel</h3>
+
+                                <div className="piket-section">
+                                    <MultiCheck label="Kamar yang Terisi" options={KAMAR_OPTIONS} selected={form.kamarTerisi} onChange={v => set('kamarTerisi', v)} dense />
+                                </div>
+
+                                <div className="piket-section">
+                                    <MultiCheck label="Persediaan Snack & Dapur" options={SNACK_OPTIONS} selected={form.snack} onChange={v => set('snack', v)} />
+                                </div>
+
+                                <div className="piket-section">
+                                    <MultiCheck
+                                        label="Beres-beres Area Lobby"
+                                        options={LOBBY_OPTIONS}
+                                        selected={form.beresLobby}
+                                        onChange={v => set('beresLobby', v)}
+                                        customKey="Yang lain"
+                                        customValue={form.beresLobbyLain}
+                                        onCustomChange={v => set('beresLobbyLain', v)}
+                                    />
+                                </div>
+
+                                <div className="piket-section">
+                                    <h4 className="piket-section-title">Teknis & Keuangan Hostel</h4>
+                                    <div className="piket-row">
+                                        <div className="piket-field">
+                                            <label className="piket-label">Kondisi Wifi Hostel</label>
+                                            <input className="piket-input" type="text" placeholder="Lancar / Gangguan / Rincian..." value={form.wifiHostel} onChange={e => set('wifiHostel', e.target.value)} />
+                                        </div>
+                                        <div className="piket-field">
+                                            <label className="piket-label">Status Pembayaran</label>
+                                            <input className="piket-input" type="text" placeholder="Ada Pelunasan? / Tidak..." value={form.adaPembayaranHostel} onChange={e => set('adaPembayaranHostel', e.target.value)} />
+                                        </div>
+                                    </div>
+
+                                    <div className="piket-field">
+                                        <label className="piket-label">Rincian Pembayaran Hostel</label>
+                                        <textarea className="piket-input piket-textarea" placeholder="Nama tamu and jumlah pembayaran jika ada..." value={form.rincianPembayaranHostel} onChange={e => set('rincianPembayaranHostel', e.target.value)} />
+                                    </div>
+                                </div>
                             </div>
-                        </div>
+                        )}
+
+                        {/* ──── PAGE 3 ──── */}
+                        {step === 2 && (
+                            <div className="piket-page" key="page3">
+                                <h3 className="piket-page-title"><Building2 size={24} /> Operasional Auditorium</h3>
+
+                                <div className="piket-row">
+                                    {/* Penyewa 1 */}
+                                    <div className="piket-section-card">
+                                        <h4 className="piket-section-subtitle">Penyewa Utama</h4>
+                                        <SingleSelect
+                                            label="Nama Penyewa / Organisasi"
+                                            options={PENYEWA_OPTIONS}
+                                            value={form.penyewa1}
+                                            onChange={v => set('penyewa1', v)}
+                                            customKey="Yang lain"
+                                            customValue={form.penyewa1Nama}
+                                            onCustomChange={v => set('penyewa1Nama', v)}
+                                        />
+                                        <div className="piket-field">
+                                            <label className="piket-label">Rincian Sewa</label>
+                                            <input className="piket-input" type="text" placeholder="Aula 4 jam + proyektor..." value={form.rincianBiaya1} onChange={e => set('rincianBiaya1', e.target.value)} />
+                                        </div>
+                                        <div className="piket-field">
+                                            <label className="piket-label">Total Biaya (EGP)</label>
+                                            <input className="piket-input" type="text" placeholder="0" value={form.totalBiaya1} onChange={e => set('totalBiaya1', e.target.value)} />
+                                        </div>
+                                    </div>
+
+                                    {/* Penyewa 2 */}
+                                    <div className="piket-section-card">
+                                        <h4 className="piket-section-subtitle">Penyewa Tambahan</h4>
+                                        <SingleSelect
+                                            label="Nama Penyewa / Organisasi"
+                                            options={PENYEWA_OPTIONS}
+                                            value={form.penyewa2}
+                                            onChange={v => set('penyewa2', v)}
+                                            customKey="Yang lain"
+                                            customValue={form.penyewa2Nama}
+                                            onCustomChange={v => set('penyewa2Nama', v)}
+                                        />
+                                        <div className="piket-field">
+                                            <label className="piket-label">Rincian Sewa</label>
+                                            <input className="piket-input" type="text" placeholder="..." value={form.rincianBiaya2} onChange={e => set('rincianBiaya2', e.target.value)} />
+                                        </div>
+                                        <div className="piket-field">
+                                            <label className="piket-label">Total Biaya (EGP)</label>
+                                            <input className="piket-input" type="text" placeholder="0" value={form.totalBiaya2} onChange={e => set('totalBiaya2', e.target.value)} />
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div className="piket-section">
+                                    <h4 className="piket-section-title">Lain-lain</h4>
+                                    <MultiCheck
+                                        label="Item Pembayaran Lainnya"
+                                        options={PEMBAYARAN_LAIN_OPTIONS}
+                                        selected={form.pembayaranLain}
+                                        onChange={v => set('pembayaranLain', v)}
+                                        customKey="Yang lain"
+                                        customValue={form.pembayaranLainCustom}
+                                        onCustomChange={v => set('pembayaranLainCustom', v)}
+                                    />
+
+                                    <div className="piket-field">
+                                        <label className="piket-label">Rincian Biaya Tambahan</label>
+                                        <textarea className="piket-input piket-textarea" placeholder="Contoh: Sewa Kursi 50 pcs (500 EGP)" value={form.rincianBiayaLain} onChange={e => set('rincianBiayaLain', e.target.value)} />
+                                    </div>
+                                </div>
+                            </div>
+                        )}
                     </div>
-                )}
 
-                {/* ──── PAGE 3 ──── */}
-                {step === 2 && (
-                    <div className="piket-page" key="page3">
-                        <h3 className="piket-page-title"><Building2 size={24} /> Operasional Auditorium</h3>
-
-                        <div className="piket-row">
-                            {/* Penyewa 1 */}
-                            <div className="piket-section-card">
-                                <h4 className="piket-section-subtitle">Penyewa Utama</h4>
-                                <SingleSelect
-                                    label="Nama Penyewa / Organisasi"
-                                    options={PENYEWA_OPTIONS}
-                                    value={form.penyewa1}
-                                    onChange={v => set('penyewa1', v)}
-                                    customKey="Yang lain"
-                                    customValue={form.penyewa1Nama}
-                                    onCustomChange={v => set('penyewa1Nama', v)}
-                                />
-                                <div className="piket-field">
-                                    <label className="piket-label">Rincian Sewa</label>
-                                    <input className="piket-input" type="text" placeholder="Aula 4 jam + proyektor..." value={form.rincianBiaya1} onChange={e => set('rincianBiaya1', e.target.value)} />
-                                </div>
-                                <div className="piket-field">
-                                    <label className="piket-label">Total Biaya (EGP)</label>
-                                    <input className="piket-input" type="text" placeholder="0" value={form.totalBiaya1} onChange={e => set('totalBiaya1', e.target.value)} />
-                                </div>
-                            </div>
-
-                            {/* Penyewa 2 */}
-                            <div className="piket-section-card">
-                                <h4 className="piket-section-subtitle">Penyewa Tambahan</h4>
-                                <SingleSelect
-                                    label="Nama Penyewa / Organisasi"
-                                    options={PENYEWA_OPTIONS}
-                                    value={form.penyewa2}
-                                    onChange={v => set('penyewa2', v)}
-                                    customKey="Yang lain"
-                                    customValue={form.penyewa2Nama}
-                                    onCustomChange={v => set('penyewa2Nama', v)}
-                                />
-                                <div className="piket-field">
-                                    <label className="piket-label">Rincian Sewa</label>
-                                    <input className="piket-input" type="text" placeholder="..." value={form.rincianBiaya2} onChange={e => set('rincianBiaya2', e.target.value)} />
-                                </div>
-                                <div className="piket-field">
-                                    <label className="piket-label">Total Biaya (EGP)</label>
-                                    <input className="piket-input" type="text" placeholder="0" value={form.totalBiaya2} onChange={e => set('totalBiaya2', e.target.value)} />
-                                </div>
-                            </div>
-                        </div>
-
-                        <div className="piket-section">
-                            <h4 className="piket-section-title">Lain-lain</h4>
-                            <MultiCheck
-                                label="Item Pembayaran Lainnya"
-                                options={PEMBAYARAN_LAIN_OPTIONS}
-                                selected={form.pembayaranLain}
-                                onChange={v => set('pembayaranLain', v)}
-                                customKey="Yang lain"
-                                customValue={form.pembayaranLainCustom}
-                                onCustomChange={v => set('pembayaranLainCustom', v)}
-                            />
-
-                            <div className="piket-field">
-                                <label className="piket-label">Rincian Biaya Tambahan</label>
-                                <textarea className="piket-input piket-textarea" placeholder="Contoh: Sewa Kursi 50 pcs (500 EGP)" value={form.rincianBiayaLain} onChange={e => set('rincianBiayaLain', e.target.value)} />
-                            </div>
-                        </div>
+                    {/* Navigation */}
+                    <div className="piket-nav">
+                        {step > 0 && (
+                            <button className="piket-btn secondary" onClick={() => setStep(step - 1)}>
+                                <ChevronLeft size={20} /> Kembali
+                            </button>
+                        )}
+                        <div style={{ flex: 1 }} />
+                        {step < STEPS.length - 1 ? (
+                            <button className="piket-btn primary" onClick={() => setStep(step + 1)}>
+                                Lanjut <ChevronRight size={20} />
+                            </button>
+                        ) : (
+                            <button className="piket-btn submit" onClick={handleSubmit} disabled={submitting}>
+                                {submitting ? 'Mengirim...' : 'Kirim Laporan'} <Send size={20} />
+                            </button>
+                        )}
                     </div>
-                )}
-            </div>
 
-            {/* Navigation */}
-            <div className="piket-nav">
-                {step > 0 && (
-                    <button className="piket-btn secondary" onClick={() => setStep(step - 1)}>
-                        <ChevronLeft size={20} /> Kembali
-                    </button>
-                )}
-                <div style={{ flex: 1 }} />
-                {step < STEPS.length - 1 ? (
-                    <button className="piket-btn primary" onClick={() => setStep(step + 1)}>
-                        Lanjut <ChevronRight size={20} />
-                    </button>
-                ) : (
-                    <button className="piket-btn submit" onClick={handleSubmit} disabled={submitting}>
-                        {submitting ? 'Mengirim...' : 'Kirim Laporan'} <Send size={20} />
-                    </button>
-                )}
-            </div>
+                </div>
+            )}
 
             {/* Inline Styles */}
             <style jsx global>{`
