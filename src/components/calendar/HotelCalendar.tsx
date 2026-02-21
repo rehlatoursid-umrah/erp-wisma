@@ -76,7 +76,7 @@ export default function HotelCalendar({ onBookRoom, refreshTrigger = 0, onUpdate
       const res = await fetch(`/api/booking/hotel?year=${year}&month=${month}`)
       const data = await res.json()
       if (data.success) {
-        setBookings(data.bookings)
+        setBookings(data.bookings.filter((b: any) => b.status !== 'cancelled'))
       }
     } catch (error) {
       console.error('Failed to fetch hotel bookings:', error)
@@ -782,7 +782,7 @@ export default function HotelCalendar({ onBookRoom, refreshTrigger = 0, onUpdate
                 {selectedBooking.status !== 'cancelled' && (
                   <button
                     onClick={async () => {
-                      if (!confirm('⚠️ Are you sure you want to CANCEL this booking?\n\nThis will:\n1. Update status to CANCELLED.\n2. PERMANENTLY DELETE any generated invoices (Draft or Paid).')) return;
+                      if (!confirm('⚠️ Are you sure you want to CANCEL this booking?\n\nThis will:\n1. Update status to CANCELLED.\n2. Mark any related invoices as CANCELLED.')) return;
 
                       try {
                         const res = await fetch('/api/booking/hotel/cancel', {

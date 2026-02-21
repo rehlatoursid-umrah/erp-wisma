@@ -124,27 +124,29 @@ export default function AuditoriumCalendar({
 
       if (data.success && data.bookings) {
         // Transform API data to calendar format
-        const transformedBookings: AuditoriumBooking[] = data.bookings.map((b: any) => ({
-          id: b.id,
-          bookingId: b.bookingId,
-          date: b.date || '', // Robust fallback
-          bookerName: b.bookerName || 'No Name',
-          country: b.country || '',
-          eventName: b.eventName || 'Unnamed Event',
-          startTime: b.startTime || '00:00',
-          endTime: b.endTime || '00:00',
-          phone: b.phone || '',
-          whatsapp: b.whatsapp || '',
-          hallPackage: b.hallPackage || '',
-          duration: b.duration || 0,
-          afterHoursCount: b.afterHoursCount || 0,
-          hallPrice: b.hallPrice || 0,
-          afterHoursPrice: b.afterHoursPrice || 0,
-          servicesPrice: b.servicesPrice || 0,
-          totalPrice: b.totalPrice || 0,
-          status: b.status || 'pending',
-          services: b.services || {},
-        }))
+        const transformedBookings: AuditoriumBooking[] = data.bookings
+          .filter((b: any) => b.status !== 'cancelled')
+          .map((b: any) => ({
+            id: b.id,
+            bookingId: b.bookingId,
+            date: b.date || '', // Robust fallback
+            bookerName: b.bookerName || 'No Name',
+            country: b.country || '',
+            eventName: b.eventName || 'Unnamed Event',
+            startTime: b.startTime || '00:00',
+            endTime: b.endTime || '00:00',
+            phone: b.phone || '',
+            whatsapp: b.whatsapp || '',
+            hallPackage: b.hallPackage || '',
+            duration: b.duration || 0,
+            afterHoursCount: b.afterHoursCount || 0,
+            hallPrice: b.hallPrice || 0,
+            afterHoursPrice: b.afterHoursPrice || 0,
+            servicesPrice: b.servicesPrice || 0,
+            totalPrice: b.totalPrice || 0,
+            status: b.status || 'pending',
+            services: b.services || {},
+          }))
         setBookings(transformedBookings)
       }
     } catch (error) {
@@ -1069,7 +1071,7 @@ export default function AuditoriumCalendar({
                 {selectedBooking.status !== 'cancelled' && (
                   <button
                     onClick={async () => {
-                      if (!confirm('⚠️ Are you sure you want to CANCEL this booking?\n\nThis will:\n1. Update status to CANCELLED.\n2. PERMANENTLY DELETE any generated invoices (Draft or Paid).')) return;
+                      if (!confirm('⚠️ Are you sure you want to CANCEL this booking?\n\nThis will:\n1. Update status to CANCELLED.\n2. Mark any generated invoices as CANCELLED.')) return;
 
                       try {
                         const res = await fetch('/api/booking/auditorium/cancel', {
@@ -1080,7 +1082,7 @@ export default function AuditoriumCalendar({
                         const data = await res.json()
 
                         if (res.ok) {
-                          alert('✅ Booking Cancelled & Invoices Deleted.')
+                          alert('✅ Booking Cancelled & Invoices Marked as Cancelled.')
                           setSelectedBooking(null)
                           fetchBookings()
                         } else {

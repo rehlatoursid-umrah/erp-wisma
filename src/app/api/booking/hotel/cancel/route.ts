@@ -60,11 +60,7 @@ export async function POST(req: Request) {
             }
         })
 
-        // 2. Find and Delete Related Invoices (Transactions)
-        // We look for transactions where relatedBooking.value equals the internalId OR bookingId
-        // The Invoice creation logic stores: `relatedBooking: { relationTo: 'hotel-bookings', value: relatedBooking }`
-        // So we query `relatedBooking.value`
-
+        // 2. Find Related Invoices and mark as 'cancelled'
         const invoices = await payload.find({
             collection: 'transactions',
             where: {
@@ -84,12 +80,9 @@ export async function POST(req: Request) {
         })
 
         if (invoices.docs.length > 0) {
-            console.log(`Found ${invoices.docs.length} related invoices. Deleting...`)
+            console.log(`Found ${invoices.docs.length} related invoices. Marking as cancelled...`)
             for (const invoice of invoices.docs) {
-                // Delete invoice (this will cascade delete cashflow if logic exists in DELETE method of invoice API, 
-                // OR we can manually delete cashflow here to be safe since we are in a server action)
-
-                // Manual Cascade for safety:
+                // Delete related cashflow entries (reverse revenue)
                 if (invoice.invoiceNo) {
                     try {
                         const cashflowQuery = await payload.find({
@@ -112,14 +105,19 @@ export async function POST(req: Request) {
                     }
                 }
 
-                await payload.delete({
+                // Mark invoice as cancelled (not delete)
+                await payload.update({
                     collection: 'transactions',
-                    id: invoice.id
+                    id: invoice.id,
+                    data: {
+                        paymentStatus: 'cancelled',
+                        notes: `Cancelled - Booking ${bookingId} dibatalkan`
+                    }
                 })
             }
         }
 
-        return NextResponse.json({ success: true, message: 'Booking cancelled and invoices deleted' })
+        return NextResponse.json({ success: true, message: 'Booking cancelled and invoices marked as cancelled' })
 
     } catch (error: any) {
         console.error('Error cancelling booking:', error)

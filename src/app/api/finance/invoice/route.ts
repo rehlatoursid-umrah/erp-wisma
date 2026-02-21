@@ -34,47 +34,81 @@ export async function POST(req: Request) {
         // Ensure bookingType has a value
         const safeBookingType = bookingType || 'manual';
 
-        // 1. Create Transaction (Invoice)
-        const newInvoice = await payload.create({
-            collection: 'transactions',
-            data: {
-                customerName: body.customerName,
-                customerWA: body.customerWA,
-                bookingType: safeBookingType,
-                paymentMethod: body.paymentMethod,
+        const invoiceData = {
+            customerName: body.customerName,
+            customerWA: body.customerWA,
+            bookingType: safeBookingType,
+            paymentMethod: body.paymentMethod,
 
-                // New Fields
-                invoiceDate: body.invoiceDate || new Date().toISOString(),
+            // New Fields
+            invoiceDate: body.invoiceDate || new Date().toISOString(),
+            salesperson: body.salesperson,
+            notes: body.notes,
+
+            // Financials
+            currency: body.currency || 'EGP',
+            totalAmount: body.totalAmount,
+            subtotal: body.subtotal,
+            discount: body.discount,
+
+            // Complex Items Array
+            items: body.items.map((item: any) => ({
+                itemName: item.itemName || 'Item',
+                quantity: Number(item.quantity) || 1,
+                priceUnit: Number(item.priceUnit) || 0,
+                subtotal: Number(item.subtotal) || 0,
+                startDate: undefined,
+                endDate: undefined,
+                service: undefined
+            })),
+
+            relatedBooking: formattedRelatedBooking,
+            paymentStatus: paymentStatus || 'pending',
+            waSent: false // Default
+        };
+
+        // Check if an active invoice already exists for this booking
+        let existingInvoice = null;
+        if (relatedBooking && relationSlug) {
+            const existingQuery = await payload.find({
+                collection: 'transactions',
+                where: {
+                    and: [
+                        { bookingType: { equals: safeBookingType } },
+                        { 'relatedBooking.value': { equals: relatedBooking } },
+                        { paymentStatus: { equals: 'pending' } }
+                    ]
+                },
+                limit: 1
+            });
+            if (existingQuery.docs.length > 0) {
+                existingInvoice = existingQuery.docs[0];
+            }
+        }
+
+        let newInvoice;
+        if (existingInvoice) {
+            // Update existing draft invoice instead of creating new
+            newInvoice = await payload.update({
+                collection: 'transactions',
+                id: existingInvoice.id,
+                data: invoiceData,
+                overrideAccess: true
+            });
+            console.log('Invoice updated successfully (dedup):', newInvoice.id);
+        } else {
+            // 1. Create Data with invoiceNo
+            const createData = {
+                ...invoiceData,
                 invoiceNo: body.invoiceNo, // Use client-generated or auto-generated
-                salesperson: body.salesperson,
-                notes: body.notes,
-
-                // Financials
-                currency: body.currency || 'EGP',
-                totalAmount: body.totalAmount,
-                subtotal: body.subtotal,
-                discount: body.discount,
-
-                // Complex Items Array
-                items: body.items.map((item: any) => ({
-                    itemName: item.itemName || 'Item',
-                    quantity: Number(item.quantity) || 1,
-                    priceUnit: Number(item.priceUnit) || 0,
-                    subtotal: Number(item.subtotal) || 0,
-                    startDate: undefined,
-                    endDate: undefined,
-                    service: undefined
-                })),
-
-                // REMOVED 'status' field as it does not exist in Transactions schema
-                relatedBooking: formattedRelatedBooking,
-                paymentStatus: paymentStatus || 'pending',
-                waSent: false // Default
-            },
-            overrideAccess: true // Ensure system can create
-        })
-
-        console.log('Invoice created successfully:', newInvoice.id);
+            }
+            newInvoice = await payload.create({
+                collection: 'transactions',
+                data: createData,
+                overrideAccess: true // Ensure system can create
+            });
+            console.log('Invoice created successfully:', newInvoice.id);
+        }
 
         // 2. Update Booking Status if linked (Always to 'confirmed' if invoice created)
         if (relatedBooking && relationSlug) {
