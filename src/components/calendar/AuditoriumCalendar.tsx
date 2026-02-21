@@ -646,12 +646,52 @@ export default function AuditoriumCalendar({
                             body: JSON.stringify({
                               customerName: selectedBooking.bookerName,
                               customerWA: selectedBooking.whatsapp,
-                              items: [{
-                                itemName: `Sewa Aula: ${selectedBooking.eventName}`,
-                                quantity: 1,
-                                priceUnit: selectedBooking.totalPrice,
-                                subtotal: selectedBooking.totalPrice
-                              }],
+                              items: (() => {
+                                const items: { itemName: string; quantity: number; priceUnit: number; subtotal: number }[] = []
+                                // 1. Sewa Aula
+                                items.push({
+                                  itemName: `Sewa Aula (${selectedBooking.duration} Hours)\n${selectedBooking.eventName}\n📅 ${selectedBooking.date?.split('T')[0] || '-'}`,
+                                  quantity: 1,
+                                  priceUnit: selectedBooking.hallPrice || 0,
+                                  subtotal: selectedBooking.hallPrice || 0
+                                })
+                                // 2. After Hours
+                                if (selectedBooking.afterHoursPrice > 0) {
+                                  items.push({
+                                    itemName: `After Hours (${selectedBooking.afterHoursCount}h × ${AFTER_HOURS_RATE})`,
+                                    quantity: 1,
+                                    priceUnit: selectedBooking.afterHoursPrice,
+                                    subtotal: selectedBooking.afterHoursPrice
+                                  })
+                                }
+                                // 3. Services
+                                const svc = selectedBooking.services || {}
+                                if (svc.acOption) {
+                                  const opt = AC_OPTIONS.find(o => o.value === svc.acOption)
+                                  if (opt && opt.price > 0) items.push({ itemName: `AC (${opt.label})`, quantity: 1, priceUnit: opt.price, subtotal: opt.price })
+                                }
+                                if (svc.chairOption) {
+                                  const opt = CHAIR_OPTIONS.find(o => o.value === svc.chairOption)
+                                  if (opt && opt.price > 0) items.push({ itemName: `Kursi (${opt.label})`, quantity: 1, priceUnit: opt.price, subtotal: opt.price })
+                                }
+                                if (svc.projectorScreen) {
+                                  const opt = PROJECTOR_SCREEN_OPTIONS.find(o => o.value === svc.projectorScreen)
+                                  if (opt && opt.price > 0) items.push({ itemName: `Projector/Screen (${opt.label})`, quantity: 1, priceUnit: opt.price, subtotal: opt.price })
+                                }
+                                if (svc.tableOption) {
+                                  const opt = TABLE_OPTIONS.find(o => o.value === svc.tableOption)
+                                  if (opt && opt.price > 0) items.push({ itemName: `Meja (${opt.label})`, quantity: 1, priceUnit: opt.price, subtotal: opt.price })
+                                }
+                                if (svc.plateOption) {
+                                  const opt = PLATE_OPTIONS.find(o => o.value === svc.plateOption)
+                                  if (opt && opt.price > 0) items.push({ itemName: `Piring (${opt.label})`, quantity: 1, priceUnit: opt.price, subtotal: opt.price })
+                                }
+                                if (svc.glassOption) {
+                                  const opt = GLASS_OPTIONS.find(o => o.value === svc.glassOption)
+                                  if (opt && opt.price > 0) items.push({ itemName: `Gelas (${opt.label})`, quantity: 1, priceUnit: opt.price, subtotal: opt.price })
+                                }
+                                return items
+                              })(),
                               totalAmount: selectedBooking.totalPrice,
                               currency: selectedCurrency,
                               bookingType: 'auditorium',
@@ -709,12 +749,52 @@ export default function AuditoriumCalendar({
                           body: JSON.stringify({
                             customerName: selectedBooking.bookerName,
                             customerWA: selectedBooking.whatsapp,
-                            items: [{
-                              itemName: `Sewa Aula: ${selectedBooking.eventName}`,
-                              quantity: 1,
-                              priceUnit: selectedBooking.totalPrice,
-                              subtotal: selectedBooking.totalPrice
-                            }],
+                            items: (() => {
+                              const items: { itemName: string; quantity: number; priceUnit: number; subtotal: number }[] = []
+                              // 1. Sewa Aula
+                              items.push({
+                                itemName: `Sewa Aula (${selectedBooking.duration} Hours)\n${selectedBooking.eventName}\n📅 ${selectedBooking.date?.split('T')[0] || '-'}`,
+                                quantity: 1,
+                                priceUnit: selectedBooking.hallPrice || 0,
+                                subtotal: selectedBooking.hallPrice || 0
+                              })
+                              // 2. After Hours
+                              if (selectedBooking.afterHoursPrice > 0) {
+                                items.push({
+                                  itemName: `After Hours (${selectedBooking.afterHoursCount}h × ${AFTER_HOURS_RATE})`,
+                                  quantity: 1,
+                                  priceUnit: selectedBooking.afterHoursPrice,
+                                  subtotal: selectedBooking.afterHoursPrice
+                                })
+                              }
+                              // 3. Services
+                              const svc = selectedBooking.services || {}
+                              if (svc.acOption) {
+                                const opt = AC_OPTIONS.find(o => o.value === svc.acOption)
+                                if (opt && opt.price > 0) items.push({ itemName: `AC (${opt.label})`, quantity: 1, priceUnit: opt.price, subtotal: opt.price })
+                              }
+                              if (svc.chairOption) {
+                                const opt = CHAIR_OPTIONS.find(o => o.value === svc.chairOption)
+                                if (opt && opt.price > 0) items.push({ itemName: `Kursi (${opt.label})`, quantity: 1, priceUnit: opt.price, subtotal: opt.price })
+                              }
+                              if (svc.projectorScreen) {
+                                const opt = PROJECTOR_SCREEN_OPTIONS.find(o => o.value === svc.projectorScreen)
+                                if (opt && opt.price > 0) items.push({ itemName: `Projector/Screen (${opt.label})`, quantity: 1, priceUnit: opt.price, subtotal: opt.price })
+                              }
+                              if (svc.tableOption) {
+                                const opt = TABLE_OPTIONS.find(o => o.value === svc.tableOption)
+                                if (opt && opt.price > 0) items.push({ itemName: `Meja (${opt.label})`, quantity: 1, priceUnit: opt.price, subtotal: opt.price })
+                              }
+                              if (svc.plateOption) {
+                                const opt = PLATE_OPTIONS.find(o => o.value === svc.plateOption)
+                                if (opt && opt.price > 0) items.push({ itemName: `Piring (${opt.label})`, quantity: 1, priceUnit: opt.price, subtotal: opt.price })
+                              }
+                              if (svc.glassOption) {
+                                const opt = GLASS_OPTIONS.find(o => o.value === svc.glassOption)
+                                if (opt && opt.price > 0) items.push({ itemName: `Gelas (${opt.label})`, quantity: 1, priceUnit: opt.price, subtotal: opt.price })
+                              }
+                              return items
+                            })(),
                             totalAmount: selectedBooking.totalPrice,
                             currency: selectedCurrency,
                             bookingType: 'auditorium',
