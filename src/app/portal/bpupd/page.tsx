@@ -876,7 +876,7 @@ export default function BPUPDPortal() {
               <h3>📊 Monitor Pendapatan Unit Usaha</h3>
               <p>Halaman ini hanya untuk monitoring. Data masuk otomatis dari sistem Invoice & Booking (Hotel, Visa, Aula, Rental).</p>
               <div className="stats-row mt-4">
-                {['hotel', 'visa_arrival', 'auditorium', 'rental'].map(category => {
+                {['hotel', 'visa_arrival', 'auditorium', 'rental', 'cancellation'].map(category => {
                   const relevant = invoices.filter(t => t.category === category)
                   const totals: Record<string, number> = {}
                   relevant.forEach(t => {
@@ -890,7 +890,8 @@ export default function BPUPDPortal() {
                     'hotel': 'Total Hotel',
                     'visa_arrival': 'Total Visa',
                     'auditorium': 'Total Auditorium',
-                    'rental': 'Total Rental'
+                    'rental': 'Total Rental',
+                    'cancellation': 'Total Pembatalan'
                   }
 
                   return (
@@ -960,7 +961,7 @@ export default function BPUPDPortal() {
                   </div>
 
                   {/* Unit Report Files */}
-                  {['hotel', 'visa_arrival', 'auditorium', 'rental'].map(cat => (
+                  {['hotel', 'visa_arrival', 'auditorium', 'rental', 'cancellation'].map(cat => (
                     <div
                       key={cat}
                       className="file-item"

@@ -15,7 +15,8 @@ import {
     Eye,
     CreditCard,
     Trash2,
-    Banknote
+    Banknote,
+    XCircle
 } from 'lucide-react'
 import ManualInvoiceModal from '@/components/invoice/ManualInvoiceModal'
 
@@ -31,7 +32,7 @@ interface Transaction {
     paymentMethod?: string
 }
 
-type TabType = 'all' | 'hotel' | 'auditorium' | 'visa_arrival' | 'rental' | 'manual'
+type TabType = 'all' | 'hotel' | 'auditorium' | 'visa_arrival' | 'rental' | 'manual' | 'cancellation'
 
 interface InvoiceViewProps {
     onUpdate?: () => void
@@ -76,6 +77,7 @@ export default function InvoiceView({ onUpdate, refreshTrigger = 0 }: InvoiceVie
         { id: 'visa_arrival', label: <><Plane size={16} /> Visa</> },
         { id: 'rental', label: <><Package size={16} /> Rental</> },
         { id: 'manual', label: <><MoreHorizontal size={16} /> Lainnya</> },
+        { id: 'cancellation', label: <><XCircle size={16} /> Pembatalan</> },
     ]
 
     return (
@@ -152,7 +154,8 @@ export default function InvoiceView({ onUpdate, refreshTrigger = 0 }: InvoiceVie
                                         <td>
                                             <span className={`badge type-${inv.bookingType || 'manual'}`}>
                                                 {inv.bookingType === 'visa_arrival' ? 'Visa' :
-                                                    inv.bookingType ? inv.bookingType.charAt(0).toUpperCase() + inv.bookingType.slice(1) : 'Manual'}
+                                                    inv.bookingType === 'cancellation' ? 'Pembatalan' :
+                                                        inv.bookingType ? inv.bookingType.charAt(0).toUpperCase() + inv.bookingType.slice(1) : 'Manual'}
                                             </span>
                                         </td>
                                         <td>{inv.customerName}</td>

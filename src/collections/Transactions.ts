@@ -150,6 +150,7 @@ export const Transactions: CollectionConfig = {
                 { label: 'Visa', value: 'visa_arrival' },
                 { label: 'Rental', value: 'rental' },
                 { label: 'Manual/Lainnya', value: 'manual' },
+                { label: 'Pembatalan', value: 'cancellation' },
             ],
             admin: {
                 description: 'Tipe booking/transaksi (untuk auto-cashflow)',

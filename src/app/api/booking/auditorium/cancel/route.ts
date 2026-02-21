@@ -99,13 +99,22 @@ export async function POST(req: Request) {
                     }
                 }
 
-                // Mark invoice as cancelled (not delete)
+                // Convert invoice into a cancellation fee draft
                 await payload.update({
                     collection: 'transactions',
                     id: invoice.id,
                     data: {
-                        paymentStatus: 'cancelled',
-                        notes: `Cancelled - Booking ${bookingId} dibatalkan`
+                        bookingType: 'cancellation',
+                        paymentStatus: 'pending',
+                        notes: `Draft Biaya Pembatalan - Booking Aula ${bookingId}`,
+                        totalAmount: 0,
+                        subtotal: 0,
+                        items: [{
+                            itemName: 'Biaya Pembatalan',
+                            quantity: 1,
+                            priceUnit: 0,
+                            subtotal: 0
+                        }]
                     }
                 })
             }
