@@ -115,7 +115,7 @@ export default function LoginPage() {
           background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%);
           border-radius: var(--radius-xl);
           display: flex;
-          align-items: center;
+          align-items: center; 
           justify-content: center;
           box-shadow: var(--shadow-md);
         }

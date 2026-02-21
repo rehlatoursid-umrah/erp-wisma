@@ -636,8 +636,8 @@ export default function AuditoriumCalendar({
                         if (!confirm('Konfirmasi booking ini? Invoice DRAFT akan dibuat.')) return;
 
                         // Prompt for Currency
-                        const useUSD = confirm('Create Invoice in USD? (Click OK for USD, Cancel for EGP)');
-                        const selectedCurrency = useUSD ? 'USD' : 'EGP';
+                        const useEGP = confirm('Buat Invoice dalam EGP? (Klik OK untuk EGP, Cancel untuk USD)');
+                        const selectedCurrency = useEGP ? 'EGP' : 'USD';
 
                         try {
                           const res = await fetch('/api/finance/invoice', {
@@ -699,8 +699,8 @@ export default function AuditoriumCalendar({
                       if (!confirm('Tandai LUNAS? Invoice FINAL dan Cashflow akan dibuat otomatis.')) return;
 
                       // Prompt for Currency
-                      const useUSD = confirm('Payment in USD? (Click OK for USD, Cancel for EGP)');
-                      const selectedCurrency = useUSD ? 'USD' : 'EGP';
+                      const useEGP = confirm('Pembayaran dalam EGP? (Klik OK untuk EGP, Cancel untuk USD)');
+                      const selectedCurrency = useEGP ? 'EGP' : 'USD';
 
                       try {
                         const res = await fetch('/api/finance/invoice', {

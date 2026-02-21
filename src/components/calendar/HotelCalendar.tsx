@@ -555,7 +555,7 @@ export default function HotelCalendar({ onBookRoom, refreshTrigger = 0, onUpdate
                         if (!confirm('Confirm this booking? A DRAFT invoice will be created.')) return;
 
                         // Prompt for Currency
-                        const useEGP = confirm('Create Invoice in EGP? (Click OK for EGP, Cancel for USD)');
+                        const useEGP = confirm('Buat Invoice dalam EGP? (Klik OK untuk EGP, Cancel untuk USD)');
                         const selectedCurrency = useEGP ? 'EGP' : 'USD';
 
                         try {
@@ -635,7 +635,7 @@ export default function HotelCalendar({ onBookRoom, refreshTrigger = 0, onUpdate
                       if (!confirm('Mark as PAID? This will create a FINAL invoice and Cashflow entry.')) return;
 
                       // Prompt for Currency
-                      const useEGP = confirm('Payment in EGP? (Click OK for EGP, Cancel for USD)');
+                      const useEGP = confirm('Pembayaran dalam EGP? (Klik OK untuk EGP, Cancel untuk USD)');
                       const selectedCurrency = useEGP ? 'EGP' : 'USD';
 
                       try {
