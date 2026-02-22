@@ -74,7 +74,7 @@ export default function WeeklyOverview({ refreshTrigger = 0 }: WeeklyOverviewPro
         <div className="stat-card auditorium">
           <div className="stat-icon"><Building2 size={28} /></div>
           <div className="stat-content">
-            <span className="stat-label">Event Auditorium</span>
+            <span className="stat-label">Event Auditorium Check-ins</span>
             <span className="stat-value">{stats.auditorium}</span>
           </div>
         </div>

@@ -26,25 +26,27 @@ export async function GET() {
 
         // 2. Fetch Stats in Parallel
         const [hotelCount, auditoriumCount, visaCount, rentalCount] = await Promise.all([
-            // Hotel: Count bookings with check-in this week
-            payload.count({
+            // Hotel: Count rooms for bookings with check-in this week (exclude cancelled)
+            payload.find({
                 collection: 'hotel-bookings',
                 where: {
-                    checkIn: {
-                        greater_than_equal: startISO,
-                        less_than_equal: endISO,
-                    },
+                    and: [
+                        { checkIn: { greater_than_equal: startISO, less_than_equal: endISO } },
+                        { status: { not_equals: 'cancelled' } }
+                    ]
                 },
+                limit: 500, // Reasonable max per week
+                pagination: false
             }),
 
-            // Auditorium: Count events scheduled this week
+            // Auditorium: Count events scheduled this week (exclude cancelled)
             payload.count({
                 collection: 'auditorium-bookings',
                 where: {
-                    'event.date': {
-                        greater_than_equal: startISO,
-                        less_than_equal: endISO,
-                    },
+                    and: [
+                        { 'event.date': { greater_than_equal: startISO, less_than_equal: endISO } },
+                        { status: { not_equals: 'cancelled' } }
+                    ]
                 },
             }),
 
@@ -80,8 +82,22 @@ export async function GET() {
             }),
         ])
 
+        // Calculate Hotel Rooms
+        let hotelCheckinSum = 0;
+        if (hotelCount && hotelCount.docs) {
+            hotelCount.docs.forEach((booking: any) => {
+                const rooms = booking.rooms || {};
+                const single = Number(rooms.singleQty) || 0;
+                const double = Number(rooms.doubleQty) || 0;
+                const triple = Number(rooms.tripleQty) || 0;
+                const quad = Number(rooms.quadrupleQty) || 0;
+                const homestay = Number(rooms.homestayQty) || 0;
+                hotelCheckinSum += (single + double + triple + quad + homestay);
+            });
+        }
+
         const stats = {
-            hotel: hotelCount.totalDocs,
+            hotel: hotelCheckinSum,
             auditorium: auditoriumCount.totalDocs,
             visa: visaCount.totalDocs,
             rental: rentalCount.totalDocs,
