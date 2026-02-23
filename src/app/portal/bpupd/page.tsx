@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import Sidebar from '@/components/layout/Sidebar'
 import Header from '@/components/layout/Header'
+import PortalPinGuard from '@/components/auth/PortalPinGuard'
 import jsPDF from 'jspdf'
 import autoTable from 'jspdf-autotable'
 
@@ -546,480 +547,481 @@ export default function BPUPDPortal() {
   const remainingBalance = totalIncome - totalExpense
 
   return (
-    <div className="dashboard-layout">
-      <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+    <PortalPinGuard portalName="BPUPD" expectedPin={process.env.NEXT_PUBLIC_BPUPD_PIN}>
+      <div className="dashboard-layout">
+        <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
 
-      <main className="main-content">
-        <Header onMenuClick={() => setSidebarOpen(true)} />
+        <main className="main-content">
+          <Header onMenuClick={() => setSidebarOpen(true)} />
 
-        <div className="portal-header">
-          <h1>✈️ Portal BPUPD</h1>
-          <p>Travel & Sales Management</p>
-        </div>
-
-        <div className="tabs">
-          <button className={`tab ${activeTab === 'kanban' ? 'active' : ''}`} onClick={() => setActiveTab('kanban')}>📋 Visa Kanban</button>
-          <button className={`tab ${activeTab === 'proker' ? 'active' : ''}`} onClick={() => setActiveTab('proker')}>📝 Proker Bulanan</button>
-          <button className={`tab ${activeTab === 'dana_ops' ? 'active' : ''}`} onClick={() => setActiveTab('dana_ops')}>💰 Dana Operasional</button>
-          <button className={`tab ${activeTab === 'pendapatan_unit' ? 'active' : ''}`} onClick={() => setActiveTab('pendapatan_unit')}>📊 Monitor Pendapatan Unit</button>
-
-        </div>
-
-        {activeTab === 'kanban' && (
-          <div className="kanban-board">
-            <div className="kanban-column">
-              <h3 className="column-header pending">📄 Pending Docs (2)</h3>
-            </div>
-            {/* ... existing kanban ... */}
-            <div className="kanban-unavailable">
-              <p>Kanban Board Visualization</p>
-            </div>
+          <div className="portal-header">
+            <h1>✈️ Portal BPUPD</h1>
+            <p>Travel & Sales Management</p>
           </div>
-        )}
 
-        {activeTab === 'proker' && (
-          <div className="proker-container">
-            <div className="card full-width">
-              <div className="card-header">
-                <h3>📝 Program Kerja Bulanan - Februari 2026</h3>
+          <div className="tabs">
+            <button className={`tab ${activeTab === 'kanban' ? 'active' : ''}`} onClick={() => setActiveTab('kanban')}>📋 Visa Kanban</button>
+            <button className={`tab ${activeTab === 'proker' ? 'active' : ''}`} onClick={() => setActiveTab('proker')}>📝 Proker Bulanan</button>
+            <button className={`tab ${activeTab === 'dana_ops' ? 'active' : ''}`} onClick={() => setActiveTab('dana_ops')}>💰 Dana Operasional</button>
+            <button className={`tab ${activeTab === 'pendapatan_unit' ? 'active' : ''}`} onClick={() => setActiveTab('pendapatan_unit')}>📊 Monitor Pendapatan Unit</button>
+
+          </div>
+
+          {activeTab === 'kanban' && (
+            <div className="kanban-board">
+              <div className="kanban-column">
+                <h3 className="column-header pending">📄 Pending Docs (2)</h3>
               </div>
-
-              <form onSubmit={handleTaskSubmit} className="task-form">
-                <input
-                  type="text"
-                  placeholder="Tambah kegiatan baru..."
-                  value={taskForm.title}
-                  onChange={e => setTaskForm({ ...taskForm, title: e.target.value })}
-                  required
-                  className="task-input"
-                />
-                <select
-                  value={taskForm.category}
-                  onChange={e => setTaskForm({ ...taskForm, category: e.target.value as any })}
-                  className="task-select"
-                >
-                  <option value="housekeeping">Housekeeping</option>
-                  <option value="maintenance">Maintenance</option>
-                  <option value="inventory">Inventory</option>
-                  <option value="admin">Admin</option>
-                </select>
-                <select
-                  value={taskForm.priority}
-                  onChange={e => setTaskForm({ ...taskForm, priority: e.target.value as any })}
-                  className="task-select"
-                >
-                  <option value="normal">Normal</option>
-                  <option value="high">High</option>
-                  <option value="low">Low</option>
-                </select>
-                <button type="submit" className="btn btn-primary btn-sm">Tambah</button>
-              </form>
-
-              <div className="todo-list">
-                {tasks.length === 0 ? (
-                  <p className="no-tasks">Belum ada program kerja.</p>
-                ) : (
-                  tasks.map(task => (
-                    <div key={task.id} className={`todo-item ${task.status}`}>
-                      <input
-                        type="checkbox"
-                        checked={task.status === 'done'}
-                        onChange={() => toggleTaskStatus(task)}
-                      />
-                      <div className="todo-content">
-                        <span className={`todo-title ${task.status === 'done' ? 'completed' : ''}`}>
-                          {task.title}
-                        </span>
-                        <div className="todo-meta">
-                          <span className="badge">{task.category}</span>
-                          <span className={`priority-dot ${task.priority}`}></span>
-                          <span className="priority-text">{task.priority}</span>
-                        </div>
-                      </div>
-                      <span className={`badge badge-${task.status === 'done' ? 'success' : 'warning'}`}>
-                        {task.status === 'done' ? 'Selesai' : 'Pending'}
-                      </span>
-                    </div>
-                  ))
-                )}
+              {/* ... existing kanban ... */}
+              <div className="kanban-unavailable">
+                <p>Kanban Board Visualization</p>
               </div>
             </div>
-          </div>
-        )}
+          )}
 
-        {activeTab === 'dana_ops' && (
-          <div className="finance-dashboard">
-            <div className="finance-tabs">
-              <button className={`sub-tab ${financeTab === 'income' ? 'active' : ''}`} onClick={() => setFinanceTab('income')}>📥 Pemasukan (Dari Bendahara)</button>
-              <button className={`sub-tab ${financeTab === 'expense' ? 'active' : ''}`} onClick={() => setFinanceTab('expense')}>📤 Pengeluaran Operasional</button>
-            </div>
-
-            {financeTab === 'income' && (
-              <div className="finance-section">
-                <div className="card">
-                  <h3>Input Penerimaan Dana (Bendahara)</h3>
-                  <p className="text-sm text-gray-500 mb-4">Hanya untuk input dana taktis dari bendahara. Pendapatan unit usaha tercatat otomatis.</p>
-                  <form onSubmit={handleIncomeSubmit} className="finance-form">
-                    <div className="form-group">
-                      <label>Jumlah Uang (EGP)</label>
-                      <input
-                        type="number"
-                        value={incomeForm.amount}
-                        onChange={e => setIncomeForm({ ...incomeForm, amount: e.target.value })}
-                        required
-                        placeholder="0.00"
-                      />
-                    </div>
-                    <div className="form-group">
-                      <label>Tanggal</label>
-                      <input
-                        type="date"
-                        value={incomeForm.date}
-                        onChange={e => setIncomeForm({ ...incomeForm, date: e.target.value })}
-                        required
-                      />
-                    </div>
-                    <div className="form-group full">
-                      <label>Keterangan</label>
-                      <input
-                        type="text"
-                        value={incomeForm.description}
-                        onChange={e => setIncomeForm({ ...incomeForm, description: e.target.value })}
-                        required
-                        placeholder="Contoh: Penerimaan Uang dari Bendahara"
-                      />
-                    </div>
-                    <div className="form-group full">
-                      <label>Upload Bukti Struk/Invoice</label>
-                      <input
-                        type="file"
-                        accept="image/*,application/pdf"
-                        onChange={e => {
-                          if (e.target.files && e.target.files[0]) {
-                            setIncomeForm({ ...incomeForm, file: e.target.files[0] })
-                          }
-                        }}
-                        className="file-input"
-                      />
-                    </div>
-                    <button type="submit" className="btn btn-success full">
-                      Simpan Pemasukan
-                    </button>
-                  </form>
+          {activeTab === 'proker' && (
+            <div className="proker-container">
+              <div className="card full-width">
+                <div className="card-header">
+                  <h3>📝 Program Kerja Bulanan - Februari 2026</h3>
                 </div>
 
-                <div className="card mt-4">
-                  <div className="card-header">
-                    <h3>Riwayat Pemasukan Bendahara</h3>
-                    <div className="filter-tabs">
-                      <button onClick={() => generatePDF('income')} className="btn btn-sm btn-outline">🖨️ PDF Arsip</button>
-                    </div>
-                  </div>
-                  <table className="table">
-                    <thead>
-                      <tr><th>Tgl</th><th>Ket</th><th>Kategori</th><th>Jml</th><th>Bukti</th></tr>
-                    </thead>
-                    <tbody>
-                      {transactions.filter(t => t.type === 'in' && t.category === 'treasurer_funding').map(t => (
-                        <tr key={t.id}>
-                          <td>{t.date}</td>
-                          <td>{t.description}</td>
-                          <td>
-                            <span className="badge badge-warning">Dana Taktis</span>
-                          </td>
-                          <td className="text-success">{t.amount} {t.currency}</td>
-                          <td>
-                            {t.proofImage && (
-                              <a href={`/api/media/file/${typeof t.proofImage === 'string' ? t.proofImage : t.proofImage.filename}`} target="_blank" className="text-primary" style={{ fontSize: '0.8rem' }}>
-                                📸 Lihat
-                              </a>
-                            )}
-                          </td>
-                        </tr>
-                      ))}
-                      {transactions.filter(t => t.type === 'in' && t.category === 'treasurer_funding').length === 0 && (
-                        <tr><td colSpan={5} style={{ textAlign: 'center', padding: '2rem' }}>Belum ada data pemasukan</td></tr>
-                      )}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-            )}
+                <form onSubmit={handleTaskSubmit} className="task-form">
+                  <input
+                    type="text"
+                    placeholder="Tambah kegiatan baru..."
+                    value={taskForm.title}
+                    onChange={e => setTaskForm({ ...taskForm, title: e.target.value })}
+                    required
+                    className="task-input"
+                  />
+                  <select
+                    value={taskForm.category}
+                    onChange={e => setTaskForm({ ...taskForm, category: e.target.value as any })}
+                    className="task-select"
+                  >
+                    <option value="housekeeping">Housekeeping</option>
+                    <option value="maintenance">Maintenance</option>
+                    <option value="inventory">Inventory</option>
+                    <option value="admin">Admin</option>
+                  </select>
+                  <select
+                    value={taskForm.priority}
+                    onChange={e => setTaskForm({ ...taskForm, priority: e.target.value as any })}
+                    className="task-select"
+                  >
+                    <option value="normal">Normal</option>
+                    <option value="high">High</option>
+                    <option value="low">Low</option>
+                  </select>
+                  <button type="submit" className="btn btn-primary btn-sm">Tambah</button>
+                </form>
 
-            {financeTab === 'expense' && (
-              <div className="finance-section">
-                <div className="card">
-                  <h3>Input Pengeluaran Operasional</h3>
-                  <form onSubmit={handleExpenseSubmit} className="finance-form">
-                    <div className="form-group">
-                      <label>Tanggal</label>
-                      <input type="date" value={expenseForm.date} onChange={e => setExpenseForm({ ...expenseForm, date: e.target.value })} required />
-                    </div>
-
-                    <div className="form-group full">
-                      <label>Nama Barang / Keterangan</label>
-                      <input type="text" value={expenseForm.itemName} onChange={e => setExpenseForm({ ...expenseForm, itemName: e.target.value })} required placeholder="Contoh: Beli Kertas HVS" />
-                    </div>
-
-                    <div className="form-group">
-                      <label>Quantity</label>
-                      <input
-                        type="number"
-                        value={expenseForm.quantity}
-                        onChange={e => {
-                          const qty = Number(e.target.value)
-                          const price = Number(expenseForm.unitPrice)
-                          setExpenseForm({
-                            ...expenseForm,
-                            quantity: e.target.value,
-                            amount: (qty * price).toString()
-                          })
-                        }}
-                        placeholder="0"
-                      />
-                    </div>
-                    <div className="form-group">
-                      <label>Harga Satuan</label>
-                      <input
-                        type="number"
-                        value={expenseForm.unitPrice}
-                        onChange={e => {
-                          const price = Number(e.target.value)
-                          const qty = Number(expenseForm.quantity)
-                          setExpenseForm({
-                            ...expenseForm,
-                            unitPrice: e.target.value,
-                            amount: (qty * price).toString()
-                          })
-                        }}
-                        placeholder="0.00"
-                      />
-                    </div>
-
-                    <div className="form-group">
-                      <label>Total Jumlah (Otomatis)</label>
-                      <input type="number" value={expenseForm.amount} readOnly placeholder="0.00" className="input-disabled" />
-                    </div>
-
-                    <div className="form-group">
-                      <label>Upload Bukti Kwitansi</label>
-                      <input
-                        type="file"
-                        accept="image/*,application/pdf"
-                        onChange={e => {
-                          if (e.target.files && e.target.files[0]) {
-                            setExpenseForm({ ...expenseForm, file: e.target.files[0] })
-                          }
-                        }}
-                        className="file-input"
-                      />
-                    </div>
-
-                    <button type="submit" className="btn btn-danger full">
-                      Simpan Pengeluaran
-                    </button>
-                  </form>
-                </div>
-
-                <div className="card mt-4">
-                  <div className="card-header">
-                    <h3>Laporan Operasional & Belanja</h3>
-                    <button onClick={() => generatePDF('expense')} className="btn btn-sm btn-outline">🖨️ Download PDF</button>
-                  </div>
-                  <div className="stats-row">
-                    <div className="stat-item">
-                      <span className="label">Total Debit (Dana)</span>
-                      <span className="value text-success">{totalIncome}</span>
-                    </div>
-                    <div className="stat-item">
-                      <span className="label">Total Kredit (Belanja)</span>
-                      <span className="value text-danger">{totalExpense}</span>
-                    </div>
-                    <div className="stat-item">
-                      <span className="label">Sisa Saldo</span>
-                      <span className={`value ${remainingBalance < 0 ? 'text-danger' : 'text-primary'}`}>{remainingBalance}</span>
-                    </div>
-                  </div>
-                  <table className="table">
-                    <thead>
-                      <tr><th>Tgl</th><th>Nama Barang</th><th>Qty</th><th>Harga</th><th>Total</th><th>Bukti</th></tr>
-                    </thead>
-                    <tbody>
-                      {transactions.filter(t => t.type === 'out' && t.category === 'operational').map(t => (
-                        <tr key={t.id}>
-                          <td>{t.date}</td>
-                          <td>{t.description}</td>
-                          <td>{t.quantity}</td>
-                          <td>{t.unitPrice}</td>
-                          <td className="text-danger">{t.amount}</td>
-                          <td>
-                            {t.proofImage && (
-                              <a href={`/api/media/file/${typeof t.proofImage === 'string' ? t.proofImage : t.proofImage.filename}`} target="_blank" className="text-primary" style={{ fontSize: '0.8rem' }}>
-                                📸 Bukti
-                              </a>
-                            )}
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-            )}
-          </div>
-        )}
-
-        {/* New Monitor Pendapatan Unit Tab */}
-        {activeTab === 'pendapatan_unit' && (
-          <div className="finance-section">
-            <div className="card mb-4" style={{ borderLeft: '4px solid #3b82f6' }}>
-              <h3>📊 Monitor Pendapatan Unit Usaha</h3>
-              <p>Halaman ini hanya untuk monitoring. Data masuk otomatis dari sistem Invoice & Booking (Hotel, Visa, Aula, Rental).</p>
-              <div className="stats-row mt-4">
-                {['hotel', 'visa_arrival', 'auditorium', 'rental', 'cancellation'].map(category => {
-                  const relevant = invoices.filter(t => t.category === category)
-                  const totals: Record<string, number> = {}
-                  relevant.forEach(t => {
-                    const curr = t.currency || 'USD'
-                    totals[curr] = (totals[curr] || 0) + (t.amount || 0)
-                  })
-                  const hasData = Object.keys(totals).length > 0
-
-                  // Label Mapping
-                  const labelMap: Record<string, string> = {
-                    'hotel': 'Total Hotel',
-                    'visa_arrival': 'Total Visa',
-                    'auditorium': 'Total Auditorium',
-                    'rental': 'Total Rental',
-                    'cancellation': 'Total Pembatalan'
-                  }
-
-                  return (
-                    <div className="stat-item" key={category}>
-                      <span className="label">{labelMap[category] || category}</span>
-                      <div className="value-group">
-                        {Object.entries(totals).filter(([_, val]) => val > 0).map(([curr, val]) => (
-                          <div key={curr} className={`value text-${curr === 'EGP' ? 'secondary' : 'primary'}`}>
-                            {val.toLocaleString()} {curr}
+                <div className="todo-list">
+                  {tasks.length === 0 ? (
+                    <p className="no-tasks">Belum ada program kerja.</p>
+                  ) : (
+                    tasks.map(task => (
+                      <div key={task.id} className={`todo-item ${task.status}`}>
+                        <input
+                          type="checkbox"
+                          checked={task.status === 'done'}
+                          onChange={() => toggleTaskStatus(task)}
+                        />
+                        <div className="todo-content">
+                          <span className={`todo-title ${task.status === 'done' ? 'completed' : ''}`}>
+                            {task.title}
+                          </span>
+                          <div className="todo-meta">
+                            <span className="badge">{task.category}</span>
+                            <span className={`priority-dot ${task.priority}`}></span>
+                            <span className="priority-text">{task.priority}</span>
                           </div>
-                        ))}
-                        {!hasData && <div className="value text-gray-400">0</div>}
+                        </div>
+                        <span className={`badge badge-${task.status === 'done' ? 'success' : 'warning'}`}>
+                          {task.status === 'done' ? 'Selesai' : 'Pending'}
+                        </span>
                       </div>
-                    </div>
-                  )
-                })}
-              </div>
-            </div>
-
-            <div className="card mt-4">
-              <div className="card-header">
-                <h3>📂 Arsip Laporan Bulanan</h3>
-                <div className="year-selector">
-                  <button onClick={() => setReportYear(prev => prev - 1)} className="btn btn-sm btn-outline">◀</button>
-                  <span className="text-lg font-bold mx-2">{reportYear}</span>
-                  <button onClick={() => setReportYear(prev => prev + 1)} className="btn btn-sm btn-outline">▶</button>
+                    ))
+                  )}
                 </div>
               </div>
+            </div>
+          )}
 
-              {/* Breadcrumb Navigation */}
-              {openMonth !== null && (
-                <div className="breadcrumb mb-4 flex items-center gap-2 text-sm text-gray-600">
-                  <button onClick={() => setOpenMonth(null)} className="hover:text-blue-600">📁 Tahun {reportYear}</button>
-                  <span>/</span>
-                  <span className="font-semibold text-gray-900">{new Date(reportYear, openMonth, 1).toLocaleString('id-ID', { month: 'long' })}</span>
+          {activeTab === 'dana_ops' && (
+            <div className="finance-dashboard">
+              <div className="finance-tabs">
+                <button className={`sub-tab ${financeTab === 'income' ? 'active' : ''}`} onClick={() => setFinanceTab('income')}>📥 Pemasukan (Dari Bendahara)</button>
+                <button className={`sub-tab ${financeTab === 'expense' ? 'active' : ''}`} onClick={() => setFinanceTab('expense')}>📤 Pengeluaran Operasional</button>
+              </div>
+
+              {financeTab === 'income' && (
+                <div className="finance-section">
+                  <div className="card">
+                    <h3>Input Penerimaan Dana (Bendahara)</h3>
+                    <p className="text-sm text-gray-500 mb-4">Hanya untuk input dana taktis dari bendahara. Pendapatan unit usaha tercatat otomatis.</p>
+                    <form onSubmit={handleIncomeSubmit} className="finance-form">
+                      <div className="form-group">
+                        <label>Jumlah Uang (EGP)</label>
+                        <input
+                          type="number"
+                          value={incomeForm.amount}
+                          onChange={e => setIncomeForm({ ...incomeForm, amount: e.target.value })}
+                          required
+                          placeholder="0.00"
+                        />
+                      </div>
+                      <div className="form-group">
+                        <label>Tanggal</label>
+                        <input
+                          type="date"
+                          value={incomeForm.date}
+                          onChange={e => setIncomeForm({ ...incomeForm, date: e.target.value })}
+                          required
+                        />
+                      </div>
+                      <div className="form-group full">
+                        <label>Keterangan</label>
+                        <input
+                          type="text"
+                          value={incomeForm.description}
+                          onChange={e => setIncomeForm({ ...incomeForm, description: e.target.value })}
+                          required
+                          placeholder="Contoh: Penerimaan Uang dari Bendahara"
+                        />
+                      </div>
+                      <div className="form-group full">
+                        <label>Upload Bukti Struk/Invoice</label>
+                        <input
+                          type="file"
+                          accept="image/*,application/pdf"
+                          onChange={e => {
+                            if (e.target.files && e.target.files[0]) {
+                              setIncomeForm({ ...incomeForm, file: e.target.files[0] })
+                            }
+                          }}
+                          className="file-input"
+                        />
+                      </div>
+                      <button type="submit" className="btn btn-success full">
+                        Simpan Pemasukan
+                      </button>
+                    </form>
+                  </div>
+
+                  <div className="card mt-4">
+                    <div className="card-header">
+                      <h3>Riwayat Pemasukan Bendahara</h3>
+                      <div className="filter-tabs">
+                        <button onClick={() => generatePDF('income')} className="btn btn-sm btn-outline">🖨️ PDF Arsip</button>
+                      </div>
+                    </div>
+                    <table className="table">
+                      <thead>
+                        <tr><th>Tgl</th><th>Ket</th><th>Kategori</th><th>Jml</th><th>Bukti</th></tr>
+                      </thead>
+                      <tbody>
+                        {transactions.filter(t => t.type === 'in' && t.category === 'treasurer_funding').map(t => (
+                          <tr key={t.id}>
+                            <td>{t.date}</td>
+                            <td>{t.description}</td>
+                            <td>
+                              <span className="badge badge-warning">Dana Taktis</span>
+                            </td>
+                            <td className="text-success">{t.amount} {t.currency}</td>
+                            <td>
+                              {t.proofImage && (
+                                <a href={`/api/media/file/${typeof t.proofImage === 'string' ? t.proofImage : t.proofImage.filename}`} target="_blank" className="text-primary" style={{ fontSize: '0.8rem' }}>
+                                  📸 Lihat
+                                </a>
+                              )}
+                            </td>
+                          </tr>
+                        ))}
+                        {transactions.filter(t => t.type === 'in' && t.category === 'treasurer_funding').length === 0 && (
+                          <tr><td colSpan={5} style={{ textAlign: 'center', padding: '2rem' }}>Belum ada data pemasukan</td></tr>
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
                 </div>
               )}
 
-              {/* View 1: Month Grid (Root) */}
-              {openMonth === null && (
-                <div className="folders-grid">
-                  {Array.from({ length: 12 }).map((_, index) => {
-                    const date = new Date(reportYear, index, 1)
-                    const monthName = date.toLocaleString('id-ID', { month: 'long' })
+              {financeTab === 'expense' && (
+                <div className="finance-section">
+                  <div className="card">
+                    <h3>Input Pengeluaran Operasional</h3>
+                    <form onSubmit={handleExpenseSubmit} className="finance-form">
+                      <div className="form-group">
+                        <label>Tanggal</label>
+                        <input type="date" value={expenseForm.date} onChange={e => setExpenseForm({ ...expenseForm, date: e.target.value })} required />
+                      </div>
+
+                      <div className="form-group full">
+                        <label>Nama Barang / Keterangan</label>
+                        <input type="text" value={expenseForm.itemName} onChange={e => setExpenseForm({ ...expenseForm, itemName: e.target.value })} required placeholder="Contoh: Beli Kertas HVS" />
+                      </div>
+
+                      <div className="form-group">
+                        <label>Quantity</label>
+                        <input
+                          type="number"
+                          value={expenseForm.quantity}
+                          onChange={e => {
+                            const qty = Number(e.target.value)
+                            const price = Number(expenseForm.unitPrice)
+                            setExpenseForm({
+                              ...expenseForm,
+                              quantity: e.target.value,
+                              amount: (qty * price).toString()
+                            })
+                          }}
+                          placeholder="0"
+                        />
+                      </div>
+                      <div className="form-group">
+                        <label>Harga Satuan</label>
+                        <input
+                          type="number"
+                          value={expenseForm.unitPrice}
+                          onChange={e => {
+                            const price = Number(e.target.value)
+                            const qty = Number(expenseForm.quantity)
+                            setExpenseForm({
+                              ...expenseForm,
+                              unitPrice: e.target.value,
+                              amount: (qty * price).toString()
+                            })
+                          }}
+                          placeholder="0.00"
+                        />
+                      </div>
+
+                      <div className="form-group">
+                        <label>Total Jumlah (Otomatis)</label>
+                        <input type="number" value={expenseForm.amount} readOnly placeholder="0.00" className="input-disabled" />
+                      </div>
+
+                      <div className="form-group">
+                        <label>Upload Bukti Kwitansi</label>
+                        <input
+                          type="file"
+                          accept="image/*,application/pdf"
+                          onChange={e => {
+                            if (e.target.files && e.target.files[0]) {
+                              setExpenseForm({ ...expenseForm, file: e.target.files[0] })
+                            }
+                          }}
+                          className="file-input"
+                        />
+                      </div>
+
+                      <button type="submit" className="btn btn-danger full">
+                        Simpan Pengeluaran
+                      </button>
+                    </form>
+                  </div>
+
+                  <div className="card mt-4">
+                    <div className="card-header">
+                      <h3>Laporan Operasional & Belanja</h3>
+                      <button onClick={() => generatePDF('expense')} className="btn btn-sm btn-outline">🖨️ Download PDF</button>
+                    </div>
+                    <div className="stats-row">
+                      <div className="stat-item">
+                        <span className="label">Total Debit (Dana)</span>
+                        <span className="value text-success">{totalIncome}</span>
+                      </div>
+                      <div className="stat-item">
+                        <span className="label">Total Kredit (Belanja)</span>
+                        <span className="value text-danger">{totalExpense}</span>
+                      </div>
+                      <div className="stat-item">
+                        <span className="label">Sisa Saldo</span>
+                        <span className={`value ${remainingBalance < 0 ? 'text-danger' : 'text-primary'}`}>{remainingBalance}</span>
+                      </div>
+                    </div>
+                    <table className="table">
+                      <thead>
+                        <tr><th>Tgl</th><th>Nama Barang</th><th>Qty</th><th>Harga</th><th>Total</th><th>Bukti</th></tr>
+                      </thead>
+                      <tbody>
+                        {transactions.filter(t => t.type === 'out' && t.category === 'operational').map(t => (
+                          <tr key={t.id}>
+                            <td>{t.date}</td>
+                            <td>{t.description}</td>
+                            <td>{t.quantity}</td>
+                            <td>{t.unitPrice}</td>
+                            <td className="text-danger">{t.amount}</td>
+                            <td>
+                              {t.proofImage && (
+                                <a href={`/api/media/file/${typeof t.proofImage === 'string' ? t.proofImage : t.proofImage.filename}`} target="_blank" className="text-primary" style={{ fontSize: '0.8rem' }}>
+                                  📸 Bukti
+                                </a>
+                              )}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* New Monitor Pendapatan Unit Tab */}
+          {activeTab === 'pendapatan_unit' && (
+            <div className="finance-section">
+              <div className="card mb-4" style={{ borderLeft: '4px solid #3b82f6' }}>
+                <h3>📊 Monitor Pendapatan Unit Usaha</h3>
+                <p>Halaman ini hanya untuk monitoring. Data masuk otomatis dari sistem Invoice & Booking (Hotel, Visa, Aula, Rental).</p>
+                <div className="stats-row mt-4">
+                  {['hotel', 'visa_arrival', 'auditorium', 'rental', 'cancellation'].map(category => {
+                    const relevant = invoices.filter(t => t.category === category)
+                    const totals: Record<string, number> = {}
+                    relevant.forEach(t => {
+                      const curr = t.currency || 'USD'
+                      totals[curr] = (totals[curr] || 0) + (t.amount || 0)
+                    })
+                    const hasData = Object.keys(totals).length > 0
+
+                    // Label Mapping
+                    const labelMap: Record<string, string> = {
+                      'hotel': 'Total Hotel',
+                      'visa_arrival': 'Total Visa',
+                      'auditorium': 'Total Auditorium',
+                      'rental': 'Total Rental',
+                      'cancellation': 'Total Pembatalan'
+                    }
 
                     return (
-                      <div
-                        key={index}
-                        className="folder-item"
-                        onClick={() => setOpenMonth(index)}
-                      >
-                        <div className="folder-icon">📂</div>
-                        <div className="folder-name">{monthName}</div>
+                      <div className="stat-item" key={category}>
+                        <span className="label">{labelMap[category] || category}</span>
+                        <div className="value-group">
+                          {Object.entries(totals).filter(([_, val]) => val > 0).map(([curr, val]) => (
+                            <div key={curr} className={`value text-${curr === 'EGP' ? 'secondary' : 'primary'}`}>
+                              {val.toLocaleString()} {curr}
+                            </div>
+                          ))}
+                          {!hasData && <div className="value text-gray-400">0</div>}
+                        </div>
                       </div>
                     )
                   })}
                 </div>
-              )}
-
-              {/* View 2: Files Grid (Inside Month) */}
-              {openMonth !== null && (
-                <div className="files-grid">
-                  {/* Back Button Item */}
-                  <div className="folder-item back-item" onClick={() => setOpenMonth(null)}>
-                    <div className="folder-icon">🔙</div>
-                    <div className="folder-name">Kembali</div>
-                  </div>
-
-                  {/* Unit Report Files */}
-                  {['hotel', 'visa_arrival', 'auditorium', 'rental', 'cancellation'].map(cat => (
-                    <div
-                      key={cat}
-                      className="file-item"
-                      onClick={() => generateMonthlyUnitReport(openMonth, cat)}
-                    >
-                      <div className="file-icon-large">📄</div>
-                      <div className="file-details">
-                        <span className="file-name-large">Laporan {cat.charAt(0).toUpperCase() + cat.slice(1)}</span>
-                        <span className="file-meta">PDF • Klik untuk Unduh</span>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-
-            <div className="card mt-4">
-              <div className="card-header">
-                <h3>Riwayat Transaksi Masuk (Read-Only)</h3>
               </div>
-              <table className="table">
-                <thead>
-                  <tr>
-                    <th>Tanggal</th>
-                    <th>Unit Usaha</th>
-                    <th>Keterangan</th>
-                    <th>Jumlah</th>
-                    <th>Status</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {invoices.map(t => (
-                    <tr key={t.id}>
-                      <td>{t.date}</td>
-                      <td>
-                        <span className="badge badge-info">
-                          {t.category === 'visa_arrival' ? 'Visa On Arrival' : t.category ? t.category.charAt(0).toUpperCase() + t.category.slice(1) : 'General'}
-                        </span>
-                      </td>
-                      <td>{t.description}</td>
-                      <td className="text-success font-bold">{t.amount} {t.currency}</td>
-                      <td>
-                        <span className="badge badge-success">Auto-Verified</span>
-                      </td>
+
+              <div className="card mt-4">
+                <div className="card-header">
+                  <h3>📂 Arsip Laporan Bulanan</h3>
+                  <div className="year-selector">
+                    <button onClick={() => setReportYear(prev => prev - 1)} className="btn btn-sm btn-outline">◀</button>
+                    <span className="text-lg font-bold mx-2">{reportYear}</span>
+                    <button onClick={() => setReportYear(prev => prev + 1)} className="btn btn-sm btn-outline">▶</button>
+                  </div>
+                </div>
+
+                {/* Breadcrumb Navigation */}
+                {openMonth !== null && (
+                  <div className="breadcrumb mb-4 flex items-center gap-2 text-sm text-gray-600">
+                    <button onClick={() => setOpenMonth(null)} className="hover:text-blue-600">📁 Tahun {reportYear}</button>
+                    <span>/</span>
+                    <span className="font-semibold text-gray-900">{new Date(reportYear, openMonth, 1).toLocaleString('id-ID', { month: 'long' })}</span>
+                  </div>
+                )}
+
+                {/* View 1: Month Grid (Root) */}
+                {openMonth === null && (
+                  <div className="folders-grid">
+                    {Array.from({ length: 12 }).map((_, index) => {
+                      const date = new Date(reportYear, index, 1)
+                      const monthName = date.toLocaleString('id-ID', { month: 'long' })
+
+                      return (
+                        <div
+                          key={index}
+                          className="folder-item"
+                          onClick={() => setOpenMonth(index)}
+                        >
+                          <div className="folder-icon">📂</div>
+                          <div className="folder-name">{monthName}</div>
+                        </div>
+                      )
+                    })}
+                  </div>
+                )}
+
+                {/* View 2: Files Grid (Inside Month) */}
+                {openMonth !== null && (
+                  <div className="files-grid">
+                    {/* Back Button Item */}
+                    <div className="folder-item back-item" onClick={() => setOpenMonth(null)}>
+                      <div className="folder-icon">🔙</div>
+                      <div className="folder-name">Kembali</div>
+                    </div>
+
+                    {/* Unit Report Files */}
+                    {['hotel', 'visa_arrival', 'auditorium', 'rental', 'cancellation'].map(cat => (
+                      <div
+                        key={cat}
+                        className="file-item"
+                        onClick={() => generateMonthlyUnitReport(openMonth, cat)}
+                      >
+                        <div className="file-icon-large">📄</div>
+                        <div className="file-details">
+                          <span className="file-name-large">Laporan {cat.charAt(0).toUpperCase() + cat.slice(1)}</span>
+                          <span className="file-meta">PDF • Klik untuk Unduh</span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              <div className="card mt-4">
+                <div className="card-header">
+                  <h3>Riwayat Transaksi Masuk (Read-Only)</h3>
+                </div>
+                <table className="table">
+                  <thead>
+                    <tr>
+                      <th>Tanggal</th>
+                      <th>Unit Usaha</th>
+                      <th>Keterangan</th>
+                      <th>Jumlah</th>
+                      <th>Status</th>
                     </tr>
-                  ))}
-                  {invoices.length === 0 && (
-                    <tr><td colSpan={5} style={{ textAlign: 'center', padding: '2rem', color: '#6b7280' }}>Belum ada data pendapatan unit usaha.</td></tr>
-                  )}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody>
+                    {invoices.map(t => (
+                      <tr key={t.id}>
+                        <td>{t.date}</td>
+                        <td>
+                          <span className="badge badge-info">
+                            {t.category === 'visa_arrival' ? 'Visa On Arrival' : t.category ? t.category.charAt(0).toUpperCase() + t.category.slice(1) : 'General'}
+                          </span>
+                        </td>
+                        <td>{t.description}</td>
+                        <td className="text-success font-bold">{t.amount} {t.currency}</td>
+                        <td>
+                          <span className="badge badge-success">Auto-Verified</span>
+                        </td>
+                      </tr>
+                    ))}
+                    {invoices.length === 0 && (
+                      <tr><td colSpan={5} style={{ textAlign: 'center', padding: '2rem', color: '#6b7280' }}>Belum ada data pendapatan unit usaha.</td></tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
             </div>
-          </div>
-        )}
+          )}
 
-      </main>
+        </main>
 
-      <style jsx global>{`
+        <style jsx global>{`
         /* Reuse existing styles plus new form styles */
         .task-form { display: flex; gap: 0.5rem; margin-bottom: 1.5rem; }
         .task-input { flex: 2; padding: 0.5rem; border: 1px solid #d1d5db; border-radius: 0.5rem; }
@@ -1200,6 +1202,7 @@ export default function BPUPDPortal() {
         .badge-warning { background: #fef3c7; color: #92400e; }
         .badge-info { background: #dbeafe; color: #1e40af; }
       `}</style>
-    </div >
+      </div >
+    </PortalPinGuard>
   )
 }

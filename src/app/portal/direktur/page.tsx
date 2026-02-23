@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import Sidebar from '@/components/layout/Sidebar'
 import Header from '@/components/layout/Header'
+import PortalPinGuard from '@/components/auth/PortalPinGuard'
 
 export default function DirekturPortal() {
   const [sidebarOpen, setSidebarOpen] = useState(false)
@@ -35,125 +36,126 @@ export default function DirekturPortal() {
   }
 
   return (
-    <div className="dashboard-layout">
-      <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+    <PortalPinGuard portalName="Direktur" expectedPin={process.env.NEXT_PUBLIC_DIR_PIN}>
+      <div className="dashboard-layout">
+        <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
 
-      <main className="main-content">
-        <Header onMenuClick={() => setSidebarOpen(true)} />
+        <main className="main-content">
+          <Header onMenuClick={() => setSidebarOpen(true)} />
 
-        <div className="portal-header">
-          <h1>👔 Portal Direktur</h1>
-          <p>Executive Dashboard (View Only)</p>
-        </div>
+          <div className="portal-header">
+            <h1>👔 Portal Direktur</h1>
+            <p>Executive Dashboard (View Only)</p>
+          </div>
 
-        <div className="summary-cards">
-          <div className="summary-card">
-            <span className="summary-icon">💰</span>
-            <div className="summary-info">
-              <span className="summary-value">EGP 45,200</span>
-              <span className="summary-label">Revenue Bulan Ini</span>
+          <div className="summary-cards">
+            <div className="summary-card">
+              <span className="summary-icon">💰</span>
+              <div className="summary-info">
+                <span className="summary-value">EGP 45,200</span>
+                <span className="summary-label">Revenue Bulan Ini</span>
+              </div>
+            </div>
+            <div className="summary-card">
+              <span className="summary-icon">🛏️</span>
+              <div className="summary-info">
+                <span className="summary-value">78%</span>
+                <span className="summary-label">Occupancy Rate</span>
+              </div>
+            </div>
+            <div className="summary-card">
+              <span className="summary-icon">✈️</span>
+              <div className="summary-info">
+                <span className="summary-value">12</span>
+                <span className="summary-label">Visa Processed</span>
+              </div>
+            </div>
+            <div className="summary-card">
+              <span className="summary-icon">📊</span>
+              <div className="summary-info">
+                <span className="summary-value">156</span>
+                <span className="summary-label">Total Transaksi</span>
+              </div>
             </div>
           </div>
-          <div className="summary-card">
-            <span className="summary-icon">🛏️</span>
-            <div className="summary-info">
-              <span className="summary-value">78%</span>
-              <span className="summary-label">Occupancy Rate</span>
-            </div>
-          </div>
-          <div className="summary-card">
-            <span className="summary-icon">✈️</span>
-            <div className="summary-info">
-              <span className="summary-value">12</span>
-              <span className="summary-label">Visa Processed</span>
-            </div>
-          </div>
-          <div className="summary-card">
-            <span className="summary-icon">📊</span>
-            <div className="summary-info">
-              <span className="summary-value">156</span>
-              <span className="summary-label">Total Transaksi</span>
-            </div>
-          </div>
-        </div>
 
-        <div className="portal-grid">
+          <div className="portal-grid">
+            <div className="card">
+              <div className="card-header">
+                <h3>📈 Revenue Chart</h3>
+                <button className="btn btn-secondary">Download PDF</button>
+              </div>
+              <div className="chart-placeholder">
+                <p>📊 Chart akan ditampilkan di sini</p>
+                <p className="chart-note">Integrasi dengan library chart seperti Chart.js atau Recharts</p>
+              </div>
+            </div>
+
+            <div className="card">
+              <div className="card-header">
+                <h3>🏨 Occupancy Trend</h3>
+                <button className="btn btn-secondary">Download PDF</button>
+              </div>
+              <div className="chart-placeholder">
+                <p>📉 Trend occupancy bulanan</p>
+              </div>
+            </div>
+          </div>
+
           <div className="card">
             <div className="card-header">
-              <h3>📈 Revenue Chart</h3>
-              <button className="btn btn-secondary">Download PDF</button>
+              <h3>📝 Executive Summary (Logbook)</h3>
             </div>
-            <div className="chart-placeholder">
-              <p>📊 Chart akan ditampilkan di sini</p>
-              <p className="chart-note">Integrasi dengan library chart seperti Chart.js atau Recharts</p>
-            </div>
+            <LogbookTasks category="direktur" />
           </div>
 
           <div className="card">
             <div className="card-header">
-              <h3>🏨 Occupancy Trend</h3>
-              <button className="btn btn-secondary">Download PDF</button>
+              <h3>📋 Recent Transactions</h3>
+              <button className="btn btn-secondary">Export CSV</button>
             </div>
-            <div className="chart-placeholder">
-              <p>📉 Trend occupancy bulanan</p>
-            </div>
+            <table className="data-table">
+              <thead>
+                <tr>
+                  <th>Invoice</th>
+                  <th>Customer</th>
+                  <th>Service</th>
+                  <th>Amount</th>
+                  <th>Status</th>
+                  <th>Date</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>INV-20260202-0012</td>
+                  <td>Ahmad Fauzi</td>
+                  <td>Hotel - Kamar 103</td>
+                  <td>EGP 900</td>
+                  <td><span className="badge badge-success">Paid</span></td>
+                  <td>02 Feb 2026</td>
+                </tr>
+                <tr>
+                  <td>INV-20260201-0011</td>
+                  <td>Siti Aminah</td>
+                  <td>Travel - Umrah</td>
+                  <td>USD 1,200</td>
+                  <td><span className="badge badge-warning">Partial</span></td>
+                  <td>01 Feb 2026</td>
+                </tr>
+                <tr>
+                  <td>INV-20260201-0010</td>
+                  <td>Budi Santoso</td>
+                  <td>Aula - 3 Jam</td>
+                  <td>EGP 450</td>
+                  <td><span className="badge badge-success">Paid</span></td>
+                  <td>01 Feb 2026</td>
+                </tr>
+              </tbody>
+            </table>
           </div>
-        </div>
+        </main>
 
-        <div className="card">
-          <div className="card-header">
-            <h3>📝 Executive Summary (Logbook)</h3>
-          </div>
-          <LogbookTasks category="direktur" />
-        </div>
-
-        <div className="card">
-          <div className="card-header">
-            <h3>📋 Recent Transactions</h3>
-            <button className="btn btn-secondary">Export CSV</button>
-          </div>
-          <table className="data-table">
-            <thead>
-              <tr>
-                <th>Invoice</th>
-                <th>Customer</th>
-                <th>Service</th>
-                <th>Amount</th>
-                <th>Status</th>
-                <th>Date</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td>INV-20260202-0012</td>
-                <td>Ahmad Fauzi</td>
-                <td>Hotel - Kamar 103</td>
-                <td>EGP 900</td>
-                <td><span className="badge badge-success">Paid</span></td>
-                <td>02 Feb 2026</td>
-              </tr>
-              <tr>
-                <td>INV-20260201-0011</td>
-                <td>Siti Aminah</td>
-                <td>Travel - Umrah</td>
-                <td>USD 1,200</td>
-                <td><span className="badge badge-warning">Partial</span></td>
-                <td>01 Feb 2026</td>
-              </tr>
-              <tr>
-                <td>INV-20260201-0010</td>
-                <td>Budi Santoso</td>
-                <td>Aula - 3 Jam</td>
-                <td>EGP 450</td>
-                <td><span className="badge badge-success">Paid</span></td>
-                <td>01 Feb 2026</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </main>
-
-      <style jsx>{`
+        <style jsx>{`
         .dashboard-layout {
           display: flex;
           min-height: 100vh;
@@ -321,6 +323,7 @@ export default function DirekturPortal() {
           .summary-card { min-width: 100%; }
         }
       `}</style>
-    </div>
+      </div>
+    </PortalPinGuard>
   )
 }

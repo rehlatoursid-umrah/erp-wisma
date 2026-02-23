@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
 import {
   Hotel,
   Building2,
@@ -89,9 +90,26 @@ type BookingType = 'hotel' | 'aula' | 'visa' | 'rental'
 type TabType = 'overview' | 'invoice' | BookingType
 
 export default function DashboardPage() {
+  const router = useRouter()
+  const [sessionLoading, setSessionLoading] = useState(true)
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [activeTab, setActiveTab] = useState<TabType>('overview')
   const [refreshTrigger, setRefreshTrigger] = useState(0)
+
+  useEffect(() => {
+    // Check Payload session
+    fetch('/api/users/me')
+      .then(res => res.json())
+      .then(data => {
+        if (!data?.user) {
+          router.push('/login')
+        } else {
+          setSessionLoading(false)
+        }
+      })
+      .catch(() => router.push('/login'))
+  }, [router])
+
   const [bookingModal, setBookingModal] = useState<{ isOpen: boolean; type: BookingType; date?: Date }>({
     isOpen: false,
     type: 'hotel',
@@ -190,6 +208,16 @@ export default function DashboardPage() {
 
   const openBookingModal = (type: BookingType, date?: Date) => {
     setBookingModal({ isOpen: true, type, date })
+  }
+
+  // Load bookings on mount
+  useEffect(() => {
+    fetchAuditoriumBookings()
+    fetchDashboardStats()
+  }, []) // Remove dependency array to only fetch once for static demo
+
+  if (sessionLoading) {
+    return <div className="min-h-screen flex items-center justify-center bg-gray-50 text-gray-500">Memuat sesi pengguna...</div>
   }
 
   return (
