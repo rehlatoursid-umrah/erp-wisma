@@ -169,7 +169,7 @@ export async function POST(request: NextRequest) {
         await sendWhatsAppNotification({
             to: data.whatsappEgypt,
             message: `✅ *AUDITORIUM RESERVATION SUBMITTED*\n` +
-                `Wisma Nusantara Cairo\n\n` +
+                `Operational System Wisma Nusantara Cairo\n\n` +
                 `Thank you, ${data.fullName}!\n\n` +
                 `📋 Booking ID: ${bookingId}\n` +
                 `📅 Date: ${formattedDate}\n` +

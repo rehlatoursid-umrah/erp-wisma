@@ -13,7 +13,7 @@ const outfit = Outfit({
 })
 
 export const metadata: Metadata = {
-    title: 'WIN-OS | Wisma Nusantara Integrated Operation System',
+    title: 'Operational System Wisma Nusantara Cairo',
     description: 'Sistem operasional terpadu untuk Wisma Nusantara Cairo',
     icons: {
         icon: '/favicon.ico',

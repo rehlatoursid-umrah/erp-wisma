@@ -68,7 +68,7 @@ export function generateInvoiceText(invoice: InvoiceData): string {
 
     return `
 🧾 *INVOICE ${invoice.invoiceNo}*
-Wisma Nusantara Cairo
+Operational System Wisma Nusantara Cairo
 
 ━━━━━━━━━━━━━━━━━━
 Kepada: *${invoice.customerName}*
@@ -88,7 +88,7 @@ Status: ⏳ ${invoice.paymentStatus === 'pending' ? 'Menunggu Pembayaran' : invo
 • InstaPay: [InstaPay ID]
 
 Terima kasih atas kepercayaan Anda! 🙏
-Wisma Nusantara Cairo
+Operational System Wisma Nusantara Cairo
 `.trim()
 }
 
@@ -104,7 +104,7 @@ export function generateBookingConfirmation(
 
 Halo *${customerName}*,
 
-Terima kasih telah melakukan booking di Wisma Nusantara Cairo!
+Terima kasih telah melakukan booking di Operational System Wisma Nusantara Cairo!
 
 📋 Detail Booking:
 • Layanan: ${bookingType}
@@ -116,7 +116,7 @@ Invoice akan dikirim dalam pesan berikutnya.
 Jika ada pertanyaan, silakan hubungi kami.
 
 Salam hangat,
-_Wisma Nusantara Cairo_ 🏨
+_Operational System Wisma Nusantara Cairo_ 🏨
 `.trim()
 }
 

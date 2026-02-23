@@ -255,7 +255,7 @@ export async function GET(request: NextRequest) {
     <div class="container">
         <div class="invoice-header">
             <div class="company-info">
-                <h1>🏛️ Wisma Nusantara Cairo</h1>
+                <h1>🏛️ Operational System Wisma Nusantara Cairo</h1>
                 <p>
                     Indonesian Hostel in Cairo<br>
                     Cairo, Egypt<br>
@@ -343,7 +343,7 @@ export async function GET(request: NextRequest) {
         </div>
         
         <div class="invoice-footer">
-            <p>Terima kasih telah menggunakan layanan Wisma Nusantara Cairo</p>
+            <p>Terima kasih telah menggunakan layanan Operational System Wisma Nusantara Cairo</p>
             <p style="margin-top: 8px; font-size: 0.75rem; color: #999;">
                 Invoice digenerate pada ${new Date().toLocaleString('id-ID')}
             </p>

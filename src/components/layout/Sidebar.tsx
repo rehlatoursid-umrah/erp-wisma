@@ -1,6 +1,7 @@
 'use client'
 
 import Link from 'next/link'
+import Image from 'next/image'
 import { usePathname } from 'next/navigation'
 import {
     Home,
@@ -63,12 +64,11 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
 
             <aside className={`sidebar ${isOpen ? 'open' : ''}`}>
                 <div className="sidebar-logo">
-                    <div className="logo-icon">
-                        <Building2 size={28} color="white" />
+                    <div className="logo-icon-image">
+                        <Image src="/media/header.png" alt="Logo" width={40} height={40} className="sidebar-logo-img" />
                     </div>
                     <div>
-                        <h2>WIN-OS</h2>
-                        <p className="logo-subtitle">Wisma Nusantara</p>
+                        <h2 style={{ fontSize: '1rem', lineHeight: '1.2' }}>Operational System<br />Wisma Nusantara Cairo</h2>
                     </div>
                 </div>
 

@@ -222,7 +222,7 @@ export async function GET(request: NextRequest) {
 <body>
     <div class="container">
         <div class="header">
-            <h1>🏛️ Wisma Nusantara Cairo</h1>
+            <h1>🏛️ Operational System Wisma Nusantara Cairo</h1>
             <p>Konfirmasi Booking Auditorium</p>
         </div>
         
@@ -292,7 +292,7 @@ export async function GET(request: NextRequest) {
         </div>
         
         <div class="footer">
-            <p>📍 Wisma Nusantara Cairo, Egypt</p>
+            <p>📍 Operational System Wisma Nusantara Cairo, Egypt</p>
             <p>📱 WhatsApp: +20 150 704 9289</p>
             <p style="margin-top: 15px; font-size: 0.75rem; color: #999;">
                 Dokumen ini digenerate secara otomatis pada ${new Date().toLocaleString('id-ID')}

@@ -79,7 +79,7 @@ export async function GET(request: NextRequest) {
     <div class="container">
         <div class="invoice-header">
             <div class="company-info">
-                <h1>🏨 Wisma Nusantara Cairo</h1>
+                <h1>🏨 Operational System Wisma Nusantara Cairo</h1>
                 <p>Indonesian Hostel in Cairo<br>Cairo, Egypt<br>📱 +20 150 704 9289</p>
             </div>
             <div class="invoice-title">
@@ -149,7 +149,7 @@ export async function GET(request: NextRequest) {
         </div>
         
         <div class="invoice-footer">
-            <p>Terima kasih telah menginap di Wisma Nusantara Cairo</p>
+            <p>Terima kasih telah menginap di Operational System Wisma Nusantara Cairo</p>
             <button class="print-btn" onclick="window.print()">🖨️ Cetak Invoice</button>
         </div>
     </div>

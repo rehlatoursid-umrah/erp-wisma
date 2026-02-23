@@ -288,7 +288,7 @@ export async function GET(request: NextRequest) {
         </div>
         
         <div class="footer">
-            <p>📍 Wisma Nusantara Cairo, 68 Taha Hussein, First Settlement, Cairo, Egypt</p>
+            <p>📍 Operational System Wisma Nusantara Cairo, 68 Taha Hussein, First Settlement, Cairo, Egypt</p>
             <p>📱 WhatsApp: +20 150 704 9289 | 🌐 wismanusantara.com</p>
             <p style="margin-top: 20px; font-size: 0.75rem; opacity: 0.7;">
                 Generated on ${new Date().toLocaleString('en-US')}
