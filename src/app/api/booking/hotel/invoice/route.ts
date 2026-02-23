@@ -1,4 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
+import fs from 'fs'
+import path from 'path'
 
 export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url)
@@ -29,6 +31,15 @@ export async function GET(request: NextRequest) {
         month: 'long',
         day: 'numeric'
     })
+
+    const logoPath = path.join(process.cwd(), 'public', 'media', 'sticky-header.png')
+    let logoBase64 = ''
+    try {
+        logoBase64 = fs.readFileSync(logoPath, 'base64')
+    } catch (e) {
+        console.error('Logo not found')
+    }
+    const logoSrc = logoBase64 ? `data:image/png;base64,${logoBase64}` : ''
 
     const html = `
 <!DOCTYPE html>
@@ -79,7 +90,7 @@ export async function GET(request: NextRequest) {
     <div class="container">
         <div class="invoice-header">
             <div class="company-info" style="display: flex; align-items: center; gap: 15px;">
-                <img src="/media/sticky-header.png" alt="Logo" style="height: 50px; width: auto; object-fit: contain;">
+                <img src="${logoSrc}" alt="Logo" style="height: 50px; width: auto; object-fit: contain;">
                 <div>
                     <h1 style="font-size: 1.3rem; margin: 0 0 5px 0; line-height: 1.2; color: #047857;">Operational System<br/>Wisma Nusantara Cairo</h1>
                     <p style="margin: 0; font-size: 0.85rem; color: #666;">Indonesian Hostel in Cairo<br>Cairo, Egypt<br>📱 +20 150 704 9289</p>

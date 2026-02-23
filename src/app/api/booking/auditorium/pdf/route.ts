@@ -1,4 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
+import fs from 'fs'
+import path from 'path'
 
 export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url)
@@ -11,6 +13,16 @@ export async function GET(request: NextRequest) {
     const total = searchParams.get('total') || '0'
     const currency = searchParams.get('currency') || 'EGP'
     const status = (searchParams.get('status') || 'pending').toLowerCase()
+
+    const logoPath = path.join(process.cwd(), 'public', 'media', 'sticky-header.png')
+    let logoBase64 = ''
+    try {
+        logoBase64 = fs.readFileSync(logoPath, 'base64')
+    } catch (e) {
+        console.error('Logo not found', e)
+    }
+    const logoSrc = logoBase64 ? `data:image/png;base64,${logoBase64}` : ''
+
     const isConfirmed = status === 'confirmed' || status === 'paid'
     const statusText = isConfirmed ? '✅ Booking Confirmed' : '⏳ Menunggu Konfirmasi'
     const statusClass = isConfirmed ? 'confirmed' : 'pending'
@@ -222,7 +234,7 @@ export async function GET(request: NextRequest) {
 <body>
     <div class="container">
         <div class="header" style="display: flex; align-items: center; justify-content: center; gap: 15px; text-align: left;">
-            <img src="/media/sticky-header.png" alt="Logo" style="height: 55px; width: auto; object-fit: contain;">
+            <img src="${logoSrc}" alt="Logo" style="height: 55px; width: auto; object-fit: contain;">
             <div>
                 <h1 style="font-size: 1.3rem; margin: 0 0 5px 0; line-height: 1.2; color: #1e3a8a;">Operational System<br/>Wisma Nusantara Cairo</h1>
                 <p style="margin: 0; font-size: 0.9rem; color: #64748b;">Konfirmasi Booking Auditorium</p>
