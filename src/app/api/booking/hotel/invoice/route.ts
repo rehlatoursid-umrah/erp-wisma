@@ -78,9 +78,12 @@ export async function GET(request: NextRequest) {
 <body>
     <div class="container">
         <div class="invoice-header">
-            <div class="company-info">
-                <h1>🏨 Operational System Wisma Nusantara Cairo</h1>
-                <p>Indonesian Hostel in Cairo<br>Cairo, Egypt<br>📱 +20 150 704 9289</p>
+            <div class="company-info" style="display: flex; align-items: center; gap: 15px;">
+                <img src="/media/sticky-header.png" alt="Logo" style="height: 50px; width: auto; object-fit: contain;">
+                <div>
+                    <h1 style="font-size: 1.3rem; margin: 0 0 5px 0; line-height: 1.2; color: #047857;">Operational System<br/>Wisma Nusantara Cairo</h1>
+                    <p style="margin: 0; font-size: 0.85rem; color: #666;">Indonesian Hostel in Cairo<br>Cairo, Egypt<br>📱 +20 150 704 9289</p>
+                </div>
             </div>
             <div class="invoice-title">
                 <h2>Invoice</h2>
