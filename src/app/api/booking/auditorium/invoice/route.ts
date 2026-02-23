@@ -266,11 +266,11 @@ export async function GET(request: NextRequest) {
 <body>
     <div class="container">
         <div class="invoice-header">
-            <div class="company-info" style="display: flex; align-items: center; gap: 15px;">
-                <img src="${logoSrc}" alt="Logo" style="height: 50px; width: auto; object-fit: contain;">
+            <div class="company-info" style="display: flex; align-items: flex-start; gap: 20px;">
+                <img src="${logoSrc}" alt="Logo" style="width: 80px; height: auto; object-fit: contain; margin-top: 5px;">
                 <div>
                     <h1 style="font-size: 1.3rem; margin: 0 0 5px 0; line-height: 1.2; color: #047857;">Operational System<br/>Wisma Nusantara Cairo</h1>
-                    <p style="margin: 0; font-size: 0.85rem; color: #666;">Indonesian Hostel in Cairo<br>Cairo, Egypt<br>📱 +20 150 704 9289</p>
+                    <p style="margin: 0; font-size: 0.85rem; color: #666; line-height: 1.5;">Indonesian Hostel in Cairo<br>Cairo, Egypt<br>📱 +20 150 704 9289</p>
                 </div>
             </div>
             <div class="invoice-title">

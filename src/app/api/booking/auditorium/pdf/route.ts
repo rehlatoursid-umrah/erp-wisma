@@ -233,11 +233,11 @@ export async function GET(request: NextRequest) {
 </head>
 <body>
     <div class="container">
-        <div class="header" style="display: flex; align-items: center; justify-content: center; gap: 15px; text-align: left;">
-            <img src="${logoSrc}" alt="Logo" style="height: 55px; width: auto; object-fit: contain;">
+        <div class="header" style="display: flex; align-items: flex-start; justify-content: center; gap: 20px; text-align: left;">
+            <img src="${logoSrc}" alt="Logo" style="width: 80px; height: auto; object-fit: contain; margin-top: 5px;">
             <div>
                 <h1 style="font-size: 1.3rem; margin: 0 0 5px 0; line-height: 1.2; color: #1e3a8a;">Operational System<br/>Wisma Nusantara Cairo</h1>
-                <p style="margin: 0; font-size: 0.9rem; color: #64748b;">Konfirmasi Booking Auditorium</p>
+                <p style="margin: 0; font-size: 0.9rem; color: #64748b; line-height: 1.5;">Konfirmasi Booking Auditorium</p>
             </div>
         </div>
         
