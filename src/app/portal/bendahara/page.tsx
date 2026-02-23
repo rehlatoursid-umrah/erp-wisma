@@ -3,7 +3,6 @@
 import { useState, useEffect } from 'react'
 import Sidebar from '@/components/layout/Sidebar'
 import Header from '@/components/layout/Header'
-import PortalPinGuard from '@/components/auth/PortalPinGuard'
 
 export default function BendaharaPortal() {
   const [step, setStep] = useState<'pin' | 'otp' | 'dashboard'>('pin')
@@ -171,79 +170,78 @@ export default function BendaharaPortal() {
 
   // Dashboard setelah verifikasi berhasil
   return (
-    <PortalPinGuard portalName="Bendahara" expectedPin={process.env.NEXT_PUBLIC_BENDAHARA_PIN}>
-      <div className="dashboard-layout">
-        <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+    <div className="dashboard-layout">
+      <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
 
-        <main className="main-content">
-          <Header onMenuClick={() => setSidebarOpen(true)} />
+      <main className="main-content">
+        <Header onMenuClick={() => setSidebarOpen(true)} />
 
-          <div className="portal-header">
-            <h1>🛡️ Portal Bendahara</h1>
-            <span className="badge badge-success">Terverifikasi</span>
-          </div>
+        <div className="portal-header">
+          <h1>🛡️ Portal Bendahara</h1>
+          <span className="badge badge-success">Terverifikasi</span>
+        </div>
 
-          <div className="portal-grid">
-            <div className="card">
-              <h3>💰 Incoming Funds</h3>
-              <p className="card-desc">Setoran piket menunggu approval</p>
-              <div className="pending-list">
-                <div className="pending-item">
-                  <div>
-                    <strong>Setoran Piket Pagi</strong>
-                    <span className="amount">EGP 1,200</span>
-                  </div>
-                  <div className="actions">
-                    <button className="btn btn-primary">Approve</button>
-                    <button className="btn btn-secondary">Reject</button>
-                  </div>
+        <div className="portal-grid">
+          <div className="card">
+            <h3>💰 Incoming Funds</h3>
+            <p className="card-desc">Setoran piket menunggu approval</p>
+            <div className="pending-list">
+              <div className="pending-item">
+                <div>
+                  <strong>Setoran Piket Pagi</strong>
+                  <span className="amount">EGP 1,200</span>
                 </div>
-                <div className="pending-item">
-                  <div>
-                    <strong>Setoran Piket Sore</strong>
-                    <span className="amount">EGP 850</span>
-                  </div>
-                  <div className="actions">
-                    <button className="btn btn-primary">Approve</button>
-                    <button className="btn btn-secondary">Reject</button>
-                  </div>
+                <div className="actions">
+                  <button className="btn btn-primary">Approve</button>
+                  <button className="btn btn-secondary">Reject</button>
                 </div>
               </div>
-            </div>
-
-            <div className="card">
-              <h3>💸 Petty Cash Requests</h3>
-              <p className="card-desc">Permintaan pencairan dana</p>
-              {/* Logic for petty cash */}
-            </div>
-
-            <div className="card">
-              <h3>📝 Catatan Logbook</h3>
-              <p className="card-desc">Pesan dari Piket/Resepsionis</p>
-              <LogbookTasks category="bendahara" />
-            </div>
-
-            <div className="card">
-              <h3>📊 Summary Bulan Ini</h3>
-              <div className="summary-grid">
-                <div className="summary-item">
-                  <span className="label">Total Pemasukan</span>
-                  <span className="value income">EGP 45,200</span>
+              <div className="pending-item">
+                <div>
+                  <strong>Setoran Piket Sore</strong>
+                  <span className="amount">EGP 850</span>
                 </div>
-                <div className="summary-item">
-                  <span className="label">Total Pengeluaran</span>
-                  <span className="value expense">EGP 12,350</span>
-                </div>
-                <div className="summary-item">
-                  <span className="label">Saldo</span>
-                  <span className="value">EGP 32,850</span>
+                <div className="actions">
+                  <button className="btn btn-primary">Approve</button>
+                  <button className="btn btn-secondary">Reject</button>
                 </div>
               </div>
             </div>
           </div>
-        </main>
 
-        <style jsx>{`
+          <div className="card">
+            <h3>💸 Petty Cash Requests</h3>
+            <p className="card-desc">Permintaan pencairan dana</p>
+            {/* Logic for petty cash */}
+          </div>
+
+          <div className="card">
+            <h3>📝 Catatan Logbook</h3>
+            <p className="card-desc">Pesan dari Piket/Resepsionis</p>
+            <LogbookTasks category="bendahara" />
+          </div>
+
+          <div className="card">
+            <h3>📊 Summary Bulan Ini</h3>
+            <div className="summary-grid">
+              <div className="summary-item">
+                <span className="label">Total Pemasukan</span>
+                <span className="value income">EGP 45,200</span>
+              </div>
+              <div className="summary-item">
+                <span className="label">Total Pengeluaran</span>
+                <span className="value expense">EGP 12,350</span>
+              </div>
+              <div className="summary-item">
+                <span className="label">Saldo</span>
+                <span className="value">EGP 32,850</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </main>
+
+      <style jsx>{`
         .dashboard-layout {
           display: flex;
           min-height: 100vh;
@@ -384,7 +382,6 @@ export default function BendaharaPortal() {
           }
         }
       `}</style>
-      </div>
-    </PortalPinGuard>
+    </div>
   )
 }

@@ -102,12 +102,12 @@ export default function DashboardPage() {
       .then(res => res.json())
       .then(data => {
         if (!data?.user) {
-          router.push('/login')
+          router.push('/admin/login')
         } else {
           setSessionLoading(false)
         }
       })
-      .catch(() => router.push('/login'))
+      .catch(() => router.push('/admin/login'))
   }, [router])
 
   const [bookingModal, setBookingModal] = useState<{ isOpen: boolean; type: BookingType; date?: Date }>({
