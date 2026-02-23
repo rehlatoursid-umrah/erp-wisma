@@ -12,10 +12,26 @@ export default function LoginPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsLoading(true)
-    // TODO: Implement Payload auth
-    setTimeout(() => {
-      window.location.href = '/dashboard'
-    }, 1000)
+
+    try {
+      const res = await fetch('/api/users/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email, password }),
+      })
+
+      if (res.ok) {
+        window.location.href = '/dashboard'
+      } else {
+        alert('Email atau Password salah!')
+        setIsLoading(false)
+      }
+    } catch (error) {
+      alert('Terjadi kesalahan koneksi.')
+      setIsLoading(false)
+    }
   }
 
   return (
