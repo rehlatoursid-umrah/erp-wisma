@@ -562,6 +562,9 @@ export default function DashboardPage() {
         }
 
         .tab {
+          display: inline-flex;
+          align-items: center;
+          gap: 8px;
           padding: var(--spacing-sm) var(--spacing-xl);
           background: transparent;
           border: none;
