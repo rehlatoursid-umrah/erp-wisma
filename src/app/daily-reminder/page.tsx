@@ -147,7 +147,7 @@ export default function DailyReminderPage() {
                 <Header onMenuClick={() => setSidebarOpen(!sidebarOpen)} />
 
                 {/* Page Title — same as Laporan Piket */}
-                <div style={{ marginBottom: 24 }}>
+                <div style={{ marginBottom: 24, maxWidth: 850, margin: '0 auto 24px auto' }}>
                     <h2 style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 4 }}>
                         <MessageSquare size={28} /> Daily Reminder
                     </h2>
