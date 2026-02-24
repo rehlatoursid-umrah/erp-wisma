@@ -1,6 +1,7 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
+import Image from 'next/image'
 
 interface PortalPinGuardProps {
     expectedPin?: string
@@ -9,11 +10,12 @@ interface PortalPinGuardProps {
 }
 
 export default function PortalPinGuard({ expectedPin, portalName, children }: PortalPinGuardProps) {
-    const [pin, setPin] = useState(['', '', '', '', '', ''])
+    const [pin, setPin] = useState('')
     const [isAuthenticated, setIsAuthenticated] = useState(false)
     const [error, setError] = useState(false)
+    const inputRef = useRef<HTMLInputElement>(null)
 
-    // Skip guard if no expected PIN is provided (e.g. Bendahara)
+    // Skip guard if no expected PIN is provided
     useEffect(() => {
         if (!expectedPin) {
             setIsAuthenticated(true)
@@ -30,77 +32,236 @@ export default function PortalPinGuard({ expectedPin, portalName, children }: Po
         return <>{children}</>
     }
 
-    const handleChange = (e: React.ChangeEvent<HTMLInputElement>, index: number) => {
-        const value = e.target.value
-        if (isNaN(Number(value))) return
+    const handleSubmit = (e: React.FormEvent) => {
+        e.preventDefault()
 
-        const newPin = [...pin]
-        newPin[index] = value
-        setPin(newPin)
+        if (pin === expectedPin) {
+            setIsAuthenticated(true)
+            localStorage.setItem(`portal_auth_${portalName}`, pin)
+        } else {
+            setError(true)
+            setTimeout(() => {
+                setPin('')
+                setError(false)
+                inputRef.current?.focus()
+            }, 800)
+        }
+    }
+
+    const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const val = e.target.value.replace(/\D/g, '') // only allow digits
+        setPin(val)
         setError(false)
 
-        // Auto-focus next input
-        if (value && index < 5) {
-            const nextInput = document.getElementById(`pin-${index + 1}`)
-            nextInput?.focus()
-        }
-
-        // Auto-submit when all 6 digits are entered
-        if (value && index === 5) {
-            const enteredPin = [...newPin.slice(0, 5), value].join('')
-            if (enteredPin === expectedPin) {
-                setIsAuthenticated(true)
-                localStorage.setItem(`portal_auth_${portalName}`, enteredPin)
+        // Auto submit if length is 6
+        if (val.length === 6) {
+            if (val === expectedPin) {
+                setTimeout(() => {
+                    setIsAuthenticated(true)
+                    localStorage.setItem(`portal_auth_${portalName}`, val)
+                }, 150)
             } else {
                 setError(true)
                 setTimeout(() => {
-                    setPin(['', '', '', '', '', ''])
-                    document.getElementById('pin-0')?.focus()
-                }, 1000)
+                    setPin('')
+                    setError(false)
+                    inputRef.current?.focus()
+                }, 800)
             }
         }
     }
 
-    const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>, index: number) => {
-        if (e.key === 'Backspace' && !pin[index] && index > 0) {
-            const prevInput = document.getElementById(`pin-${index - 1}`)
-            prevInput?.focus()
-        }
-    }
-
     return (
-        <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center p-4">
-            <div className="max-w-md w-full bg-white rounded-xl shadow-lg p-8 text-center">
-                <div className="mb-6">
-                    <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                        <svg className="w-8 h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
-                        </svg>
-                    </div>
-                    <h2 className="text-2xl font-bold text-gray-900">Akses Terkunci</h2>
-                    <p className="text-gray-500 mt-2">Masukkan PIN 6 Digit untuk mengakses Portal {portalName}</p>
+        <div className="pin-guard-container">
+            <div className={`pin-card ${error ? 'animate-shake' : ''}`}>
+
+                <div className="logo-wrapper">
+                    <Image
+                        src="/media/header.png"
+                        alt="Wisma Nusantara Cairo Logo"
+                        width={64}
+                        height={64}
+                        className="object-contain"
+                        priority
+                    />
                 </div>
 
-                <div className="flex justify-center gap-2 mb-6">
-                    {pin.map((digit, index) => (
+                <div className="text-center-mb6">
+                    <h2>
+                        <span>Portal</span><br />
+                        <span>{portalName}</span>
+                    </h2>
+                    <p>Masukkan PIN keamanan Anda</p>
+                </div>
+
+                <form onSubmit={handleSubmit} className="form-wrapper">
+                    <div className="input-wrapper">
                         <input
-                            key={index}
-                            id={`pin-${index}`}
+                            ref={inputRef}
                             type="password"
-                            maxLength={1}
-                            value={digit}
-                            onChange={(e) => handleChange(e, index)}
-                            onKeyDown={(e) => handleKeyDown(e, index)}
-                            className={`w-12 h-14 text-center text-2xl font-bold rounded-lg border ${error ? 'border-red-500 bg-red-50 text-red-700' : 'border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200'
-                                } outline-none transition-all`}
+                            inputMode="numeric"
+                            autoComplete="one-time-code"
+                            maxLength={6}
+                            value={pin}
+                            onChange={handleChange}
+                            className={`pin-input ${error ? 'input-error' : ''}`}
+                            placeholder="••••••"
+                            autoFocus
                         />
-                    ))}
-                </div>
+                    </div>
 
-                {error && (
-                    <p className="text-red-500 text-sm animate-pulse mb-4">PIN Salah, silakan coba lagi</p>
-                )}
+                    <button type="submit" className="submit-btn">
+                        Verifikasi PIN
+                    </button>
+
+                    <div className="error-wrapper">
+                        <p className={`error-text ${error ? 'visible' : ''}`}>
+                            PIN Salah. Silakan coba lagi.
+                        </p>
+                    </div>
+                </form>
             </div>
+
+            <style jsx>{`
+                .pin-guard-container {
+                    min-height: 100vh;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    background-color: #24211e;
+                    padding: 1rem;
+                    position: relative;
+                }
+
+                .pin-card {
+                    width: 100%;
+                    max-width: 380px;
+                    background-color: #ffffff;
+                    border-radius: 1.25rem;
+                    padding: 3rem;
+                    display: flex;
+                    flex-direction: column;
+                    align-items: center;
+                    position: relative;
+                    z-index: 10;
+                    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+                    transition: transform 0.3s;
+                }
+
+                .logo-wrapper {
+                    margin-bottom: 2rem;
+                }
+
+                .text-center-mb6 {
+                    text-align: center;
+                    margin-bottom: 2rem;
+                }
+
+                .text-center-mb6 h2 {
+                    font-size: 1.875rem;
+                    font-weight: 700;
+                    color: #8b4513;
+                    line-height: 1.2;
+                    margin: 0;
+                }
+
+                .text-center-mb6 p {
+                    color: #6b7280;
+                    font-size: 0.875rem;
+                    margin-top: 0.75rem;
+                    margin-bottom: 0px;
+                }
+
+                .form-wrapper {
+                    width: 100%;
+                }
+
+                .input-wrapper {
+                    margin-bottom: 1.5rem;
+                }
+
+                .pin-input {
+                    width: 100%;
+                    text-align: center;
+                    font-size: 2.25rem /* 36px */;
+                    letter-spacing: 0.5em;
+                    font-weight: 700;
+                    border: 2px solid #e5e7eb;
+                    border-radius: 0.75rem;
+                    padding-top: 0.75rem;
+                    padding-bottom: 0.75rem;
+                    padding-left: 1.125em; /* compensate for tracking to center text */
+                    outline: none;
+                    transition: all 0.2s;
+                    color: #1f2937;
+                    background-color: transparent;
+                }
+
+                .pin-input:focus {
+                    border-color: #8b4513;
+                    box-shadow: 0 0 0 4px rgba(139, 69, 19, 0.1);
+                }
+
+                .input-error {
+                    border-color: #ef4444;
+                    background-color: #fef2f2;
+                    color: #dc2626;
+                }
+                
+                .pin-input::placeholder {
+                    color: #9ca3af;
+                }
+
+                .submit-btn {
+                    width: 100%;
+                    background-color: #8b4513;
+                    color: #ffffff;
+                    font-weight: 600;
+                    padding-top: 0.875rem;
+                    padding-bottom: 0.875rem;
+                    border-radius: 0.75rem;
+                    border: none;
+                    transition: background-color 0.2s;
+                    letter-spacing: 0.025em;
+                    font-size: 1rem;
+                    cursor: pointer;
+                }
+
+                .submit-btn:hover {
+                    background-color: #653610;
+                }
+
+                .error-wrapper {
+                    height: 1.5rem;
+                    margin-top: 1rem;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                }
+
+                .error-text {
+                    color: #ef4444;
+                    font-size: 0.875rem;
+                    font-weight: 500;
+                    opacity: 0;
+                    transition: opacity 0.2s;
+                    margin: 0;
+                }
+
+                .error-text.visible {
+                    opacity: 1;
+                }
+
+                @keyframes shake {
+                    10%, 90% { transform: translate3d(-1px, 0, 0); }
+                    20%, 80% { transform: translate3d(2px, 0, 0); }
+                    30%, 50%, 70% { transform: translate3d(-4px, 0, 0); }
+                    40%, 60% { transform: translate3d(4px, 0, 0); }
+                }
+                .animate-shake {
+                    animation: shake 0.5s cubic-bezier(.36,.07,.19,.97) both;
+                }
+            `}</style>
         </div>
     )
 }

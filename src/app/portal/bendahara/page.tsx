@@ -3,12 +3,9 @@
 import { useState, useEffect } from 'react'
 import Sidebar from '@/components/layout/Sidebar'
 import Header from '@/components/layout/Header'
+import PortalPinGuard from '@/components/auth/PortalPinGuard'
 
 export default function BendaharaPortal() {
-  const [step, setStep] = useState<'pin' | 'otp' | 'dashboard'>('pin')
-  const [pin, setPin] = useState('')
-  const [otp, setOtp] = useState('')
-  const [error, setError] = useState('')
   const [sidebarOpen, setSidebarOpen] = useState(false)
 
   const LogbookTasks = ({ category }: { category: string }) => {
@@ -35,353 +32,276 @@ export default function BendaharaPortal() {
     )
   }
 
-  const handlePinSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
-    // Mock PIN validation - akan diganti dengan Payload auth
-    if (pin === '123456') {
-      setError('')
-      setStep('otp')
-      // TODO: Trigger WA OTP via API
-      alert('OTP telah dikirim ke WhatsApp Bendahara')
-    } else {
-      setError('PIN salah. Coba lagi.')
-    }
-  }
+  // Dashboard setelah verifikasi berhasil
+  return (
+    <PortalPinGuard portalName="Bendahara" expectedPin={process.env.NEXT_PUBLIC_BENDAHARA_PIN}>
+      <div className="dashboard-layout">
+        <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
 
-  const handleOtpSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
-    // Mock OTP validation
-    if (otp.length === 5) {
-      setError('')
-      setStep('dashboard')
-    } else {
-      setError('OTP tidak valid')
-    }
-  }
+        <main className="main-content">
+          <Header onMenuClick={() => setSidebarOpen(true)} />
 
-  if (step !== 'dashboard') {
-    return (
-      <div className="security-gate">
-        <div className="security-card">
-          <div className="security-icon">🛡️</div>
-          <h1>Portal Bendahara</h1>
-          <p className="security-subtitle">
-            {step === 'pin' ? 'Masukkan PIN keamanan Anda' : 'Masukkan kode OTP dari WhatsApp'}
-          </p>
+          <div className="portal-header">
+            <div>
+              <h1>🛡️ Portal Bendahara</h1>
+              <p className="portal-subtitle">Pengelolaan Keuangan & Anggaran</p>
+            </div>
+            <span className="badge badge-success shrink-0">Terverifikasi</span>
+          </div>
 
-          {step === 'pin' ? (
-            <form onSubmit={handlePinSubmit}>
-              <div className="form-group">
-                <input
-                  type="password"
-                  className="form-input pin-input"
-                  placeholder="••••••"
-                  maxLength={6}
-                  value={pin}
-                  onChange={(e) => setPin(e.target.value.replace(/\D/g, ''))}
-                  autoFocus
-                />
+          <div className="portal-grid">
+            <div className="card">
+              <h3>💰 Incoming Funds</h3>
+              <p className="card-desc">Setoran piket menunggu approval</p>
+              <div className="pending-list">
+                <div className="pending-item">
+                  <div>
+                    <strong>Setoran Piket Pagi</strong>
+                    <span className="amount">EGP 1,200</span>
+                  </div>
+                  <div className="actions">
+                    <button className="btn btn-primary">Approve</button>
+                    <button className="btn btn-secondary">Reject</button>
+                  </div>
+                </div>
+                <div className="pending-item">
+                  <div>
+                    <strong>Setoran Piket Sore</strong>
+                    <span className="amount">EGP 850</span>
+                  </div>
+                  <div className="actions">
+                    <button className="btn btn-primary">Approve</button>
+                    <button className="btn btn-secondary">Reject</button>
+                  </div>
+                </div>
               </div>
-              {error && <p className="error-text">{error}</p>}
-              <button type="submit" className="btn btn-primary btn-large" style={{ width: '100%' }}>
-                Verifikasi PIN
-              </button>
-            </form>
-          ) : (
-            <form onSubmit={handleOtpSubmit}>
-              <div className="form-group">
-                <input
-                  type="text"
-                  className="form-input otp-input"
-                  placeholder="12345"
-                  maxLength={5}
-                  value={otp}
-                  onChange={(e) => setOtp(e.target.value.replace(/\D/g, ''))}
-                  autoFocus
-                />
+            </div>
+
+            <div className="card">
+              <h3>💸 Petty Cash Requests</h3>
+              <p className="card-desc">Permintaan pencairan dana</p>
+              {/* Logic for petty cash */}
+            </div>
+
+            <div className="card">
+              <h3>📝 Catatan Logbook</h3>
+              <p className="card-desc">Pesan dari Piket/Resepsionis</p>
+              <LogbookTasks category="bendahara" />
+            </div>
+
+            <div className="card">
+              <h3>📊 Summary Bulan Ini</h3>
+              <div className="summary-grid">
+                <div className="summary-item">
+                  <span className="label">Total Pemasukan</span>
+                  <span className="value income">EGP 45,200</span>
+                </div>
+                <div className="summary-item">
+                  <span className="label">Total Pengeluaran</span>
+                  <span className="value expense">EGP 12,350</span>
+                </div>
+                <div className="summary-item">
+                  <span className="label">Saldo</span>
+                  <span className="value">EGP 32,850</span>
+                </div>
               </div>
-              {error && <p className="error-text">{error}</p>}
-              <button type="submit" className="btn btn-primary btn-large" style={{ width: '100%' }}>
-                Verifikasi OTP
-              </button>
-              <button
-                type="button"
-                className="btn btn-secondary"
-                style={{ width: '100%', marginTop: 'var(--spacing-sm)' }}
-                onClick={() => setStep('pin')}
-              >
-                ← Kembali
-              </button>
-            </form>
-          )}
-        </div>
+            </div>
+          </div>
+        </main>
 
         <style jsx>{`
-          .security-gate {
+          .dashboard-layout {
+            display: flex;
             min-height: 100vh;
+            background: var(--color-bg-primary);
+          }
+
+          .main-content {
+            flex: 1;
+            padding: var(--spacing-2xl);
+            max-width: 1400px;
+            margin: 0 auto;
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            animation: fadeIn 0.4s ease-out forwards;
+          }
+
+          .portal-header {
             display: flex;
             align-items: center;
-            justify-content: center;
-            background: linear-gradient(135deg, var(--color-bg-dark) 0%, #2D2620 100%);
-            padding: var(--spacing-lg);
+            justify-content: space-between;
+            margin-bottom: var(--spacing-2xl);
+            padding-bottom: var(--spacing-lg);
+            border-bottom: 2px solid var(--color-border);
           }
 
-          .security-card {
-            width: 100%;
-            max-width: 400px;
+          .portal-header h1 {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--color-text);
+            margin: 0 0 0.5rem 0;
+            letter-spacing: -0.025em;
+          }
+
+          .portal-subtitle {
+            font-size: 1rem;
+            color: var(--color-text-muted);
+            margin: 0;
+          }
+
+          .shrink-0 {
+            flex-shrink: 0;
+          }
+
+          .portal-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: var(--spacing-xl);
+            animation: slideUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+          }
+
+          .card {
             background: var(--color-bg-card);
-            border-radius: var(--radius-2xl);
-            box-shadow: var(--shadow-xl);
-            padding: var(--spacing-2xl);
-            text-align: center;
+            border-radius: var(--radius-xl);
+            padding: var(--spacing-xl);
+            border: 1px solid var(--color-border);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -2px rgba(0, 0, 0, 0.05);
+            transition: all 0.2s ease-in-out;
+            display: flex;
+            flex-direction: column;
           }
 
-          .security-icon {
-            font-size: 4rem;
-            margin-bottom: var(--spacing-lg);
+          .card:hover {
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.08), 0 4px 6px -4px rgba(0, 0, 0, 0.04);
+            transform: translateY(-2px);
+            border-color: var(--color-primary-light);
           }
 
-          h1 {
-            margin-bottom: var(--spacing-xs);
-            color: var(--color-primary);
+          .card h3 {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--color-text);
+            margin: 0 0 0.25rem 0;
           }
 
-          .security-subtitle {
-            color: var(--color-text-secondary);
+          .card-desc {
+            color: var(--color-text-muted);
+            font-size: 0.875rem;
             margin-bottom: var(--spacing-xl);
           }
 
-          .pin-input, .otp-input {
-            text-align: center;
-            font-size: 2rem;
-            letter-spacing: 0.5rem;
-            font-weight: 600;
+          .pending-list {
+            display: flex;
+            flex-direction: column;
+            gap: var(--spacing-lg);
           }
 
-          .error-text {
-            color: var(--color-error);
-            font-size: 0.875rem;
+          .pending-item {
+            display: flex;
+            flex-direction: column;
+            padding: var(--spacing-lg);
+            background: var(--color-bg-secondary);
+            border-radius: var(--radius-lg);
+            border: 1px solid var(--color-border);
+            transition: all 0.2s ease;
+          }
+
+          .pending-item:hover {
+            border-color: var(--color-primary);
+            background: var(--color-bg-highlight);
+          }
+
+          .pending-item > div:first-child {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
             margin-bottom: var(--spacing-md);
+          }
+
+          .pending-item strong {
+            display: block;
+            color: var(--color-text);
+            font-size: 1rem;
+            font-weight: 600;
+            margin-bottom: 0.25rem;
+          }
+
+          .amount {
+            display: block;
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--color-primary);
+          }
+
+          .actions {
+            display: flex;
+            gap: var(--spacing-sm);
+            width: 100%;
+          }
+          
+          .actions .btn {
+            flex: 1;
+            padding: 0.5rem;
+            font-size: 0.875rem;
+          }
+
+          .summary-grid {
+            display: grid;
+            gap: var(--spacing-md);
+          }
+
+          .summary-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: var(--spacing-md) var(--spacing-lg);
+            background: var(--color-bg-secondary);
+            border-radius: var(--radius-lg);
+            border: 1px solid var(--color-border);
+          }
+
+          .summary-item .label {
+            color: var(--color-text-secondary);
+            font-size: 0.9375rem;
+            font-weight: 500;
+          }
+
+          .summary-item .value {
+            font-weight: 700;
+            font-size: 1.125rem;
+            color: var(--color-text);
+          }
+
+          .summary-item .value.income {
+            color: var(--color-success);
+          }
+
+          .summary-item .value.expense {
+            color: var(--color-danger);
+          }
+
+          @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+          }
+
+          @keyframes slideUp {
+            from { opacity: 0; transform: translateY(15px); }
+            to { opacity: 1; transform: translateY(0); }
+          }
+
+          @media (max-width: 768px) {
+            .portal-grid {
+              grid-template-columns: 1fr;
+            }
+            .main-content {
+              padding: var(--spacing-lg);
+              padding-top: calc(var(--spacing-2xl) + 40px); /* Account for mobile header */
+            }
           }
         `}</style>
       </div>
-    )
-  }
-
-  // Dashboard setelah verifikasi berhasil
-  return (
-    <div className="dashboard-layout">
-      <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
-
-      <main className="main-content">
-        <Header onMenuClick={() => setSidebarOpen(true)} />
-
-        <div className="portal-header">
-          <h1>🛡️ Portal Bendahara</h1>
-          <span className="badge badge-success">Terverifikasi</span>
-        </div>
-
-        <div className="portal-grid">
-          <div className="card">
-            <h3>💰 Incoming Funds</h3>
-            <p className="card-desc">Setoran piket menunggu approval</p>
-            <div className="pending-list">
-              <div className="pending-item">
-                <div>
-                  <strong>Setoran Piket Pagi</strong>
-                  <span className="amount">EGP 1,200</span>
-                </div>
-                <div className="actions">
-                  <button className="btn btn-primary">Approve</button>
-                  <button className="btn btn-secondary">Reject</button>
-                </div>
-              </div>
-              <div className="pending-item">
-                <div>
-                  <strong>Setoran Piket Sore</strong>
-                  <span className="amount">EGP 850</span>
-                </div>
-                <div className="actions">
-                  <button className="btn btn-primary">Approve</button>
-                  <button className="btn btn-secondary">Reject</button>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div className="card">
-            <h3>💸 Petty Cash Requests</h3>
-            <p className="card-desc">Permintaan pencairan dana</p>
-            {/* Logic for petty cash */}
-          </div>
-
-          <div className="card">
-            <h3>📝 Catatan Logbook</h3>
-            <p className="card-desc">Pesan dari Piket/Resepsionis</p>
-            <LogbookTasks category="bendahara" />
-          </div>
-
-          <div className="card">
-            <h3>📊 Summary Bulan Ini</h3>
-            <div className="summary-grid">
-              <div className="summary-item">
-                <span className="label">Total Pemasukan</span>
-                <span className="value income">EGP 45,200</span>
-              </div>
-              <div className="summary-item">
-                <span className="label">Total Pengeluaran</span>
-                <span className="value expense">EGP 12,350</span>
-              </div>
-              <div className="summary-item">
-                <span className="label">Saldo</span>
-                <span className="value">EGP 32,850</span>
-              </div>
-            </div>
-          </div>
-        </div>
-      </main>
-
-      <style jsx>{`
-        .dashboard-layout {
-          display: flex;
-          min-height: 100vh;
-          background: var(--color-bg-primary);
-        }
-
-        .portal-header {
-          display: flex;
-          align-items: center;
-          gap: var(--spacing-lg);
-          margin-bottom: var(--spacing-xl);
-          animation: slideDown 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-
-        .portal-header h1 {
-          margin: 0;
-          font-size: 2rem;
-        }
-
-        .portal-grid {
-          display: flex;
-          gap: var(--spacing-lg);
-          animation: slideUp 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-
-        .portal-grid > .card {
-          flex: 1;
-          min-width: 0;
-        }
-
-        .card {
-          transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-          border: 1px solid transparent;
-        }
-
-        .card:hover {
-          transform: translateY(-4px);
-          box-shadow: var(--shadow-lg);
-          border-color: var(--color-primary-light);
-        }
-
-        .card-desc {
-          color: var(--color-text-muted);
-          font-size: 0.9375rem;
-          margin-bottom: var(--spacing-lg);
-        }
-
-        .pending-list {
-          display: flex;
-          flex-direction: column;
-          gap: var(--spacing-lg);
-        }
-
-        .pending-item {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          padding: var(--spacing-lg);
-          background: var(--color-bg-secondary);
-          border-radius: var(--radius-lg);
-          transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-          cursor: pointer;
-        }
-
-        .pending-item:hover {
-          transform: translateX(4px);
-          box-shadow: var(--shadow-md);
-        }
-
-        .amount {
-          display: block;
-          font-size: 1.5rem;
-          font-weight: 700;
-          color: var(--color-primary);
-        }
-
-        .requester {
-          display: block;
-          font-size: 0.8125rem;
-          color: var(--color-text-muted);
-        }
-
-        .actions {
-          display: flex;
-          gap: var(--spacing-sm);
-        }
-
-        .summary-grid {
-          display: grid;
-          gap: var(--spacing-lg);
-        }
-
-        .summary-item {
-          display: flex;
-          justify-content: space-between;
-          padding: var(--spacing-lg);
-          background: var(--color-bg-secondary);
-          border-radius: var(--radius-lg);
-          transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-
-        .summary-item:hover {
-          transform: scale(1.02);
-          box-shadow: var(--shadow-md);
-        }
-
-        .summary-item .label {
-          color: var(--color-text-secondary);
-          font-size: 1rem;
-        }
-
-        .summary-item .value {
-          font-weight: 700;
-          font-size: 1.25rem;
-        }
-
-        .summary-item .value.income {
-          color: var(--color-success);
-        }
-
-        .summary-item .value.expense {
-          color: var(--color-error);
-        }
-
-        @keyframes slideUp {
-          from { opacity: 0; transform: translateY(20px); }
-          to { opacity: 1; transform: translateY(0); }
-        }
-
-        @keyframes slideDown {
-          from { opacity: 0; transform: translateY(-10px); }
-          to { opacity: 1; transform: translateY(0); }
-        }
-
-        @media (max-width: 968px) {
-          .portal-grid {
-            flex-direction: column;
-          }
-        }
-      `}</style>
-    </div>
+    </PortalPinGuard>
   )
 }
