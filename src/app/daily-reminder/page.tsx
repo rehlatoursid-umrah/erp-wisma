@@ -311,6 +311,7 @@ export default function DailyReminderPage() {
                     position: relative;
                     overflow: hidden;
                     max-width: 850px;
+                    margin: 0 auto;
                 }
 
                 .piket-page-title {
