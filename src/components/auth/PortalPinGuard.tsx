@@ -106,6 +106,10 @@ export default function PortalPinGuard({ expectedPin, portalName, children }: Po
                         Verifikasi PIN
                     </button>
 
+                    <a href="/dashboard" className="back-btn">
+                        Kembali ke Dashboard
+                    </a>
+
                     <div className="error-wrapper">
                         <p className={`error-text ${error ? 'visible' : ''}`}>
                             PIN Salah. Silakan coba lagi.
@@ -141,7 +145,7 @@ export default function PortalPinGuard({ expectedPin, portalName, children }: Po
                 }
 
                 .logo-wrapper {
-                    margin-bottom: 2rem;
+                    margin-bottom: 0.5rem;
                 }
 
                 .text-center-mb6 {
@@ -221,6 +225,29 @@ export default function PortalPinGuard({ expectedPin, portalName, children }: Po
 
                 .submit-btn:hover {
                     background-color: #653610;
+                }
+
+                .back-btn {
+                    display: block;
+                    width: 100%;
+                    text-align: center;
+                    background-color: transparent;
+                    color: #6b7280;
+                    font-weight: 500;
+                    padding-top: 0.75rem;
+                    padding-bottom: 0.75rem;
+                    border-radius: 0.75rem;
+                    border: 1px solid #e5e7eb;
+                    margin-top: 0.75rem;
+                    transition: all 0.2s;
+                    font-size: 0.95rem;
+                    text-decoration: none;
+                }
+
+                .back-btn:hover {
+                    background-color: #f3f4f6;
+                    color: #374151;
+                    border-color: #d1d5db;
                 }
 
                 .error-wrapper {
