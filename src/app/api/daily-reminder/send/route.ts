@@ -1,13 +1,31 @@
 import { NextResponse } from 'next/server'
+import axios from 'axios'
 
-const WA_ENDPOINT = process.env.WHATSAPP_API_ENDPOINT || ''
-const WA_USERNAME = process.env.WHATSAPP_API_USERNAME || ''
-const WA_PASSWORD = process.env.WHATSAPP_API_PASSWORD || ''
-const WA_GROUP_ID = process.env.WHATSAPP_GROUP_ID || ''
+export async function POST(request: Request) {
+    const start = Date.now()
 
-export async function POST(req: Request) {
     try {
-        const data = await req.json()
+        // 1. Get WhatsApp Config (WAJIB ADA USERNAME & PASSWORD)
+        const whatsappEndpoint = process.env.WHATSAPP_API_ENDPOINT
+        const whatsappUsername = process.env.WHATSAPP_API_USERNAME
+        const whatsappPassword = process.env.WHATSAPP_API_PASSWORD
+        const whatsappGroupId = process.env.WHATSAPP_GROUP_ID
+
+        if (!whatsappEndpoint || !whatsappUsername || !whatsappPassword || !whatsappGroupId) {
+            console.error('❌ WhatsApp API config missing:', {
+                endpoint: !!whatsappEndpoint,
+                username: !!whatsappUsername,
+                password: !!whatsappPassword,
+                groupId: !!whatsappGroupId,
+            })
+            return NextResponse.json(
+                { success: false, error: 'Server configuration error: WhatsApp API not configured' },
+                { status: 500 }
+            )
+        }
+
+        // 2. Parse Form Data
+        const data = await request.json()
 
         const {
             tanggal,
@@ -19,7 +37,14 @@ export async function POST(req: Request) {
             catatan,
         } = data
 
-        // Format the date nicely
+        if (!petugasPiketKantor || !petugasPiketDapur) {
+            return NextResponse.json(
+                { success: false, error: 'Petugas piket kantor dan dapur wajib diisi' },
+                { status: 400 }
+            )
+        }
+
+        // 3. Format the date nicely
         const dateObj = new Date(tanggal)
         const formattedDate = dateObj.toLocaleDateString('id-ID', {
             weekday: 'long',
@@ -28,7 +53,7 @@ export async function POST(req: Request) {
             day: 'numeric',
         })
 
-        // Build the WhatsApp message
+        // 4. Build the WhatsApp message
         const excludeText = Array.isArray(excludeService) && excludeService.length > 0
             ? excludeService.join(', ')
             : 'Tidak ada'
@@ -45,9 +70,9 @@ export async function POST(req: Request) {
 
 Tanggal: ${formattedDate}
 
-Petugas piket kantor: ${petugasPiketKantor || '-'}
+Petugas piket kantor: ${petugasPiketKantor}
 
-Petugas Piket dapur: ${petugasPiketDapur || '-'}
+Petugas Piket dapur: ${petugasPiketDapur}
 
 Acara Penyewaan Auditorium: ${acaraAuditorium || 'Tidak ada'}
 
@@ -58,47 +83,89 @@ Kamar Hotel terisi: ${kamarText}
 Catatan:
 ${catatanText}`
 
-        // Send via WhatsApp API (GoWA) with Basic Auth
-        const authHeader = 'Basic ' + Buffer.from(`${WA_USERNAME}:${WA_PASSWORD}`).toString('base64')
-
-        // GoWA uses /send/message endpoint with phone field
-        // For groups, phone is formatted as groupId@g.us
-        const recipientPhone = WA_GROUP_ID.includes('@') ? WA_GROUP_ID : `${WA_GROUP_ID}@g.us`
-
-        const waResponse = await fetch(`${WA_ENDPOINT}/send/message`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': authHeader,
-            },
-            body: JSON.stringify({
-                phone: recipientPhone,
-                message: message,
-            }),
-        })
-
-        if (!waResponse.ok) {
-            const errorText = await waResponse.text()
-            console.error('WhatsApp API error:', errorText)
-            return NextResponse.json(
-                { success: false, error: 'Gagal mengirim pesan ke WhatsApp', details: errorText },
-                { status: 500 }
-            )
+        // 5. Format Phone for Group
+        let formattedPhone = whatsappGroupId
+        if (!formattedPhone.includes('@')) {
+            formattedPhone += '@g.us'
         }
 
-        const result = await waResponse.json()
+        // 6. Build URL
+        const url = `${whatsappEndpoint.replace(/\/$/, '')}/send/message`
+
+        console.log(`🚀 Sending Daily Reminder to: ${url}`)
+        console.log(`📱 Group: ${formattedPhone}`)
+        console.log(`🔐 Auth: ${whatsappUsername}:${'*'.repeat(whatsappPassword.length)}`)
+
+        // 7. Send with axios + Basic Auth (SAME PATTERN AS WORKING PROJECT)
+        const whatsappResponse = await axios.post(url, {
+            phone: formattedPhone,
+            message: message,
+            is_forwarded: false,
+        }, {
+            auth: {
+                username: whatsappUsername,
+                password: whatsappPassword,
+            },
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            timeout: 45000,
+            validateStatus: () => true,
+        })
+
+        const tookMs = Date.now() - start
+
+        console.log(`📥 Response Status: ${whatsappResponse.status}`)
+        console.log(`📥 Response Data:`, JSON.stringify(whatsappResponse.data).substring(0, 300))
+
+        if (whatsappResponse.status >= 200 && whatsappResponse.status < 300) {
+            console.log('✅ Daily Reminder sent successfully!')
+            return NextResponse.json({
+                success: true,
+                message: 'Daily Reminder berhasil dikirim ke WA Group!',
+                preview: message,
+                tookMs,
+                whatsappResponse: whatsappResponse.data,
+            })
+        } else {
+            console.error('❌ WhatsApp API error:', whatsappResponse.status, whatsappResponse.data)
+            return NextResponse.json({
+                success: false,
+                error: 'WhatsApp API gagal mengirim pesan',
+                status: whatsappResponse.status,
+                details: whatsappResponse.data,
+                tookMs,
+            }, { status: 502 })
+        }
+
+    } catch (error: any) {
+        const tookMs = Date.now() - start
+        console.error('❌ Daily Reminder send error:', error.message)
+
+        // More descriptive error for common issues
+        let userMessage = error.message
+        if (error.code === 'ECONNREFUSED') {
+            userMessage = 'Tidak bisa terhubung ke server WhatsApp API. Pastikan server GoWA aktif.'
+        } else if (error.code === 'ETIMEDOUT' || error.code === 'UND_ERR_CONNECT_TIMEOUT') {
+            userMessage = 'Koneksi ke server WhatsApp timeout. Periksa jaringan internet Anda.'
+        } else if (error.code === 'ENOTFOUND') {
+            userMessage = 'Domain server WhatsApp tidak ditemukan. Periksa WHATSAPP_API_ENDPOINT di .env'
+        }
 
         return NextResponse.json({
-            success: true,
-            message: 'Daily Reminder berhasil dikirim ke WA Group!',
-            preview: message,
-            waResult: result,
-        })
-    } catch (error: any) {
-        console.error('Daily Reminder send error:', error)
-        return NextResponse.json(
-            { success: false, error: error.message || 'Terjadi kesalahan' },
-            { status: 500 }
-        )
+            success: false,
+            error: userMessage,
+            tookMs,
+            stack: process.env.NODE_ENV === 'development' ? error.stack : undefined,
+        }, { status: 500 })
     }
+}
+
+export async function GET() {
+    return NextResponse.json({
+        status: 'ready',
+        endpoint: '/api/daily-reminder/send',
+        method: 'POST',
+        description: 'Send daily reminder message to WhatsApp group',
+    })
 }
