@@ -42,13 +42,20 @@ const KAMAR_OPTIONS = [
     'Homestay',
 ]
 
+// Build detailed Exclude Service options from auditorium constants
 const EXCLUDE_SERVICE_OPTIONS = [
-    'AC (Air Conditioning)',
-    'Kursi / Chairs',
-    'Proyektor & Layar',
-    'Meja / Tables',
-    'Piring / Plates',
-    'Gelas / Glasses',
+    // AC
+    ...AC_OPTIONS.filter(o => o.value).map(o => `❄️ AC ${o.label} - ${o.price} EGP`),
+    // Chairs
+    ...CHAIR_OPTIONS.filter(o => o.value).map(o => `🪑 ${o.label} - ${o.price} EGP`),
+    // Projector & Screen
+    ...PROJECTOR_SCREEN_OPTIONS.filter(o => o.value).map(o => `📽️ ${o.label} - ${o.price} EGP`),
+    // Tables
+    ...TABLE_OPTIONS.filter(o => o.value).map(o => `🪑 ${o.label} - ${o.price} EGP`),
+    // Plates
+    ...PLATE_OPTIONS.filter(o => o.value).map(o => `🍽️ ${o.label} - ${o.price} EGP`),
+    // Glasses
+    ...GLASS_OPTIONS.filter(o => o.value).map(o => `🥛 ${o.label} - ${o.price} EGP`),
 ]
 
 // ─── Component ───────────────────────────────────────────────────────────────
