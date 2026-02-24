@@ -18,12 +18,15 @@ interface InvoiceItem {
     total: number
 }
 
-// Mock Salespeople
 const SALES_PEOPLE = [
-    { id: 'S001', name: 'Ahmad Fauzi' },
-    { id: 'S002', name: 'Siti Aminah' },
-    { id: 'S003', name: 'Budi Santoso' },
-    { id: 'S004', name: 'Dewi Lestari' }
+    { id: 'S001', name: 'Ubaidillah Chair' },
+    { id: 'S002', name: 'Habib Arifin Makhtum' },
+    { id: 'S003', name: 'Obeid Albar' },
+    { id: 'S004', name: 'Muaz Widad' },
+    { id: 'S005', name: 'Indra Juliana Salim' },
+    { id: 'S006', name: 'Zulfan Firosi Zulfadhli' },
+    { id: 'S007', name: 'Subhan Hadi Alhabsyi' },
+    { id: 'S008', name: 'Rausan Fiqri' }
 ]
 
 export default function ManualInvoiceModal({ isOpen, onClose, onSuccess, initialData }: ManualInvoiceModalProps) {
