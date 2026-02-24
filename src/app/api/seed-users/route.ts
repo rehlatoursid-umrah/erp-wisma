@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import payload from 'payload'
+import { getPayload } from 'payload'
 import configPromise from '@payload-config'
 
 const USERS_TO_SEED = [
@@ -15,37 +15,51 @@ const USERS_TO_SEED = [
 
 export async function GET(req: NextRequest) {
     try {
-        const p = await payload.init({ config: await configPromise })
+        const p = await getPayload({ config: await configPromise })
         const results = []
 
         for (const userData of USERS_TO_SEED) {
-            // Check if user already exists based on email
+            // Delete existing user if present
             const existingUsers = await p.find({
                 collection: 'users',
                 where: { email: { equals: userData.email } },
             })
-
             if (existingUsers.totalDocs > 0) {
-                results.push({ email: userData.email, status: 'Already exists' })
-            } else {
-                // Create user
-                await p.create({
+                await p.delete({
+                    collection: 'users',
+                    id: existingUsers.docs[0].id
+                })
+            }
+
+            // Create user
+            try {
+                const newUser = await p.create({
                     collection: 'users',
                     data: {
                         name: userData.name,
                         email: userData.email,
                         password: userData.password,
                         role: userData.role,
-                        pin: userData.pin, // Included pin for applicable roles
-                    },
+                        pin: userData.pin
+                    }
                 })
-                results.push({ email: userData.email, status: 'Created successfully' })
+
+                // Read directly from DB to verify hashing
+                const dbUser = await p.db.findOne({ collection: 'users', req: { payload: p } as any, where: { email: { equals: userData.email } } })
+
+                results.push({
+                    email: userData.email,
+                    status: 'Created successfully',
+                    verifiedHashed: !!dbUser?.hash
+                })
+            } catch (err) {
+                results.push({ email: userData.email, status: 'Payload create error', error: String(err) })
             }
         }
 
         return NextResponse.json({ success: true, results })
     } catch (error) {
         console.error('Error seeding users:', error)
-        return NextResponse.json({ success: false, error: 'Failed to seed users' }, { status: 500 })
+        return NextResponse.json({ success: false, error: String(error) }, { status: 500 })
     }
 }
