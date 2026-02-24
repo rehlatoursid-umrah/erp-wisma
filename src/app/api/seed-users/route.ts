@@ -50,7 +50,7 @@ export async function GET(req: NextRequest) {
                 results.push({
                     email: userData.email,
                     status: 'Created successfully',
-                    verifiedHashed: !!dbUser?.hash
+                    verifiedHashed: !!(dbUser as any)?.hash
                 })
             } catch (err) {
                 results.push({ email: userData.email, status: 'Payload create error', error: String(err) })
