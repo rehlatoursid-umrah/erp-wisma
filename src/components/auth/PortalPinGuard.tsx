@@ -20,12 +20,6 @@ export default function PortalPinGuard({ expectedPin, portalName, children }: Po
         if (!expectedPin) {
             setIsAuthenticated(true)
         }
-
-        // Check local storage for previous session
-        const savedAuth = localStorage.getItem(`portal_auth_${portalName}`)
-        if (savedAuth === expectedPin) {
-            setIsAuthenticated(true)
-        }
     }, [expectedPin, portalName])
 
     if (isAuthenticated) {
@@ -37,7 +31,6 @@ export default function PortalPinGuard({ expectedPin, portalName, children }: Po
 
         if (pin === expectedPin) {
             setIsAuthenticated(true)
-            localStorage.setItem(`portal_auth_${portalName}`, pin)
         } else {
             setError(true)
             setTimeout(() => {
@@ -58,7 +51,6 @@ export default function PortalPinGuard({ expectedPin, portalName, children }: Po
             if (val === expectedPin) {
                 setTimeout(() => {
                     setIsAuthenticated(true)
-                    localStorage.setItem(`portal_auth_${portalName}`, val)
                 }, 150)
             } else {
                 setError(true)
@@ -77,11 +69,11 @@ export default function PortalPinGuard({ expectedPin, portalName, children }: Po
 
                 <div className="logo-wrapper">
                     <Image
-                        src="/media/header.png"
+                        src="/media/sticky-header.png"
                         alt="Wisma Nusantara Cairo Logo"
                         width={64}
                         height={64}
-                        className="object-contain"
+                        className="logo-img"
                         priority
                     />
                 </div>
