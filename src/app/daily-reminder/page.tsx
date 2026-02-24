@@ -299,8 +299,8 @@ export default function DailyReminderPage() {
                 </form>
             </main>
 
-            <style jsx>{`
-                /* ─── Re-use LaporanPiket Design System ─── */
+            <style jsx global>{`
+                /* ─── LaporanPiket Design System (global for child components) ─── */
 
                 .piket-form-body {
                     background: var(--color-bg-card);
