@@ -100,6 +100,13 @@ export default function LoginPage() {
         </p>
       </div>
 
+      {isLoading && (
+        <div className="loading-overlay">
+          <div className="loading-spinner">⏳</div>
+          <p>Membuat sesi pengguna...</p>
+        </div>
+      )}
+
       <style jsx>{`
         .login-page {
           min-height: 100vh;
@@ -188,6 +195,33 @@ export default function LoginPage() {
 
         .login-footer a:hover {
           text-decoration: underline;
+        }
+
+        .loading-overlay {
+          position: fixed;
+          inset: 0;
+          background: rgba(0, 0, 0, 0.7);
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          z-index: 1000;
+        }
+
+        .loading-spinner {
+          font-size: 3rem;
+          animation: spin 1s linear infinite;
+        }
+
+        .loading-overlay p {
+          color: white;
+          margin-top: var(--spacing-md);
+          font-size: 1.125rem;
+        }
+
+        @keyframes spin {
+          from { transform: rotate(0deg); }
+          to { transform: rotate(360deg); }
         }
       `}</style>
     </div>
