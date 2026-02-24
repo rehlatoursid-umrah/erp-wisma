@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import {
   Hotel,
@@ -8,7 +9,8 @@ import {
   Plane,
   Package,
   Receipt,
-  LayoutDashboard
+  LayoutDashboard,
+  ClipboardList
 } from 'lucide-react'
 import Sidebar from '@/components/layout/Sidebar'
 import Header from '@/components/layout/Header'
@@ -269,6 +271,13 @@ export default function DashboardPage() {
             >
               <Receipt size={18} /> Invoice
             </button>
+            <Link
+              href="/laporan-piket"
+              className="tab"
+              style={{ textDecoration: 'none' }}
+            >
+              <ClipboardList size={18} /> Laporan Piket
+            </Link>
           </div>
         </div>
 
