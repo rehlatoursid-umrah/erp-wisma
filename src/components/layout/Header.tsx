@@ -14,15 +14,21 @@ export default function Header({ onMenuClick, balances }: HeaderProps & {
     IDR: number
   }
 }) {
-  // Mock data - akan diganti dengan data real
-  const user = {
-    name: 'Ahmad Fauzi',
-    role: 'Staff Piket',
-    avatar: null,
-  }
-
+  const [user, setUser] = useState<{ name: string; role: string; avatar?: any } | null>(null)
   const [time, setTime] = useState<string>('')
   const [internalBalances, setInternalBalances] = useState<{ EGP: number, USD: number, IDR: number } | null>(null)
+
+  // Fetch current user
+  useEffect(() => {
+    fetch('/api/users/me')
+      .then(res => res.json())
+      .then(data => {
+        if (data && data.user) {
+          setUser(data.user)
+        }
+      })
+      .catch(console.error)
+  }, [])
 
   // Use props if available, otherwise use internal state
   const displayBalances = balances || internalBalances
@@ -98,14 +104,14 @@ export default function Header({ onMenuClick, balances }: HeaderProps & {
 
       <div className="user-profile">
         <div className="user-info">
-          <div className="user-name">{user.name}</div>
-          <div className="user-role">{user.role}</div>
+          <div className="user-name">{user?.name || 'Loading...'}</div>
+          <div className="user-role" style={{ textTransform: 'capitalize' }}>{user?.role || '...'}</div>
         </div>
         <div className="user-avatar">
-          {user.avatar ? (
-            <img src={user.avatar} alt={user.name} />
+          {user?.avatar ? (
+            <img src={user.avatar.url || user.avatar} alt={user?.name} />
           ) : (
-            <span>{user.name.charAt(0)}</span>
+            <span>{user?.name ? user.name.charAt(0).toUpperCase() : '?'}</span>
           )}
         </div>
       </div>
