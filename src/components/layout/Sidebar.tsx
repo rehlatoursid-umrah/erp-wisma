@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import Image from 'next/image'
-import { usePathname } from 'next/navigation'
+import { usePathname, useRouter } from 'next/navigation'
 import {
     Home,
     Shield,
@@ -53,6 +53,16 @@ const navItems = [
 
 export default function Sidebar({ isOpen, onClose }: SidebarProps) {
     const pathname = usePathname()
+    const router = useRouter()
+
+    const handleLogout = async () => {
+        try {
+            await fetch('/api/users/logout', { method: 'POST' })
+            router.push('/')
+        } catch (error) {
+            console.error('Logout failed:', error)
+        }
+    }
 
     return (
         <>
@@ -99,7 +109,7 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
                         <span className="nav-icon"><Settings size={20} color="white" /></span>
                         <span>Pengaturan</span>
                     </Link>
-                    <button className="nav-item logout-btn">
+                    <button className="nav-item logout-btn" onClick={handleLogout}>
                         <span className="nav-icon"><LogOut size={20} color="white" /></span>
                         <span>Keluar</span>
                     </button>
