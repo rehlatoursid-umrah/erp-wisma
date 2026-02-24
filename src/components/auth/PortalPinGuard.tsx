@@ -71,8 +71,8 @@ export default function PortalPinGuard({ expectedPin, portalName, children }: Po
                     <Image
                         src="/media/sticky-header.png"
                         alt="Wisma Nusantara Cairo Logo"
-                        width={64}
-                        height={64}
+                        width={96}
+                        height={96}
                         className="logo-img"
                         priority
                     />
