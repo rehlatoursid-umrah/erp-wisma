@@ -98,16 +98,19 @@ export async function POST(request: NextRequest) {
         const payload = await getPayload({ config })
 
         // 1. Availability Check & Room Assignment
-        const newCheckIn = new Date(checkInDate)
-        const newCheckOut = new Date(checkOutDate)
+        // Use the exact string provided by the user (e.g. '2026-03-15')
+        // Appending T00:00:00.000Z forces UTC so it saves exactly on that day UTC 
+        // without local timezone shifting it backwards.
+        const newCheckInISO = `${checkInDate}T12:00:00.000Z`
+        const newCheckOutISO = `${checkOutDate}T12:00:00.000Z`
 
         // Fetch overlapping bookings
         const existingBookings = await payload.find({
             collection: 'hotel-bookings',
             where: {
                 and: [
-                    { checkIn: { less_than: newCheckOut.toISOString() } },
-                    { checkOut: { greater_than: newCheckIn.toISOString() } },
+                    { checkIn: { less_than: newCheckOutISO } },
+                    { checkOut: { greater_than: newCheckInISO } },
                     { status: { not_equals: 'cancelled' } }
                 ]
             },
@@ -207,9 +210,9 @@ export async function POST(request: NextRequest) {
                     homestayExtraBed: homestayExtraBed || 0,
                 },
                 adults, children: children || 0,
-                checkIn: newCheckIn.toISOString(),
+                checkIn: newCheckInISO,
                 checkInTime: checkInTime || '14:00',
-                checkOut: newCheckOut.toISOString(),
+                checkOut: newCheckOutISO,
                 checkOutTime: checkOutTime || '12:00',
                 nights,
                 airportPickup: airportPickup || 'none',

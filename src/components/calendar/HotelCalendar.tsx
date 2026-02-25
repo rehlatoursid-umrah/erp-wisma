@@ -113,17 +113,8 @@ export default function HotelCalendar({ onBookRoom, refreshTrigger = 0, onUpdate
     return bookings.find(b => {
       if (b.roomNumber !== roomNumber) return false
 
-      const checkInDate = new Date(b.checkIn)
-      const ciY = checkInDate.getFullYear()
-      const ciM = String(checkInDate.getMonth() + 1).padStart(2, '0')
-      const ciD = String(checkInDate.getDate()).padStart(2, '0')
-      const checkInStr = `${ciY}-${ciM}-${ciD}`
-
-      const checkOutDate = new Date(b.checkOut)
-      const coY = checkOutDate.getFullYear()
-      const coM = String(checkOutDate.getMonth() + 1).padStart(2, '0')
-      const coD = String(checkOutDate.getDate()).padStart(2, '0')
-      const checkOutStr = `${coY}-${coM}-${coD}`
+      const checkInStr = b.checkIn.split('T')[0]
+      const checkOutStr = b.checkOut.split('T')[0]
 
       return dateStr >= checkInStr && dateStr <= checkOutStr
     }) || null
