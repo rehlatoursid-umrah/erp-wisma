@@ -1,11 +1,42 @@
 import { NextResponse } from 'next/server'
 import axios from 'axios'
+import https from 'https'
+import { Resolver } from 'dns'
+
+// Custom DNS resolver using Google DNS (8.8.8.8)
+// This bypasses the local ISP DNS which may not resolve certain domains
+const resolver = new Resolver()
+resolver.setServers(['8.8.8.8', '8.8.4.4', '1.1.1.1'])
+
+function customLookup(
+    hostname: string,
+    options: { family?: number } | any,
+    callback: (err: NodeJS.ErrnoException | null, address: string, family: number) => void
+) {
+    resolver.resolve4(hostname, (err, addresses) => {
+        if (err) {
+            // Fallback to IPv6 if IPv4 fails
+            resolver.resolve6(hostname, (err6, addresses6) => {
+                if (err6) return callback(err6, '', 0)
+                callback(null, addresses6[0], 6)
+            })
+            return
+        }
+        callback(null, addresses[0], 4)
+    })
+}
+
+// Create HTTPS agent with custom DNS lookup
+const httpsAgent = new https.Agent({
+    lookup: customLookup as any,
+    keepAlive: true,
+})
 
 export async function POST(request: Request) {
     const start = Date.now()
 
     try {
-        // 1. Get WhatsApp Config (WAJIB ADA USERNAME & PASSWORD)
+        // 1. Get WhatsApp Config
         const whatsappEndpoint = process.env.WHATSAPP_API_ENDPOINT
         const whatsappUsername = process.env.WHATSAPP_API_USERNAME
         const whatsappPassword = process.env.WHATSAPP_API_PASSWORD
@@ -95,8 +126,9 @@ ${catatanText}`
         console.log(`🚀 Sending Daily Reminder to: ${url}`)
         console.log(`📱 Group: ${formattedPhone}`)
         console.log(`🔐 Auth: ${whatsappUsername}:${'*'.repeat(whatsappPassword.length)}`)
+        console.log(`🌐 Using custom DNS: 8.8.8.8, 8.8.4.4, 1.1.1.1`)
 
-        // 7. Send with axios + Basic Auth (SAME PATTERN AS WORKING PROJECT)
+        // 7. Send with axios + Basic Auth + Custom DNS Agent
         const whatsappResponse = await axios.post(url, {
             phone: formattedPhone,
             message: message,
@@ -109,6 +141,7 @@ ${catatanText}`
             headers: {
                 'Content-Type': 'application/json',
             },
+            httpsAgent: httpsAgent,
             timeout: 45000,
             validateStatus: () => true,
         })
@@ -142,7 +175,6 @@ ${catatanText}`
         const tookMs = Date.now() - start
         console.error('❌ Daily Reminder send error:', error.message)
 
-        // More descriptive error for common issues
         let userMessage = error.message
         if (error.code === 'ECONNREFUSED') {
             userMessage = 'Tidak bisa terhubung ke server WhatsApp API. Pastikan server GoWA aktif.'
