@@ -41,6 +41,7 @@ export default function LoginPage() {
           <div className="logo-container">
             <Image src="/media/sticky-header.png" alt="Operational System Wisma Nusantara Cairo" width={100} height={100} className="login-logo-img" />
           </div>
+          <h1>Operational System Wisma Nusantara Cairo</h1>
         </div>
 
         <form onSubmit={handleSubmit} className="login-form">
