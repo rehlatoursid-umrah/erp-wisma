@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import Sidebar from '@/components/layout/Sidebar'
 import Header from '@/components/layout/Header'
 import PortalPinGuard from '@/components/auth/PortalPinGuard'
+import SlipGajiWidget from '@/components/bendahara/SlipGajiWidget'
 
 export default function BendaharaPortal() {
   const [sidebarOpen, setSidebarOpen] = useState(false)
@@ -106,6 +107,8 @@ export default function BendaharaPortal() {
                 </div>
               </div>
             </div>
+
+            <SlipGajiWidget />
           </div>
         </main>
 

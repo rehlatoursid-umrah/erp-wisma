@@ -26,7 +26,7 @@
     "@react-pdf/renderer": "^4.0.0",
     "axios": "^1.13.5",
     "graphql": "^16.9.0",
-    "jspdf": "^4.1.0",
+    "jspdf": "^4.2.0",
     "jspdf-autotable": "^5.0.7",
     "lucide-react": "^0.575.0",
     "next": "^15.0.0",
