@@ -1,37 +1,5 @@
 import { NextResponse } from 'next/server'
 import axios from 'axios'
-import dns from 'dns'
-import https from 'https'
-import { Resolver } from 'dns'
-
-// Custom DNS resolver using Google DNS (8.8.8.8)
-// Bypasses ISP DNS that may not resolve certain domains (e.g. sumopod.my.id)
-const resolver = new Resolver()
-resolver.setServers(['8.8.8.8', '8.8.4.4', '1.1.1.1'])
-
-function customLookup(
-    hostname: string,
-    options: any,
-    callback: (err: NodeJS.ErrnoException | null, address: string, family: number) => void
-) {
-    // Try Google DNS first
-    resolver.resolve4(hostname, (err, addresses) => {
-        if (!err && addresses && addresses.length > 0) {
-            return callback(null, addresses[0], 4)
-        }
-        // Fallback to system DNS (works on Vercel/cloud servers)
-        dns.lookup(hostname, { family: 4 }, (err2, address, family) => {
-            if (err2) return callback(err2, '', 4)
-            callback(null, address, family)
-        })
-    })
-}
-
-// Create HTTPS agent with custom DNS lookup
-const httpsAgent = new https.Agent({
-    lookup: customLookup as any,
-    keepAlive: true,
-})
 
 export async function POST(request: Request) {
     const start = Date.now()
@@ -127,9 +95,8 @@ ${catatanText}`
         console.log(`🚀 Sending Daily Reminder to: ${url}`)
         console.log(`📱 Group: ${formattedPhone}`)
         console.log(`🔐 Auth: ${whatsappUsername}:${'*'.repeat(whatsappPassword.length)}`)
-        console.log(`🌐 Using custom DNS: 8.8.8.8, 8.8.4.4, 1.1.1.1`)
 
-        // 7. Send with axios + Basic Auth + Custom DNS Agent
+        // 7. Send with axios + Basic Auth (same pattern as working send-file project)
         const whatsappResponse = await axios.post(url, {
             phone: formattedPhone,
             message: message,
@@ -142,7 +109,6 @@ ${catatanText}`
             headers: {
                 'Content-Type': 'application/json',
             },
-            httpsAgent: httpsAgent,
             timeout: 45000,
             validateStatus: () => true,
         })
@@ -179,8 +145,8 @@ ${catatanText}`
         let userMessage = error.message
         if (error.code === 'ECONNREFUSED') {
             userMessage = 'Tidak bisa terhubung ke server WhatsApp API. Pastikan server GoWA aktif.'
-        } else if (error.code === 'ETIMEDOUT' || error.code === 'UND_ERR_CONNECT_TIMEOUT') {
-            userMessage = 'Koneksi ke server WhatsApp timeout. Periksa jaringan internet Anda.'
+        } else if (error.code === 'ETIMEDOUT' || error.code === 'ECONNABORTED') {
+            userMessage = 'Koneksi ke server WhatsApp timeout. Coba dari deployment Vercel.'
         } else if (error.code === 'ENOTFOUND') {
             userMessage = 'Domain server WhatsApp tidak ditemukan. Periksa WHATSAPP_API_ENDPOINT di .env'
         }
@@ -189,7 +155,6 @@ ${catatanText}`
             success: false,
             error: userMessage,
             tookMs,
-            stack: process.env.NODE_ENV === 'development' ? error.stack : undefined,
         }, { status: 500 })
     }
 }
