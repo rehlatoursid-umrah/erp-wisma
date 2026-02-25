@@ -83,7 +83,7 @@ export default function SlipGajiWidget() {
             // If it fails, we just won't render the logo image
             let logoDataUrl = null
             try {
-                logoDataUrl = await getBase64ImageFromURL('/media/header.png')
+                logoDataUrl = await getBase64ImageFromURL('/media/sticky-header.png')
             } catch (err) {
                 console.warn("Could not load logo image for PDF", err)
             }
