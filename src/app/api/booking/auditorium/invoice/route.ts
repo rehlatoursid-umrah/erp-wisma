@@ -21,8 +21,8 @@ export async function GET(request: NextRequest) {
     }
     const logoSrc = logoBase64 ? `data:image/png;base64,${logoBase64}` : ''
 
-    const isPaid = status === 'paid' || status === 'confirmed' // Adjust based on your logic, usually 'paid'
-    const statusLabel = isPaid ? '✅ LUNAS' : '⏳ Belum Dibayar'
+    const isPaid = status === 'paid' || status === 'confirmed'
+    const statusLabel = isPaid ? 'PAID / LUNAS' : 'UNPAID / BELUM LUNAS'
     const statusClass = isPaid ? 'paid' : 'unpaid'
 
     const currency = searchParams.get('currency') || 'EGP'
@@ -79,7 +79,7 @@ export async function GET(request: NextRequest) {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background: #f5f5f5;
             padding: 20px;
-            color: #333;
+            color: #111827;
         }
         .container {
             max-width: 800px;
@@ -92,15 +92,15 @@ export async function GET(request: NextRequest) {
             justify-content: space-between;
             align-items: flex-start;
             padding: 40px;
-            border-bottom: 3px solid #8B4513;
+            border-bottom: 3px solid #111827;
         }
         .company-info h1 {
             font-size: 1.8rem;
-            color: #8B4513;
+            color: #111827;
             margin-bottom: 8px;
         }
         .company-info p {
-            color: #666;
+            color: #4b5563;
             font-size: 0.9rem;
             line-height: 1.6;
         }
@@ -109,7 +109,7 @@ export async function GET(request: NextRequest) {
         }
         .invoice-title h2 {
             font-size: 2rem;
-            color: #8B4513;
+            color: #111827;
             text-transform: uppercase;
             letter-spacing: 2px;
         }
@@ -146,12 +146,12 @@ export async function GET(request: NextRequest) {
             margin-bottom: 30px;
         }
         .items-table th {
-            background: #f8f4f0;
+            background: #f3f4f6;
             padding: 15px;
             text-align: left;
             font-weight: 600;
-            color: #8B4513;
-            border-bottom: 2px solid #8B4513;
+            color: #111827;
+            border-bottom: 2px solid #111827;
         }
         .items-table th:last-child {
             text-align: right;
@@ -190,7 +190,7 @@ export async function GET(request: NextRequest) {
             font-weight: 600;
         }
         .totals-table .grand-total {
-            background: linear-gradient(135deg, #8B4513 0%, #A0522D 100%);
+            background: #111827;
             color: white;
         }
         .totals-table .grand-total td {
@@ -201,14 +201,15 @@ export async function GET(request: NextRequest) {
             color: white;
         }
         .payment-info {
-            background: #f8f4f0;
+            background: #f9fafb;
             padding: 25px;
             border-radius: 8px;
             margin-top: 30px;
+            border-left: 4px solid #111827;
         }
         .payment-info h3 {
             font-size: 1rem;
-            color: #8B4513;
+            color: #111827;
             margin-bottom: 15px;
         }
         .payment-info p {
@@ -219,15 +220,15 @@ export async function GET(request: NextRequest) {
         .invoice-footer {
             text-align: center;
             padding: 30px;
-            background: #f8f4f0;
-            border-top: 1px solid #eee;
+            background: #f9fafb;
+            border-top: 1px solid #e5e7eb;
         }
         .invoice-footer p {
             color: #666;
             font-size: 0.85rem;
         }
         .print-btn {
-            background: #8B4513;
+            background: #111827;
             color: white;
             border: none;
             padding: 12px 30px;
@@ -237,7 +238,7 @@ export async function GET(request: NextRequest) {
             margin-top: 15px;
         }
         .print-btn:hover {
-            background: #A0522D;
+            background: #374151;
         }
         @media print {
             body { background: white; padding: 0; }
@@ -246,20 +247,24 @@ export async function GET(request: NextRequest) {
         }
         .status-badge {
             display: inline-block;
-            background: #fbbf24;
-            color: #78350f;
             padding: 6px 16px;
-            border-radius: 20px;
-            font-weight: 600;
-            font-size: 0.8rem;
+            border-radius: 6px;
+            font-weight: 700;
+            font-size: 1rem;
+            margin-top: 10px;
+            text-transform: uppercase;
+            border: 2px solid;
+            background: transparent;
         }
         .status-badge.unpaid {
-            background: #fee2e2;
-            color: #991b1b;
+            background: #fef2f2;
+            color: #dc2626;
+            border-color: #dc2626;
         }
         .status-badge.paid {
-            background: #dcfce7;
-            color: #166534;
+            background: #f0fdf4;
+            color: #16a34a;
+            border-color: #16a34a;
         }
     </style>
 </head>
@@ -269,8 +274,22 @@ export async function GET(request: NextRequest) {
             <div class="company-info" style="display: flex; align-items: flex-start; gap: 20px;">
                 <img src="${logoSrc}" alt="Logo" style="width: 80px; height: auto; object-fit: contain; margin-top: 5px;">
                 <div>
-                    <h1 style="font-size: 1.3rem; margin: 0 0 5px 0; line-height: 1.2; color: #047857;">Operational System<br/>Wisma Nusantara Cairo</h1>
-                    <p style="margin: 0; font-size: 0.85rem; color: #666; line-height: 1.5;">Indonesian Hostel in Cairo<br>Cairo, Egypt<br>📱 +20 150 704 9289</p>
+                    <h1 style="font-size: 1.3rem; margin: 0 0 10px 0; line-height: 1.2; color: #111827;">Operational System<br/>Wisma Nusantara Cairo</h1>
+                    <div style="font-size: 0.85rem; color: #4b5563; line-height: 1.6;">
+                        <div style="margin-bottom: 6px;">Indonesian Hostel in Cairo<br>Cairo, Egypt</div>
+                        <div style="display: flex; align-items: center; gap: 6px; margin-bottom: 4px;">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"/></svg>
+                            <span>WhatsApp +62 851-8991-6769</span>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 6px; margin-bottom: 4px;">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+                            <span>Phone 01554646871</span>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 6px;">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
+                            <span>admin@wismanusantaracairo.com</span>
+                        </div>
+                    </div>
                 </div>
             </div>
             <div class="invoice-title">
@@ -342,14 +361,11 @@ export async function GET(request: NextRequest) {
             </div>
             
             <div class="payment-info">
-                <h3>💳 Informasi Pembayaran</h3>
-                <p>
-                    Pembayaran dapat dilakukan melalui:<br>
-                    • Cash langsung ke admin<br>
-                    • Transfer bank (hubungi admin untuk detail rekening)<br>
-                    • Vodafone Cash<br><br>
-                    📱 Konfirmasi pembayaran: WhatsApp +20 150 704 9289
-                </p>
+                <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 12px;">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#111827" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="12" x="2" y="6" rx="2"/><circle cx="12" cy="12" r="2"/><path d="M6 12h.01M18 12h.01"/></svg>
+                    <h3 style="margin: 0;">Informasi Pembayaran</h3>
+                </div>
+                <p>Pembayaran <strong>HANYA</strong> dapat dilakukan secara <strong>CASH (TUNAI)</strong> kepada resepsionis.</p>
             </div>
         </div>
         
