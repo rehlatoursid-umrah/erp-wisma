@@ -74,9 +74,9 @@ export async function POST(request: Request) {
 
 Tanggal: ${formattedDate}
 
-Petugas piket kantor: ${petugasPiketKantor}
+Petugas piket kantor: @${petugasPiketKantor}
 
-Petugas Piket dapur: ${petugasPiketDapur}
+Petugas Piket dapur: @${petugasPiketDapur}
 
 Acara Penyewaan Auditorium: ${acaraAuditorium || 'Tidak ada'}
 
