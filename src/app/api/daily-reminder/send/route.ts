@@ -1,28 +1,29 @@
 import { NextResponse } from 'next/server'
 import axios from 'axios'
+import dns from 'dns'
 import https from 'https'
 import { Resolver } from 'dns'
 
 // Custom DNS resolver using Google DNS (8.8.8.8)
-// This bypasses the local ISP DNS which may not resolve certain domains
+// Bypasses ISP DNS that may not resolve certain domains (e.g. sumopod.my.id)
 const resolver = new Resolver()
 resolver.setServers(['8.8.8.8', '8.8.4.4', '1.1.1.1'])
 
 function customLookup(
     hostname: string,
-    options: { family?: number } | any,
+    options: any,
     callback: (err: NodeJS.ErrnoException | null, address: string, family: number) => void
 ) {
+    // Try Google DNS first
     resolver.resolve4(hostname, (err, addresses) => {
-        if (err) {
-            // Fallback to IPv6 if IPv4 fails
-            resolver.resolve6(hostname, (err6, addresses6) => {
-                if (err6) return callback(err6, '', 0)
-                callback(null, addresses6[0], 6)
-            })
-            return
+        if (!err && addresses && addresses.length > 0) {
+            return callback(null, addresses[0], 4)
         }
-        callback(null, addresses[0], 4)
+        // Fallback to system DNS (works on Vercel/cloud servers)
+        dns.lookup(hostname, { family: 4 }, (err2, address, family) => {
+            if (err2) return callback(err2, '', 4)
+            callback(null, address, family)
+        })
     })
 }
 
