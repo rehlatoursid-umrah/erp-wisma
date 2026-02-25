@@ -1,6 +1,10 @@
 import { NextResponse } from 'next/server'
 import axios from 'axios'
 
+// Vercel function config: extend timeout (default is 10s on Hobby)
+export const maxDuration = 60 // seconds (requires Vercel Pro for >10s)
+export const dynamic = 'force-dynamic'
+
 export async function POST(request: Request) {
     const start = Date.now()
 
@@ -140,20 +144,21 @@ ${catatanText}`
 
     } catch (error: any) {
         const tookMs = Date.now() - start
-        console.error('❌ Daily Reminder send error:', error.message)
+        console.error('❌ Daily Reminder send error:', error.code, error.message)
 
         let userMessage = error.message
         if (error.code === 'ECONNREFUSED') {
             userMessage = 'Tidak bisa terhubung ke server WhatsApp API. Pastikan server GoWA aktif.'
         } else if (error.code === 'ETIMEDOUT' || error.code === 'ECONNABORTED') {
-            userMessage = 'Koneksi ke server WhatsApp timeout. Coba dari deployment Vercel.'
+            userMessage = 'Koneksi ke server WhatsApp timeout. Pastikan Vercel function timeout cukup.'
         } else if (error.code === 'ENOTFOUND') {
-            userMessage = 'Domain server WhatsApp tidak ditemukan. Periksa WHATSAPP_API_ENDPOINT di .env'
+            userMessage = 'Domain server WhatsApp tidak ditemukan. Periksa WHATSAPP_API_ENDPOINT.'
         }
 
         return NextResponse.json({
             success: false,
             error: userMessage,
+            errorCode: error.code || 'UNKNOWN',
             tookMs,
         }, { status: 500 })
     }
