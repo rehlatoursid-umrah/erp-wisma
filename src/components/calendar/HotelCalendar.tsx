@@ -114,7 +114,7 @@ export default function HotelCalendar({ onBookRoom, refreshTrigger = 0, onUpdate
       if (b.roomNumber !== roomNumber) return false
       const checkIn = b.checkIn.split('T')[0]
       const checkOut = b.checkOut.split('T')[0]
-      return dateStr >= checkIn && dateStr < checkOut
+      return dateStr >= checkIn && dateStr <= checkOut
     }) || null
   }
 
