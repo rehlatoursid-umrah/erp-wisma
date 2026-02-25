@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { FileText, Download, Loader2 } from 'lucide-react'
 import jsPDF from 'jspdf'
-import 'jspdf-autotable'
+import autoTable from 'jspdf-autotable'
 
 const STAFF_OPTIONS = [
     'Ubaidillah Chair',
@@ -83,7 +83,7 @@ export default function SlipGajiWidget() {
             // If it fails, we just won't render the logo image
             let logoDataUrl = null
             try {
-                logoDataUrl = await getBase64ImageFromURL('/media/logo.png')
+                logoDataUrl = await getBase64ImageFromURL('/media/header.png')
             } catch (err) {
                 console.warn("Could not load logo image for PDF", err)
             }
@@ -177,7 +177,7 @@ export default function SlipGajiWidget() {
             ]
 
                 // Custom font weight for the footer manually via autotable hooks
-                ; (doc as any).autoTable({
+                ; (autoTable as any)(doc, {
                     startY: startY + lineSpacing * 8,
                     head: [],
                     body: tableData,
@@ -205,8 +205,10 @@ export default function SlipGajiWidget() {
                 })
 
             // ─── SIGNATURES ───
-            // @ts-ignore
-            const finalY = doc.lastAutoTable.finalY + 30
+            let finalY = startY + lineSpacing * 8 + 30 // fallback
+            if ((doc as any).lastAutoTable && (doc as any).lastAutoTable.finalY) {
+                finalY = (doc as any).lastAutoTable.finalY + 30
+            }
 
             doc.setFont('helvetica', 'normal')
             doc.text('Mengetahui,', 105, finalY, { align: 'center' })
@@ -232,9 +234,9 @@ export default function SlipGajiWidget() {
             // Output PDF
             doc.save(`Slip_Gaji_${form.nama.replace(/\s+/g, '_')}_${form.periode.replace(/\s+/g, '_')}.pdf`)
 
-        } catch (error) {
+        } catch (error: any) {
             console.error("Failed generating PDF:", error)
-            alert('Gagal membuat PDF. Periksa log browser.')
+            alert(`Gagal membuat PDF: ${error.message || error}`)
         } finally {
             setIsGenerating(false)
         }
@@ -345,6 +347,7 @@ export default function SlipGajiWidget() {
         .form-row {
           display: flex;
           gap: 1rem;
+          width: 100%;
         }
 
         .field {
@@ -352,6 +355,7 @@ export default function SlipGajiWidget() {
           display: flex;
           flex-direction: column;
           gap: 0.25rem;
+          min-width: 0; /* Prevents flex items from overflowing */
         }
 
         .piket-row {
@@ -362,6 +366,7 @@ export default function SlipGajiWidget() {
           padding-bottom: 0.6rem;
           font-weight: bold;
           color: var(--color-text-muted);
+          flex-shrink: 0;
         }
 
         label {
