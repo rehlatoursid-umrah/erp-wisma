@@ -104,7 +104,12 @@ export default function HotelCalendar({ onBookRoom, refreshTrigger = 0, onUpdate
 
   // Check if a room is booked on a specific date
   const getBookingForDate = (roomNumber: string, date: Date): HotelBooking | null => {
-    const dateStr = date.toISOString().split('T')[0]
+    // Determine the local date string (YYYY-MM-DD) avoiding timezone offsets from toISOString()
+    const y = date.getFullYear()
+    const m = String(date.getMonth() + 1).padStart(2, '0')
+    const d = String(date.getDate()).padStart(2, '0')
+    const dateStr = `${y}-${m}-${d}`
+
     return bookings.find(b => {
       if (b.roomNumber !== roomNumber) return false
       const checkIn = b.checkIn.split('T')[0]

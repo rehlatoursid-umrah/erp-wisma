@@ -53,7 +53,11 @@ export default function RentalCalendar({ items, onRentItem }: RentalCalendarProp
   const daysOfWeek = ['Min', 'Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab']
 
   const getRentedQuantity = (item: RentalItem, date: Date) => {
-    const dateStr = date.toISOString().split('T')[0]
+    const y = date.getFullYear()
+    const m = String(date.getMonth() + 1).padStart(2, '0')
+    const d = String(date.getDate()).padStart(2, '0')
+    const dateStr = `${y}-${m}-${d}`
+
     const rental = item.rentals.find(r => r.date === dateStr)
     return rental?.quantity || 0
   }

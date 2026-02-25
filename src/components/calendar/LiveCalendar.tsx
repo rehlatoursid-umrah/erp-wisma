@@ -61,7 +61,11 @@ export default function LiveCalendar({
       const date = new Date(startDate)
       date.setDate(startDate.getDate() + i)
 
-      const dateStr = date.toISOString().split('T')[0]
+      const y = date.getFullYear()
+      const m = String(date.getMonth() + 1).padStart(2, '0')
+      const d = String(date.getDate()).padStart(2, '0')
+      const dateStr = `${y}-${m}-${d}`
+
       const dayBookings = bookings
         .filter(b => b.date === dateStr)
         .map(b => ({ ...b, id: `${b.date}-${b.title}` }))
