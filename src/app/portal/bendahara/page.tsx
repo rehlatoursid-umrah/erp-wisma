@@ -119,8 +119,6 @@ export default function BendaharaPortal() {
           .main-content {
             flex: 1;
             padding: var(--spacing-2xl);
-            max-width: 1400px;
-            margin: 0 auto;
             width: 100%;
             display: flex;
             flex-direction: column;
