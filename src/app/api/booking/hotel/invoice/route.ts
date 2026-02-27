@@ -15,6 +15,7 @@ export async function GET(request: NextRequest) {
     const currency = searchParams.get('currency') || 'USD'
     const status = searchParams.get('status') || 'pending'
     const isPaid = status === 'paid'
+    const phone = searchParams.get('phone') || ''
 
     // Parse extra charges
     const extraBed = parseInt(searchParams.get('extraBed') || '0')
@@ -88,8 +89,10 @@ export async function GET(request: NextRequest) {
         .invoice-footer { text-align: center; padding: 30px; background: #f9fafb; border-top: 1px solid #e5e7eb; }
         .print-btn { background: #111827; color: white; border: none; padding: 12px 30px; border-radius: 8px; cursor: pointer; font-size: 1rem; margin-top: 15px; }
         .print-btn:hover { background: #374151; }
+        .wa-btn { background: #25D366; color: white; border: none; padding: 12px 30px; border-radius: 8px; cursor: pointer; font-size: 1rem; margin-top: 15px; margin-left: 10px; }
+        .wa-btn:hover { background: #1da851; }
         * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; color-adjust: exact !important; }
-        @media print { .print-btn { display: none; } body { background: white; padding: 0; } .container { box-shadow: none; } }
+        @media print { .print-btn, .wa-btn { display: none; } body { background: white; padding: 0; } .container { box-shadow: none; } }
     </style>
 </head>
 <body>
@@ -191,8 +194,62 @@ export async function GET(request: NextRequest) {
         <div class="invoice-footer">
             <p>Terima kasih telah menginap di Operational System Wisma Nusantara Cairo</p>
             <button class="print-btn" onclick="window.print()">🖨️ Cetak Invoice</button>
+            ${phone ? `<button class="wa-btn" id="sendWaBtn" onclick="sendWhatsApp()">📱 Kirim WA</button>` : ''}
         </div>
     </div>
+
+    <script>
+    function sendWhatsApp() {
+        const btn = document.getElementById('sendWaBtn');
+        btn.disabled = true;
+        btn.textContent = '⏳ Mengirim...';
+        btn.style.opacity = '0.7';
+
+        const currentUrl = new URL(window.location.href);
+        
+        fetch('/api/booking/hotel/invoice/send-wa', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                phone: '${phone}',
+                invoiceUrl: window.location.href,
+                bookingId: '${bookingId}',
+                guestName: '${decodeURIComponent(name)}',
+                room: '${room}',
+                nights: '${nights}',
+                checkIn: '${checkIn}',
+                checkOut: '${checkOut}',
+                total: '${total}',
+                currency: '${currency}',
+                status: '${status}'
+            })
+        })
+        .then(r => r.json())
+        .then(data => {
+            if (data.success) {
+                btn.textContent = '✅ Terkirim!';
+                btn.style.background = '#16a34a';
+                setTimeout(() => {
+                    btn.textContent = '📱 Kirim WA';
+                    btn.style.background = '#25D366';
+                    btn.style.opacity = '1';
+                    btn.disabled = false;
+                }, 3000);
+            } else {
+                alert('❌ Gagal mengirim: ' + (data.error || 'Unknown error'));
+                btn.textContent = '📱 Kirim WA';
+                btn.style.opacity = '1';
+                btn.disabled = false;
+            }
+        })
+        .catch(err => {
+            alert('❌ Error: ' + err.message);
+            btn.textContent = '📱 Kirim WA';
+            btn.style.opacity = '1';
+            btn.disabled = false;
+        });
+    }
+    </script>
 </body>
 </html>
     `

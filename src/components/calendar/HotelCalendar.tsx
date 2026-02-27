@@ -726,6 +726,7 @@ export default function HotelCalendar({ onBookRoom, refreshTrigger = 0, onUpdate
                         total: selectedBooking.totalPrice.toString(),
                         currency: 'USD',
                         status: selectedBooking.status,
+                        phone: selectedBooking.guestWhatsapp || '',
                         extraBed: (pricing.extraBedTotal || 0).toString(),
                         pickup: (pricing.pickupTotal || 0).toString(),
                         meals: (pricing.mealsTotal || 0).toString()
