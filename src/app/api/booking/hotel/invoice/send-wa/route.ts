@@ -1,11 +1,10 @@
 import { NextResponse } from 'next/server'
 import axios from 'axios'
-import { jsPDF } from 'jspdf'
 
 export const maxDuration = 60
 export const dynamic = 'force-dynamic'
 
-function generateInvoicePDF(data: {
+async function generateInvoicePDF(data: {
     bookingId: string
     guestName: string
     room: string
@@ -18,8 +17,10 @@ function generateInvoicePDF(data: {
     extraBed?: string
     pickup?: string
     meals?: string
-}): string {
-    const doc = new jsPDF({ unit: 'mm', format: 'a4' })
+}): Promise<string> {
+    const jsPDFModule = await import('jspdf')
+    const JsPDFClass = (jsPDFModule as any).jsPDF || (jsPDFModule as any).default
+    const doc = new JsPDFClass({ unit: 'mm', format: 'a4' })
     const pageW = doc.internal.pageSize.getWidth()
     const statusText = data.status === 'paid' ? 'LUNAS' : 'BELUM LUNAS'
     const invoiceNo = `INV-${data.bookingId.replace('HTL-', '')}`
@@ -184,8 +185,9 @@ function generateInvoicePDF(data: {
     doc.setFontSize(7)
     doc.text('WhatsApp: +62 851-8991-6769 | Phone: 01554646871 | Email: admin@wismanusantaracairo.com', pageW / 2, y, { align: 'center' })
 
-    // Return as base64
-    return doc.output('datauristring').split(',')[1]
+    // Return as base64 string (raw, no data URI prefix)
+    const pdfOutput = doc.output('datauristring')
+    return pdfOutput // Full data URI: data:application/pdf;base64,...
 }
 
 export async function POST(request: Request) {
@@ -263,7 +265,7 @@ _Terima kasih telah menginap di Wisma Nusantara Cairo_ 🏠`
         // ── Step 2: Generate PDF Invoice ──
         console.log(`📄 Step 2: Generating PDF invoice...`)
 
-        const pdfBase64 = generateInvoicePDF({
+        const pdfDataUri = await generateInvoicePDF({
             bookingId, guestName, room, nights, checkIn, checkOut, total, currency, status,
             extraBed, pickup, meals
         })
@@ -275,13 +277,13 @@ _Terima kasih telah menginap di Wisma Nusantara Cairo_ 🏠`
 
         const fileResponse = await axios.post(`${baseUrl}/send/file`, {
             phone: formattedPhone,
-            file: pdfBase64,
+            file: pdfDataUri,
             filename: invoiceFilename,
             caption: `📄 Invoice ${bookingId} — ${guestName}`,
             is_forwarded: false,
         }, authConfig)
 
-        console.log(`📥 File response: ${fileResponse.status}`)
+        console.log(`📥 File response: ${fileResponse.status}`, JSON.stringify(fileResponse.data).substring(0, 300))
 
         const textOk = textResponse.status >= 200 && textResponse.status < 300
         const fileOk = fileResponse.status >= 200 && fileResponse.status < 300
