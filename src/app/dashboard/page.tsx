@@ -218,9 +218,9 @@ export default function DashboardPage() {
 
   if (sessionLoading) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50">
+      <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: '#f9fafb', gap: '16px' }}>
         <div className="loading-spinner">⏳</div>
-        <p className="mt-4 text-gray-500 font-medium">Memuat sesi pengguna...</p>
+        <p style={{ color: '#6b7280', fontWeight: 500, fontSize: '1rem' }}>Memuat sesi pengguna...</p>
         <style jsx>{`
           .loading-spinner {
             font-size: 3rem;
