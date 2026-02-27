@@ -17,7 +17,7 @@ async function generateInvoicePDF(data: {
     extraBed?: string
     pickup?: string
     meals?: string
-}): Promise<string> {
+}): Promise<Buffer> {
     const jsPDFModule = await import('jspdf')
     const JsPDFClass = (jsPDFModule as any).jsPDF || (jsPDFModule as any).default
     const doc = new JsPDFClass({ unit: 'mm', format: 'a4' })
@@ -185,9 +185,9 @@ async function generateInvoicePDF(data: {
     doc.setFontSize(7)
     doc.text('WhatsApp: +62 851-8991-6769 | Phone: 01554646871 | Email: admin@wismanusantaracairo.com', pageW / 2, y, { align: 'center' })
 
-    // Return as base64 string (raw, no data URI prefix)
-    const pdfOutput = doc.output('datauristring')
-    return pdfOutput // Full data URI: data:application/pdf;base64,...
+    // Return as Buffer
+    const arrayBuf = doc.output('arraybuffer')
+    return Buffer.from(arrayBuf)
 }
 
 export async function POST(request: Request) {
@@ -265,23 +265,27 @@ _Terima kasih telah menginap di Wisma Nusantara Cairo_ 🏠`
         // ── Step 2: Generate PDF Invoice ──
         console.log(`📄 Step 2: Generating PDF invoice...`)
 
-        const pdfDataUri = await generateInvoicePDF({
+        const pdfBuffer = await generateInvoicePDF({
             bookingId, guestName, room, nights, checkIn, checkOut, total, currency, status,
             extraBed, pickup, meals
         })
 
         const invoiceFilename = `Invoice_${bookingId}.pdf`
 
-        // ── Step 3: Send PDF File via GoWA API ──
-        console.log(`📤 Step 3: Sending PDF file to ${formattedPhone}`)
+        // ── Step 3: Send PDF File via GoWA API (multipart/form-data) ──
+        console.log(`📤 Step 3: Sending PDF file (${pdfBuffer.length} bytes) to ${formattedPhone}`)
 
-        const fileResponse = await axios.post(`${baseUrl}/send/file`, {
-            phone: formattedPhone,
-            file: pdfDataUri,
-            filename: invoiceFilename,
-            caption: `📄 Invoice ${bookingId} — ${guestName}`,
-            is_forwarded: false,
-        }, authConfig)
+        const formData = new FormData()
+        formData.append('phone', formattedPhone)
+        formData.append('caption', `📄 Invoice ${bookingId} — ${guestName}`)
+        formData.append('file', new Blob([new Uint8Array(pdfBuffer)], { type: 'application/pdf' }), invoiceFilename)
+
+        const fileResponse = await axios.post(`${baseUrl}/send/file`, formData, {
+            auth: { username: whatsappUsername, password: whatsappPassword },
+            headers: { ...formData instanceof FormData ? {} : { 'Content-Type': 'multipart/form-data' } },
+            timeout: 45000,
+            validateStatus: () => true,
+        })
 
         console.log(`📥 File response: ${fileResponse.status}`, JSON.stringify(fileResponse.data).substring(0, 300))
 
