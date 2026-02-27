@@ -4,193 +4,17 @@ import axios from 'axios'
 export const maxDuration = 60
 export const dynamic = 'force-dynamic'
 
-async function generateInvoicePDF(data: {
-    bookingId: string
-    guestName: string
-    room: string
-    nights: string
-    checkIn: string
-    checkOut: string
-    total: string
-    currency: string
-    status: string
-    extraBed?: string
-    pickup?: string
-    meals?: string
-}): Promise<Buffer> {
-    const jsPDFModule = await import('jspdf')
-    const JsPDFClass = (jsPDFModule as any).jsPDF || (jsPDFModule as any).default
-    const doc = new JsPDFClass({ unit: 'mm', format: 'a4' })
-    const pageW = doc.internal.pageSize.getWidth()
-    const statusText = data.status === 'paid' ? 'LUNAS' : 'BELUM LUNAS'
-    const invoiceNo = `INV-${data.bookingId.replace('HTL-', '')}`
-    const totalNum = parseInt(data.total) || 0
-    const extraBed = parseInt(data.extraBed || '0')
-    const pickup = parseInt(data.pickup || '0')
-    const meals = parseInt(data.meals || '0')
-    const roomCharge = totalNum - extraBed - pickup
-
-    // Header Bar
-    doc.setFillColor(17, 24, 39)
-    doc.rect(0, 0, pageW, 32, 'F')
-    doc.setTextColor(255, 255, 255)
-    doc.setFontSize(18)
-    doc.setFont('helvetica', 'bold')
-    doc.text('INVOICE', pageW / 2, 14, { align: 'center' })
-    doc.setFontSize(10)
-    doc.setFont('helvetica', 'normal')
-    doc.text('Wisma Nusantara Cairo — Indonesian Hostel in Cairo', pageW / 2, 22, { align: 'center' })
-    doc.setFontSize(8)
-    doc.text(invoiceNo, pageW / 2, 28, { align: 'center' })
-
-    // Status Badge
-    const badgeY = 40
-    if (data.status === 'paid') {
-        doc.setFillColor(240, 253, 244)
-        doc.setDrawColor(22, 163, 74)
-        doc.setTextColor(22, 163, 74)
-    } else {
-        doc.setFillColor(254, 242, 242)
-        doc.setDrawColor(220, 38, 38)
-        doc.setTextColor(220, 38, 38)
-    }
-    const badgeW = doc.getTextWidth(statusText) + 16
-    doc.roundedRect((pageW - badgeW) / 2, badgeY - 5, badgeW, 10, 3, 3, 'FD')
-    doc.setFontSize(10)
-    doc.setFont('helvetica', 'bold')
-    doc.text(statusText, pageW / 2, badgeY + 1.5, { align: 'center' })
-
-    // Guest Info
-    let y = 58
-    doc.setTextColor(107, 114, 128)
-    doc.setFontSize(8)
-    doc.setFont('helvetica', 'bold')
-    doc.text('TAGIHAN KEPADA', 20, y)
-    doc.text('INFO INVOICE', pageW - 20, y, { align: 'right' })
-
-    y += 7
-    doc.setTextColor(17, 24, 39)
-    doc.setFontSize(11)
-    doc.setFont('helvetica', 'bold')
-    doc.text(data.guestName, 20, y)
-    doc.setFont('helvetica', 'normal')
-    doc.setFontSize(9)
-    const invoiceDate = new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })
-    doc.text(`Tanggal: ${invoiceDate}`, pageW - 20, y, { align: 'right' })
-
-    y += 6
-    doc.setTextColor(107, 114, 128)
-    doc.setFontSize(9)
-    doc.text(`Booking ID: ${data.bookingId}`, 20, y)
-
-    y += 8
-    doc.setDrawColor(229, 231, 235)
-    doc.line(20, y, pageW - 20, y)
-
-    // Items Table Header
-    y += 8
-    doc.setFillColor(243, 244, 246)
-    doc.rect(20, y - 4, pageW - 40, 10, 'F')
-    doc.setTextColor(17, 24, 39)
-    doc.setFontSize(9)
-    doc.setFont('helvetica', 'bold')
-    doc.text('Deskripsi', 25, y + 2)
-    doc.text('Qty', 120, y + 2)
-    doc.text('Harga', pageW - 25, y + 2, { align: 'right' })
-
-    // Room Item
-    y += 14
-    doc.setFont('helvetica', 'bold')
-    doc.setTextColor(17, 24, 39)
-    doc.setFontSize(9)
-    doc.text(`Sewa Kamar ${data.room}`, 25, y)
-    doc.setFont('helvetica', 'normal')
-    doc.setTextColor(107, 114, 128)
-    doc.setFontSize(8)
-    doc.text(`${data.nights} Malam (${data.checkIn} - ${data.checkOut})`, 25, y + 5)
-    doc.setTextColor(17, 24, 39)
-    doc.setFontSize(9)
-    doc.text('1', 120, y)
-    doc.text(`${roomCharge.toLocaleString()} ${data.currency}`, pageW - 25, y, { align: 'right' })
-
-    if (extraBed > 0) {
-        y += 14
-        doc.setFont('helvetica', 'bold')
-        doc.text('Extra Bed', 25, y)
-        doc.setFont('helvetica', 'normal')
-        doc.text('1', 120, y)
-        doc.text(`${extraBed.toLocaleString()} ${data.currency}`, pageW - 25, y, { align: 'right' })
-    }
-
-    if (pickup > 0) {
-        y += 14
-        doc.setFont('helvetica', 'bold')
-        doc.text('Airport Pickup', 25, y)
-        doc.setFont('helvetica', 'normal')
-        doc.text('1', 120, y)
-        doc.text(`${pickup.toLocaleString()} ${data.currency}`, pageW - 25, y, { align: 'right' })
-    }
-
-    y += 10
-    doc.setDrawColor(229, 231, 235)
-    doc.line(20, y, pageW - 20, y)
-
-    if (meals > 0) {
-        y += 8
-        doc.setTextColor(234, 88, 12)
-        doc.setFontSize(9)
-        doc.text(`Paket Makan (EGP): + ${meals.toLocaleString()} EGP`, pageW - 25, y, { align: 'right' })
-    }
-
-    // Grand Total
-    y += 10
-    const totalBoxW = 120
-    const totalBoxX = pageW - 20 - totalBoxW
-    doc.setFillColor(17, 24, 39)
-    doc.roundedRect(totalBoxX, y - 5, totalBoxW, 14, 2, 2, 'F')
-    doc.setTextColor(255, 255, 255)
-    doc.setFontSize(12)
-    doc.setFont('helvetica', 'bold')
-    doc.text('Total', totalBoxX + 10, y + 4)
-    doc.text(`${totalNum.toLocaleString()} ${data.currency}`, totalBoxX + totalBoxW - 10, y + 4, { align: 'right' })
-
-    // Payment Info
-    y += 22
-    doc.setDrawColor(17, 24, 39)
-    doc.setLineWidth(0.8)
-    doc.line(20, y - 2, 20, y + 14)
-    doc.setFillColor(249, 250, 251)
-    doc.rect(22, y - 4, pageW - 44, 20, 'F')
-    doc.setTextColor(17, 24, 39)
-    doc.setFontSize(10)
-    doc.setFont('helvetica', 'bold')
-    doc.text('Informasi Pembayaran', 28, y + 2)
-    doc.setFont('helvetica', 'normal')
-    doc.setFontSize(9)
-    doc.setTextColor(75, 85, 99)
-    doc.text('Pembayaran HANYA dapat dilakukan secara CASH (TUNAI) kepada resepsionis.', 28, y + 10)
-
-    // Footer
-    y += 30
-    doc.setTextColor(107, 114, 128)
-    doc.setFontSize(8)
-    doc.text('Terima kasih telah menginap di Wisma Nusantara Cairo', pageW / 2, y, { align: 'center' })
-    y += 5
-    doc.setFontSize(7)
-    doc.text('WhatsApp: +62 851-8991-6769 | Phone: 01554646871 | Email: admin@wismanusantaracairo.com', pageW / 2, y, { align: 'center' })
-
-    // Return as Buffer
-    const arrayBuf = doc.output('arraybuffer')
-    return Buffer.from(arrayBuf)
-}
-
 export async function POST(request: Request) {
     try {
         const data = await request.json()
-        const { phone, bookingId, guestName, room, nights, checkIn, checkOut, total, currency, status, extraBed, pickup, meals } = data
+        const { phone, pdfBase64, bookingId, guestName, total, currency, status, room, nights, checkIn, checkOut } = data
 
         if (!phone) {
             return NextResponse.json({ success: false, error: 'Nomor WhatsApp customer tidak tersedia' }, { status: 400 })
+        }
+
+        if (!pdfBase64) {
+            return NextResponse.json({ success: false, error: 'PDF data tidak tersedia' }, { status: 400 })
         }
 
         const whatsappEndpoint = process.env.WHATSAPP_API_ENDPOINT
@@ -212,18 +36,14 @@ export async function POST(request: Request) {
 
         const baseUrl = whatsappEndpoint.replace(/\/$/, '')
 
-        // ── Step 1: Generate PDF Invoice ──
-        console.log(`📄 Step 1: Generating PDF invoice...`)
-
-        const pdfBuffer = await generateInvoicePDF({
-            bookingId, guestName, room, nights, checkIn, checkOut, total, currency, status,
-            extraBed, pickup, meals
-        })
-
+        // Convert base64 PDF to Buffer
+        const pdfBuffer = Buffer.from(pdfBase64, 'base64')
         const invoiceFilename = `Invoice_${bookingId}.pdf`
-        console.log(`✅ PDF generated: ${pdfBuffer.length} bytes`)
 
-        // ── Step 2: Send PDF + Caption as ONE message via /send/file ──
+        console.log(`📄 PDF received: ${pdfBuffer.length} bytes`)
+        console.log(`📤 Sending PDF + caption to ${formattedPhone}`)
+
+        // Build caption text
         const statusText = status === 'paid' ? '✅ LUNAS' : '⏳ BELUM LUNAS'
         const captionText = `📄 *INVOICE - Wisma Nusantara Cairo*
 
@@ -249,8 +69,7 @@ export async function POST(request: Request) {
 
 _Terima kasih telah menginap di Wisma Nusantara Cairo_ 🏠`
 
-        console.log(`📤 Step 2: Sending PDF file + caption to ${formattedPhone}`)
-
+        // Send PDF + caption as ONE message via GoWA /send/file (multipart/form-data)
         const formData = new FormData()
         formData.append('phone', formattedPhone)
         formData.append('caption', captionText)
@@ -267,7 +86,7 @@ _Terima kasih telah menginap di Wisma Nusantara Cairo_ 🏠`
         if (response.status >= 200 && response.status < 300) {
             return NextResponse.json({
                 success: true,
-                message: `Invoice PDF + teks berhasil dikirim ke WhatsApp ${phone}`,
+                message: `Invoice PDF berhasil dikirim ke WhatsApp ${phone}`,
             })
         } else {
             console.error('❌ GoWA file send failed:', response.data)

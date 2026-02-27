@@ -94,6 +94,8 @@ export async function GET(request: NextRequest) {
         * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; color-adjust: exact !important; }
         @media print { .print-btn, .wa-btn { display: none; } body { background: white; padding: 0; } .container { box-shadow: none; } }
     </style>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 </head>
 <body>
     <div class="container">
@@ -199,36 +201,75 @@ export async function GET(request: NextRequest) {
     </div>
 
     <script>
-    function sendWhatsApp() {
+    async function sendWhatsApp() {
         const btn = document.getElementById('sendWaBtn');
         btn.disabled = true;
-        btn.textContent = '⏳ Mengirim...';
+        btn.textContent = '⏳ Membuat PDF...';
         btn.style.opacity = '0.7';
 
-        const currentUrl = new URL(window.location.href);
-        
-        fetch('/api/booking/hotel/invoice/send-wa', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                phone: '${phone}',
-                invoiceUrl: window.location.href,
-                bookingId: '${bookingId}',
-                guestName: '${decodeURIComponent(name)}',
-                room: '${room}',
-                nights: '${nights}',
-                checkIn: '${checkIn}',
-                checkOut: '${checkOut}',
-                total: '${total}',
-                currency: '${currency}',
-                status: '${status}',
-                extraBed: '${extraBed}',
-                pickup: '${pickup}',
-                meals: '${meals}'
-            })
-        })
-        .then(r => r.json())
-        .then(data => {
+        try {
+            // Hide buttons before capture
+            const footer = document.querySelector('.invoice-footer');
+            const buttons = footer.querySelectorAll('button');
+            buttons.forEach(b => b.style.display = 'none');
+
+            // Capture the invoice container as image
+            const container = document.querySelector('.container');
+            const canvas = await html2canvas(container, {
+                scale: 2,
+                useCORS: true,
+                allowTaint: true,
+                backgroundColor: '#ffffff',
+                logging: false
+            });
+
+            // Show buttons again
+            buttons.forEach(b => b.style.display = '');
+
+            // Convert to PDF using jsPDF
+            const imgData = canvas.toDataURL('image/jpeg', 0.95);
+            const imgWidth = canvas.width;
+            const imgHeight = canvas.height;
+
+            // A4 dimensions in mm
+            const pdfWidth = 210;
+            const pdfHeight = (imgHeight * pdfWidth) / imgWidth;
+
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF({
+                orientation: pdfHeight > pdfWidth ? 'portrait' : 'landscape',
+                unit: 'mm',
+                format: [pdfWidth, pdfHeight]
+            });
+
+            doc.addImage(imgData, 'JPEG', 0, 0, pdfWidth, pdfHeight);
+
+            // Get PDF as base64
+            const pdfBase64 = doc.output('datauristring').split(',')[1];
+
+            btn.textContent = '📤 Mengirim ke WA...';
+
+            // Send to server
+            const response = await fetch('/api/booking/hotel/invoice/send-wa', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    phone: '${phone}',
+                    pdfBase64: pdfBase64,
+                    bookingId: '${bookingId}',
+                    guestName: '${decodeURIComponent(name)}',
+                    total: '${total}',
+                    currency: '${currency}',
+                    status: '${status}',
+                    room: '${room}',
+                    nights: '${nights}',
+                    checkIn: '${checkIn}',
+                    checkOut: '${checkOut}'
+                })
+            });
+
+            const data = await response.json();
+
             if (data.success) {
                 btn.textContent = '✅ Terkirim!';
                 btn.style.background = '#16a34a';
@@ -244,13 +285,12 @@ export async function GET(request: NextRequest) {
                 btn.style.opacity = '1';
                 btn.disabled = false;
             }
-        })
-        .catch(err => {
+        } catch(err) {
             alert('❌ Error: ' + err.message);
             btn.textContent = '📱 Kirim WA';
             btn.style.opacity = '1';
             btn.disabled = false;
-        });
+        }
     }
     </script>
 </body>
