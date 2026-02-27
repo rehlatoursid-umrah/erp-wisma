@@ -217,7 +217,22 @@ export default function DashboardPage() {
   }, []) // Remove dependency array to only fetch once for static demo
 
   if (sessionLoading) {
-    return <div className="min-h-screen flex items-center justify-center bg-gray-50 text-gray-500">Memuat sesi pengguna...</div>
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50">
+        <div className="loading-spinner">⏳</div>
+        <p className="mt-4 text-gray-500 font-medium">Memuat sesi pengguna...</p>
+        <style jsx>{`
+          .loading-spinner {
+            font-size: 3rem;
+            animation: spin 1s linear infinite;
+          }
+          @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+          }
+        `}</style>
+      </div>
+    )
   }
 
   return (
