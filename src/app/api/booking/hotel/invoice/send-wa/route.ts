@@ -30,8 +30,8 @@ async function generateInvoicePDF(data: {
     const meals = parseInt(data.meals || '0')
     const roomCharge = totalNum - extraBed - pickup
 
-    // ── Header Bar ──
-    doc.setFillColor(17, 24, 39) // #111827
+    // Header Bar
+    doc.setFillColor(17, 24, 39)
     doc.rect(0, 0, pageW, 32, 'F')
     doc.setTextColor(255, 255, 255)
     doc.setFontSize(18)
@@ -43,7 +43,7 @@ async function generateInvoicePDF(data: {
     doc.setFontSize(8)
     doc.text(invoiceNo, pageW / 2, 28, { align: 'center' })
 
-    // ── Status Badge ──
+    // Status Badge
     const badgeY = 40
     if (data.status === 'paid') {
         doc.setFillColor(240, 253, 244)
@@ -54,14 +54,13 @@ async function generateInvoicePDF(data: {
         doc.setDrawColor(220, 38, 38)
         doc.setTextColor(220, 38, 38)
     }
-    const badgeText = statusText
-    const badgeW = doc.getTextWidth(badgeText) + 16
+    const badgeW = doc.getTextWidth(statusText) + 16
     doc.roundedRect((pageW - badgeW) / 2, badgeY - 5, badgeW, 10, 3, 3, 'FD')
     doc.setFontSize(10)
     doc.setFont('helvetica', 'bold')
-    doc.text(badgeText, pageW / 2, badgeY + 1.5, { align: 'center' })
+    doc.text(statusText, pageW / 2, badgeY + 1.5, { align: 'center' })
 
-    // ── Guest Info ──
+    // Guest Info
     let y = 58
     doc.setTextColor(107, 114, 128)
     doc.setFontSize(8)
@@ -84,12 +83,11 @@ async function generateInvoicePDF(data: {
     doc.setFontSize(9)
     doc.text(`Booking ID: ${data.bookingId}`, 20, y)
 
-    // ── Separator ──
     y += 8
     doc.setDrawColor(229, 231, 235)
     doc.line(20, y, pageW - 20, y)
 
-    // ── Items Table Header ──
+    // Items Table Header
     y += 8
     doc.setFillColor(243, 244, 246)
     doc.rect(20, y - 4, pageW - 40, 10, 'F')
@@ -100,7 +98,7 @@ async function generateInvoicePDF(data: {
     doc.text('Qty', 120, y + 2)
     doc.text('Harga', pageW - 25, y + 2, { align: 'right' })
 
-    // ── Room Item ──
+    // Room Item
     y += 14
     doc.setFont('helvetica', 'bold')
     doc.setTextColor(17, 24, 39)
@@ -115,7 +113,6 @@ async function generateInvoicePDF(data: {
     doc.text('1', 120, y)
     doc.text(`${roomCharge.toLocaleString()} ${data.currency}`, pageW - 25, y, { align: 'right' })
 
-    // ── Extra Bed ──
     if (extraBed > 0) {
         y += 14
         doc.setFont('helvetica', 'bold')
@@ -125,7 +122,6 @@ async function generateInvoicePDF(data: {
         doc.text(`${extraBed.toLocaleString()} ${data.currency}`, pageW - 25, y, { align: 'right' })
     }
 
-    // ── Airport Pickup ──
     if (pickup > 0) {
         y += 14
         doc.setFont('helvetica', 'bold')
@@ -135,12 +131,10 @@ async function generateInvoicePDF(data: {
         doc.text(`${pickup.toLocaleString()} ${data.currency}`, pageW - 25, y, { align: 'right' })
     }
 
-    // ── Separator ──
     y += 10
     doc.setDrawColor(229, 231, 235)
     doc.line(20, y, pageW - 20, y)
 
-    // ── Meals Note ──
     if (meals > 0) {
         y += 8
         doc.setTextColor(234, 88, 12)
@@ -148,7 +142,7 @@ async function generateInvoicePDF(data: {
         doc.text(`Paket Makan (EGP): + ${meals.toLocaleString()} EGP`, pageW - 25, y, { align: 'right' })
     }
 
-    // ── Grand Total ──
+    // Grand Total
     y += 10
     const totalBoxW = 120
     const totalBoxX = pageW - 20 - totalBoxW
@@ -160,7 +154,7 @@ async function generateInvoicePDF(data: {
     doc.text('Total', totalBoxX + 10, y + 4)
     doc.text(`${totalNum.toLocaleString()} ${data.currency}`, totalBoxX + totalBoxW - 10, y + 4, { align: 'right' })
 
-    // ── Payment Info ──
+    // Payment Info
     y += 22
     doc.setDrawColor(17, 24, 39)
     doc.setLineWidth(0.8)
@@ -176,7 +170,7 @@ async function generateInvoicePDF(data: {
     doc.setTextColor(75, 85, 99)
     doc.text('Pembayaran HANYA dapat dilakukan secara CASH (TUNAI) kepada resepsionis.', 28, y + 10)
 
-    // ── Footer ──
+    // Footer
     y += 30
     doc.setTextColor(107, 114, 128)
     doc.setFontSize(8)
@@ -199,7 +193,6 @@ export async function POST(request: Request) {
             return NextResponse.json({ success: false, error: 'Nomor WhatsApp customer tidak tersedia' }, { status: 400 })
         }
 
-        // WhatsApp API Config
         const whatsappEndpoint = process.env.WHATSAPP_API_ENDPOINT
         const whatsappUsername = process.env.WHATSAPP_API_USERNAME
         const whatsappPassword = process.env.WHATSAPP_API_PASSWORD
@@ -217,18 +210,22 @@ export async function POST(request: Request) {
             formattedPhone += '@s.whatsapp.net'
         }
 
-        const authConfig = {
-            auth: { username: whatsappUsername, password: whatsappPassword },
-            headers: { 'Content-Type': 'application/json' },
-            timeout: 45000,
-            validateStatus: () => true as const,
-        }
-
         const baseUrl = whatsappEndpoint.replace(/\/$/, '')
 
-        // ── Step 1: Send Broadcast Text Message ──
+        // ── Step 1: Generate PDF Invoice ──
+        console.log(`📄 Step 1: Generating PDF invoice...`)
+
+        const pdfBuffer = await generateInvoicePDF({
+            bookingId, guestName, room, nights, checkIn, checkOut, total, currency, status,
+            extraBed, pickup, meals
+        })
+
+        const invoiceFilename = `Invoice_${bookingId}.pdf`
+        console.log(`✅ PDF generated: ${pdfBuffer.length} bytes`)
+
+        // ── Step 2: Send PDF + Caption as ONE message via /send/file ──
         const statusText = status === 'paid' ? '✅ LUNAS' : '⏳ BELUM LUNAS'
-        const invoiceMessage = `📄 *INVOICE - Wisma Nusantara Cairo*
+        const captionText = `📄 *INVOICE - Wisma Nusantara Cairo*
 
 ━━━━━━━━━━━━━━━━━━━━━━
 
@@ -252,64 +249,33 @@ export async function POST(request: Request) {
 
 _Terima kasih telah menginap di Wisma Nusantara Cairo_ 🏠`
 
-        console.log(`🚀 Step 1: Sending broadcast text to ${formattedPhone}`)
-
-        const textResponse = await axios.post(`${baseUrl}/send/message`, {
-            phone: formattedPhone,
-            message: invoiceMessage,
-            is_forwarded: false,
-        }, authConfig)
-
-        console.log(`📥 Text response: ${textResponse.status}`)
-
-        // ── Step 2: Generate PDF Invoice ──
-        console.log(`📄 Step 2: Generating PDF invoice...`)
-
-        const pdfBuffer = await generateInvoicePDF({
-            bookingId, guestName, room, nights, checkIn, checkOut, total, currency, status,
-            extraBed, pickup, meals
-        })
-
-        const invoiceFilename = `Invoice_${bookingId}.pdf`
-
-        // ── Step 3: Send PDF File via GoWA API (multipart/form-data) ──
-        console.log(`📤 Step 3: Sending PDF file (${pdfBuffer.length} bytes) to ${formattedPhone}`)
+        console.log(`📤 Step 2: Sending PDF file + caption to ${formattedPhone}`)
 
         const formData = new FormData()
         formData.append('phone', formattedPhone)
-        formData.append('caption', `📄 Invoice ${bookingId} — ${guestName}`)
+        formData.append('caption', captionText)
         formData.append('file', new Blob([new Uint8Array(pdfBuffer)], { type: 'application/pdf' }), invoiceFilename)
 
-        const fileResponse = await axios.post(`${baseUrl}/send/file`, formData, {
+        const response = await axios.post(`${baseUrl}/send/file`, formData, {
             auth: { username: whatsappUsername, password: whatsappPassword },
-            headers: { ...formData instanceof FormData ? {} : { 'Content-Type': 'multipart/form-data' } },
             timeout: 45000,
             validateStatus: () => true,
         })
 
-        console.log(`📥 File response: ${fileResponse.status}`, JSON.stringify(fileResponse.data).substring(0, 300))
+        console.log(`📥 GoWA Response: ${response.status}`, JSON.stringify(response.data).substring(0, 500))
 
-        const textOk = textResponse.status >= 200 && textResponse.status < 300
-        const fileOk = fileResponse.status >= 200 && fileResponse.status < 300
-
-        if (textOk && fileOk) {
+        if (response.status >= 200 && response.status < 300) {
             return NextResponse.json({
                 success: true,
-                message: `Invoice + PDF berhasil dikirim ke WhatsApp ${phone}`,
-            })
-        } else if (textOk && !fileOk) {
-            return NextResponse.json({
-                success: true,
-                message: `Teks invoice terkirim, tapi PDF gagal dikirim.`,
-                warning: 'PDF send failed',
-                fileError: fileResponse.data,
+                message: `Invoice PDF + teks berhasil dikirim ke WhatsApp ${phone}`,
             })
         } else {
+            console.error('❌ GoWA file send failed:', response.data)
             return NextResponse.json({
                 success: false,
-                error: 'Gagal mengirim ke WhatsApp',
-                textStatus: textResponse.status,
-                fileStatus: fileResponse.status,
+                error: 'Gagal mengirim file ke WhatsApp',
+                gowaStatus: response.status,
+                details: response.data,
             }, { status: 502 })
         }
 
