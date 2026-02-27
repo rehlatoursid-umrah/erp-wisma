@@ -233,7 +233,7 @@ export default function HotelCalendar({ onBookRoom, refreshTrigger = 0, onUpdate
 
       {/* Calendar Grid */}
       {loading ? (
-        <div className="loading">Loading data...</div>
+        <div className="loading"><div className="loading-spinner">⏳</div><p>Loading data...</p></div>
       ) : (
         <div className="calendar-scroll">
           <table className="room-table">
@@ -914,6 +914,20 @@ export default function HotelCalendar({ onBookRoom, refreshTrigger = 0, onUpdate
                     text-align: center;
                     padding: 60px;
                     color: var(--color-text-muted);
+                    display: flex;
+                    flex-direction: column;
+                    align-items: center;
+                    gap: 12px;
+                }
+
+                .loading .loading-spinner {
+                    font-size: 3rem;
+                    animation: spin 1s linear infinite;
+                }
+
+                @keyframes spin {
+                    from { transform: rotate(0deg); }
+                    to { transform: rotate(360deg); }
                 }
 
                 .calendar-scroll {

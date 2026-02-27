@@ -126,7 +126,7 @@ export default function InvoiceView({ onUpdate, refreshTrigger = 0 }: InvoiceVie
             />
 
             {isLoading ? (
-                <div className="loading-state">⏳ Loading invoices...</div>
+                <div className="loading-state"><div className="loading-spinner">⏳</div><p>Loading invoices...</p></div>
             ) : (
                 <div className="table-container">
                     <table className="invoice-table">
@@ -386,6 +386,20 @@ export default function InvoiceView({ onUpdate, refreshTrigger = 0 }: InvoiceVie
             padding: 40px;
             color: #6b7280;
                 }
+            .loading-state {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                gap: 12px;
+            }
+            .loading-spinner {
+                font-size: 3rem;
+                animation: spin 1s linear infinite;
+            }
+            @keyframes spin {
+                from { transform: rotate(0deg); }
+                to { transform: rotate(360deg); }
+            }
             `}</style>
         </div>
     )

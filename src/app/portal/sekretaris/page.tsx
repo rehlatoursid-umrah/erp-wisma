@@ -465,7 +465,7 @@ export default function SekretarisPortal() {
                       <tr><td colSpan={8} style={{ textAlign: 'center', padding: '2rem', color: '#6b7280' }}>Klik &quot;Tampilkan&quot; untuk memuat data, atau belum ada data untuk filter ini.</td></tr>
                     )}
                     {piketLoading && (
-                      <tr><td colSpan={8} style={{ textAlign: 'center', padding: '2rem', color: '#6b7280' }}>Memuat data...</td></tr>
+                      <tr><td colSpan={8} style={{ textAlign: 'center', padding: '2rem', color: '#6b7280' }}><div style={{ fontSize: '2rem', animation: 'spin 1s linear infinite', display: 'inline-block' }}>⏳</div><br />Memuat data...</td></tr>
                     )}
                   </tbody>
                 </table>
@@ -489,8 +489,8 @@ export default function SekretarisPortal() {
 
               {arsipLoading ? (
                 <div style={{ textAlign: 'center', padding: '3rem', color: '#6b7280' }}>
-                  <div style={{ fontSize: '2rem', marginBottom: '8px' }}>⏳</div>
-                  Memuat arsip bulanan...
+                  <div style={{ fontSize: '2rem', marginBottom: '8px', animation: 'spin 1s linear infinite', display: 'inline-block' }}>⏳</div>
+                  <p>Memuat arsip bulanan...</p>
                 </div>
               ) : (
                 <div className="arsip-grid">
@@ -573,6 +573,7 @@ export default function SekretarisPortal() {
 
         @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
         @keyframes slideDown { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
         @media (max-width: 968px) { .portal-grid { flex-direction: column; } .arsip-grid { grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); } }
       `}</style>
       </div>

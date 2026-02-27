@@ -388,11 +388,15 @@ export default function BookingSuccessPage() {
       <div style={{
         minHeight: '100vh',
         display: 'flex',
+        flexDirection: 'column' as const,
         alignItems: 'center',
         justifyContent: 'center',
-        background: 'var(--color-bg-primary)'
+        background: 'var(--color-bg-primary)',
+        gap: '12px'
       }}>
+        <div style={{ fontSize: '3rem', animation: 'spin 1s linear infinite' }}>⏳</div>
         <p>Loading...</p>
+        <style>{`@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }`}</style>
       </div>
     }>
       <BookingSuccessContent />
