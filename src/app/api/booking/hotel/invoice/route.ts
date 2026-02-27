@@ -88,6 +88,7 @@ export async function GET(request: NextRequest) {
         .invoice-footer { text-align: center; padding: 30px; background: #f9fafb; border-top: 1px solid #e5e7eb; }
         .print-btn { background: #111827; color: white; border: none; padding: 12px 30px; border-radius: 8px; cursor: pointer; font-size: 1rem; margin-top: 15px; }
         .print-btn:hover { background: #374151; }
+        * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; color-adjust: exact !important; }
         @media print { .print-btn { display: none; } body { background: white; padding: 0; } .container { box-shadow: none; } }
     </style>
 </head>

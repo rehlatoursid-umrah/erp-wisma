@@ -240,6 +240,7 @@ export async function GET(request: NextRequest) {
         .print-btn:hover {
             background: #374151;
         }
+        * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; color-adjust: exact !important; }
         @media print {
             body { background: white; padding: 0; }
             .container { box-shadow: none; }
