@@ -221,7 +221,10 @@ export async function GET(request: NextRequest) {
                 checkOut: '${checkOut}',
                 total: '${total}',
                 currency: '${currency}',
-                status: '${status}'
+                status: '${status}',
+                extraBed: '${extraBed}',
+                pickup: '${pickup}',
+                meals: '${meals}'
             })
         })
         .then(r => r.json())
