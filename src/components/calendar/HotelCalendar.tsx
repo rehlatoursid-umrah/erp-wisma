@@ -606,6 +606,13 @@ export default function HotelCalendar({ onBookRoom, refreshTrigger = 0, onUpdate
                           })
 
                           if (res.ok) {
+                            // Update booking status to 'confirmed'
+                            const bookingDocId = selectedBooking.originalId || selectedBooking.id.split('-')[0]
+                            await fetch(`/api/hotel-bookings/${bookingDocId}`, {
+                              method: 'PATCH',
+                              headers: { 'Content-Type': 'application/json' },
+                              body: JSON.stringify({ status: 'confirmed' })
+                            })
                             alert('✅ Booking Confirmed & Draft Invoice Created!')
                             setSelectedBooking(null)
                             fetchBookings()
@@ -680,6 +687,13 @@ export default function HotelCalendar({ onBookRoom, refreshTrigger = 0, onUpdate
                         })
 
                         if (res.ok) {
+                          // Update booking status to 'paid'
+                          const bookingDocId = selectedBooking.originalId || selectedBooking.id.split('-')[0]
+                          await fetch(`/api/hotel-bookings/${bookingDocId}`, {
+                            method: 'PATCH',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ status: 'paid' })
+                          })
                           alert('✅ Payment Recorded!')
                           setSelectedBooking(null)
                           fetchBookings()
