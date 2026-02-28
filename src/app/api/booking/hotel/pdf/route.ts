@@ -13,6 +13,7 @@ export async function GET(request: NextRequest) {
     const nights = searchParams.get('nights') || '0'
     const total = searchParams.get('total') || '0'
     const paymentStatus = searchParams.get('paymentStatus') || 'pending'
+    const phone = searchParams.get('phone') || ''
 
     const logoPath = path.join(process.cwd(), 'public', 'media', 'sticky-header.png')
     let logoBase64 = ''
@@ -207,14 +208,34 @@ export async function GET(request: NextRequest) {
         .print-btn:hover {
             background: #1e40af;
         }
+        .wa-btn {
+            background: #25D366;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.95rem;
+            margin-top: 15px;
+            margin-left: 10px;
+            font-weight: 600;
+            transition: background 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .wa-btn:hover { background: #1da851; }
+        * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; color-adjust: exact !important; }
         @media print {
             body { background: white; padding: 0; }
             .container { box-shadow: none; max-width: 100%; border-radius: 0; }
-            .print-btn { display: none; }
+            .print-btn, .wa-btn { display: none; }
             .header { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
             .status-badge { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
         }
     </style>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 </head>
 <body>
     <div class="container">
@@ -311,8 +332,95 @@ export async function GET(request: NextRequest) {
             <button class="print-btn" onclick="window.print()">
                 🖨️ Download PDF / Print
             </button>
+            ${phone ? `<button class="wa-btn" id="sendWaBtn" onclick="sendWhatsApp()">📱 Kirim WA</button>` : ''}
         </div>
     </div>
+
+    <script>
+    async function sendWhatsApp() {
+        const btn = document.getElementById('sendWaBtn');
+        btn.disabled = true;
+        btn.textContent = '⏳ Membuat PDF...';
+        btn.style.opacity = '0.7';
+
+        try {
+            // Hide buttons before capture
+            const buttons = document.querySelectorAll('.print-btn, .wa-btn');
+            buttons.forEach(b => b.style.display = 'none');
+
+            // Capture the confirmation container as image
+            const container = document.querySelector('.container');
+            const canvas = await html2canvas(container, {
+                scale: 2,
+                useCORS: true,
+                allowTaint: true,
+                backgroundColor: '#ffffff',
+                logging: false
+            });
+
+            // Show buttons again
+            buttons.forEach(b => b.style.display = '');
+
+            // Convert to PDF
+            const imgData = canvas.toDataURL('image/jpeg', 0.95);
+            const pdfWidth = 210;
+            const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
+
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF({
+                orientation: 'portrait',
+                unit: 'mm',
+                format: [pdfWidth, pdfHeight]
+            });
+            doc.addImage(imgData, 'JPEG', 0, 0, pdfWidth, pdfHeight);
+
+            const pdfBase64 = doc.output('datauristring').split(',')[1];
+
+            btn.textContent = '📤 Mengirim ke WA...';
+
+            const response = await fetch('/api/booking/hotel/invoice/send-wa', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    phone: '${phone}',
+                    pdfBase64: pdfBase64,
+                    bookingId: '${bookingId}',
+                    guestName: '${decodeURIComponent(name)}',
+                    total: '${total}',
+                    currency: '${currency}',
+                    status: '${paymentStatus}',
+                    room: '${room}',
+                    nights: '${nights}',
+                    checkIn: '${checkIn}',
+                    checkOut: '${checkOut}'
+                })
+            });
+
+            const data = await response.json();
+
+            if (data.success) {
+                btn.textContent = '✅ Terkirim!';
+                btn.style.background = '#16a34a';
+                setTimeout(() => {
+                    btn.textContent = '📱 Kirim WA';
+                    btn.style.background = '#25D366';
+                    btn.style.opacity = '1';
+                    btn.disabled = false;
+                }, 3000);
+            } else {
+                alert('❌ Gagal: ' + (data.error || 'Unknown error'));
+                btn.textContent = '📱 Kirim WA';
+                btn.style.opacity = '1';
+                btn.disabled = false;
+            }
+        } catch(err) {
+            alert('❌ Error: ' + err.message);
+            btn.textContent = '📱 Kirim WA';
+            btn.style.opacity = '1';
+            btn.disabled = false;
+        }
+    }
+    </script>
 </body>
 </html>
 `
