@@ -79,7 +79,7 @@ export async function GET(request: NextRequest) {
             border-radius: 50%;
             background: rgba(255,255,255,0.03);
         }
-        .header-logo { width: 72px; height: 72px; object-fit: contain; border-radius: 12px; flex-shrink: 0; }
+        .header-logo { width: 72px; height: 72px; object-fit: contain; border-radius: 14px; flex-shrink: 0; background: #ffffff; padding: 6px; }
         .header-text h1 { font-size: 1.25rem; font-weight: 700; color: #ffffff; line-height: 1.3; letter-spacing: -0.3px; }
         .header-text p { font-size: 0.8rem; color: #94a3b8; margin-top: 4px; font-weight: 400; letter-spacing: 0.5px; }
         .content { padding: 32px; }
