@@ -30,12 +30,11 @@ export async function GET(request: NextRequest) {
     const meals = parseInt(searchParams.get('meals') || '0')
 
     const isConfirmed = paymentStatus === 'confirmed' || paymentStatus === 'paid' || paymentStatus === 'checked-in' || paymentStatus === 'checked-out'
-    const statusLabel = isConfirmed ? 'KONFIRMASI BOOKING' : 'MENUNGGU KONFIRMASI'
-    const statusColor = isConfirmed ? '#22c55e' : '#f59e0b'
-    const statusBg = isConfirmed ? '#dcfce7' : '#fef3c7'
+    const statusLabel = isConfirmed ? 'BOOKING TERKONFIRMASI' : 'MENUNGGU KONFIRMASI'
+    const statusColor = isConfirmed ? '#16a34a' : '#d97706'
+    const statusBg = isConfirmed ? '#f0fdf4' : '#fffbeb'
     const statusText = isConfirmed ? 'Booking Confirmed' : 'Waiting for Confirmation'
 
-    // Generate HTML for PDF-like confirmation
     const html = `
 <!DOCTYPE html>
 <html lang="id">
@@ -43,195 +42,107 @@ export async function GET(request: NextRequest) {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Booking Hotel - ${bookingId}</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: #f5f5f5;
-            padding: 20px;
-            color: #333;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: #f1f5f9;
+            padding: 24px;
+            color: #1e293b;
+            -webkit-font-smoothing: antialiased;
         }
         .container {
-            max-width: 700px;
+            max-width: 640px;
             margin: 0 auto;
-            background: white;
-            border-radius: 16px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+            background: #ffffff;
+            border-radius: 20px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.06), 0 8px 24px rgba(0,0,0,0.06);
             overflow: hidden;
-            position: relative;
         }
         .header {
-            background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
-            color: white;
-            padding: 30px;
-            text-align: center;
-            position: relative;
-        }
-        .header h1 {
-            font-size: 1.5rem;
-            margin-bottom: 8px;
-            letter-spacing: 0.5px;
-        }
-        .header p {
-            opacity: 0.9;
-            font-size: 0.9rem;
-        }
-        .content {
-            padding: 30px;
-        }
-        .booking-status {
-            text-align: center;
-            margin-bottom: 30px;
-        }
-        .status-badge {
-            display: inline-block;
-            background: ${statusBg};
-            color: ${statusColor};
-            padding: 8px 20px;
-            border-radius: 50px;
-            font-weight: 700;
-            font-size: 0.9rem;
-            border: 1px solid ${statusColor}40;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
-        .booking-id-section {
-            display: flex;
-            justify-content: center;
-            margin-bottom: 25px;
-        }
-        .booking-id-box {
-            background: #f8fafc;
-            padding: 15px 30px;
-            border-radius: 12px;
-            text-align: center;
-            border: 1px dashed #cbd5e1;
-        }
-        .booking-id-label {
-            font-size: 0.75rem;
-            color: #64748b;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            margin-bottom: 4px;
-        }
-        .booking-id-value {
-            font-size: 1.4rem;
-            font-weight: bold;
-            color: #1e3a8a;
-            font-family: monospace;
-        }
-        .section {
-            margin-bottom: 30px;
-        }
-        .section-title {
-            font-weight: 700;
-            color: #1e3a8a;
-            margin-bottom: 15px;
-            font-size: 1rem;
-            border-bottom: 2px solid #e2e8f0;
-            padding-bottom: 8px;
+            background: linear-gradient(145deg, #0f172a 0%, #1e293b 50%, #334155 100%);
+            padding: 36px 32px;
             display: flex;
             align-items: center;
-            gap: 8px;
-        }
-        .detail-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
             gap: 20px;
+            position: relative;
+            overflow: hidden;
         }
-        .detail-item {
-            margin-bottom: 12px;
+        .header::after {
+            content: '';
+            position: absolute;
+            top: -40px;
+            right: -40px;
+            width: 180px;
+            height: 180px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.03);
         }
-        .label {
-            display: block;
-            color: #64748b;
-            font-size: 0.85rem;
-            margin-bottom: 2px;
+        .header-logo { width: 72px; height: 72px; object-fit: contain; border-radius: 12px; flex-shrink: 0; }
+        .header-text h1 { font-size: 1.25rem; font-weight: 700; color: #ffffff; line-height: 1.3; letter-spacing: -0.3px; }
+        .header-text p { font-size: 0.8rem; color: #94a3b8; margin-top: 4px; font-weight: 400; letter-spacing: 0.5px; }
+        .content { padding: 32px; }
+        .status-block { text-align: center; margin-bottom: 28px; }
+        .status-badge {
+            display: inline-flex; align-items: center; gap: 8px;
+            background: ${statusBg}; color: ${statusColor};
+            padding: 10px 24px; border-radius: 100px;
+            font-weight: 700; font-size: 0.8rem; letter-spacing: 1.2px;
+            text-transform: uppercase; border: 1.5px solid ${statusColor}30;
         }
-        .value {
-            font-weight: 600;
-            color: #0f172a;
-            font-size: 1rem;
+        .status-dot { width: 8px; height: 8px; border-radius: 50%; background: ${statusColor}; animation: pulse 2s infinite; }
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
+        .status-sub { margin-top: 6px; font-size: 0.8rem; color: #94a3b8; }
+        .booking-ref { display: flex; justify-content: center; margin-bottom: 32px; }
+        .booking-ref-box { background: #f8fafc; padding: 16px 36px; border-radius: 12px; text-align: center; border: 1.5px dashed #cbd5e1; }
+        .booking-ref-label { font-size: 0.65rem; color: #94a3b8; text-transform: uppercase; letter-spacing: 2px; font-weight: 600; margin-bottom: 6px; }
+        .booking-ref-value { font-size: 1.35rem; font-weight: 800; color: #0f172a; font-family: 'SF Mono', 'Fira Code', 'Courier New', monospace; letter-spacing: 1px; }
+        .section { margin-bottom: 28px; }
+        .section-header { display: flex; align-items: center; gap: 10px; margin-bottom: 16px; padding-bottom: 10px; border-bottom: 1px solid #e2e8f0; }
+        .section-icon { width: 32px; height: 32px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 0.95rem; flex-shrink: 0; }
+        .section-icon.guest { background: #eff6ff; }
+        .section-icon.room { background: #f0fdf4; }
+        .section-icon.services { background: #fefce8; }
+        .section-title { font-weight: 700; color: #0f172a; font-size: 0.9rem; letter-spacing: -0.2px; }
+        .detail-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0; }
+        .detail-item { padding: 12px 0; border-bottom: 1px solid #f1f5f9; }
+        .detail-item:nth-child(odd) { padding-right: 16px; }
+        .detail-item:nth-child(even) { padding-left: 16px; border-left: 1px solid #f1f5f9; }
+        .detail-label { display: block; color: #94a3b8; font-size: 0.7rem; font-weight: 500; text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 4px; }
+        .detail-value { font-weight: 600; color: #0f172a; font-size: 0.95rem; }
+        .total-block {
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+            padding: 24px; border-radius: 14px; margin-top: 24px;
+            display: flex; justify-content: space-between; align-items: center;
         }
-        .total-section {
-            background: #f8fafc;
-            padding: 20px;
-            border-radius: 12px;
-            margin-top: 20px;
-            border: 1px solid #e2e8f0;
-        }
-        .total-row {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        .total-label {
-            font-size: 1.1rem;
-            color: #334155;
-            font-weight: 600;
-        }
-        .total-value {
-            font-size: 1.6rem;
-            font-weight: 800;
-            color: #1e3a8a;
-        }
-        .footer {
-            background: #f1f5f9;
-            padding: 20px 30px;
-            text-align: center;
-            border-top: 1px solid #e2e8f0;
-        }
-        .footer p {
-            color: #64748b;
-            font-size: 0.85rem;
-            margin-bottom: 6px;
-        }
+        .total-label { color: #94a3b8; font-size: 0.85rem; font-weight: 500; }
+        .total-label span { display: block; color: #64748b; font-size: 0.72rem; margin-top: 2px; }
+        .total-value { font-size: 1.8rem; font-weight: 800; color: #ffffff; letter-spacing: -0.5px; }
+        .divider { height: 1px; background: linear-gradient(90deg, transparent, #e2e8f0, transparent); margin: 8px 0; }
+        .footer { background: #f8fafc; padding: 24px 32px; text-align: center; border-top: 1px solid #e2e8f0; }
+        .footer-contacts { display: flex; justify-content: center; gap: 20px; flex-wrap: wrap; margin-bottom: 8px; }
+        .footer-contact { display: flex; align-items: center; gap: 6px; font-size: 0.75rem; color: #64748b; font-weight: 500; }
+        .footer-contact svg { flex-shrink: 0; }
+        .footer-time { font-size: 0.7rem; color: #94a3b8; margin-top: 10px; }
+        .btn-group { display: flex; justify-content: center; gap: 10px; margin-top: 16px; flex-wrap: wrap; }
         .print-btn {
-            background: #1e3a8a;
-            color: white;
-            border: none;
-            padding: 12px 24px;
-            border-radius: 8px;
-            cursor: pointer;
-            font-size: 0.95rem;
-            margin-top: 15px;
-            font-weight: 600;
-            transition: background 0.2s;
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
+            background: #0f172a; color: white; border: none; padding: 12px 28px; border-radius: 10px;
+            cursor: pointer; font-size: 0.85rem; font-weight: 600; transition: all 0.2s;
+            display: inline-flex; align-items: center; gap: 8px; font-family: 'Inter', sans-serif;
         }
-        .print-btn:hover {
-            background: #1e40af;
-        }
+        .print-btn:hover { background: #1e293b; transform: translateY(-1px); }
         .wa-btn {
-            background: #25D366;
-            color: white;
-            border: none;
-            padding: 12px 24px;
-            border-radius: 8px;
-            cursor: pointer;
-            font-size: 0.95rem;
-            margin-top: 15px;
-            margin-left: 10px;
-            font-weight: 600;
-            transition: background 0.2s;
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
+            background: #25D366; color: white; border: none; padding: 12px 28px; border-radius: 10px;
+            cursor: pointer; font-size: 0.85rem; font-weight: 600; transition: all 0.2s;
+            display: inline-flex; align-items: center; gap: 8px; font-family: 'Inter', sans-serif;
         }
-        .wa-btn:hover { background: #1da851; }
+        .wa-btn:hover { background: #1da851; transform: translateY(-1px); }
         * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; color-adjust: exact !important; }
         @media print {
             body { background: white; padding: 0; }
-            .container { box-shadow: none; max-width: 100%; border-radius: 0; }
-            .print-btn, .wa-btn { display: none; }
-            .header { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-            .status-badge { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+            .container { box-shadow: none; border-radius: 0; }
+            .print-btn, .wa-btn, .btn-group { display: none !important; }
         }
     </style>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
@@ -239,100 +150,125 @@ export async function GET(request: NextRequest) {
 </head>
 <body>
     <div class="container">
-        <div class="header" style="display: flex; align-items: flex-start; justify-content: center; gap: 20px; text-align: left;">
-            <img src="${logoSrc}" alt="Logo" style="width: 80px; height: auto; object-fit: contain; margin-top: 5px;">
-            <div>
-                <h1 style="font-size: 1.3rem; margin: 0 0 5px 0; line-height: 1.2; color: #1e3a8a;">Operational System<br/>Wisma Nusantara Cairo</h1>
-                <p style="margin: 0; font-size: 0.9rem; color: #64748b; line-height: 1.5;">Hotel &amp; Homestay Booking Confirmation</p>
+        <div class="header">
+            <img src="${logoSrc}" alt="Logo" class="header-logo">
+            <div class="header-text">
+                <h1>Wisma Nusantara Cairo</h1>
+                <p>HOTEL & HOMESTAY BOOKING CONFIRMATION</p>
             </div>
         </div>
-        
+
         <div class="content">
-            <div class="booking-status">
-                <span class="status-badge">${statusLabel}</span>
-                <div style="margin-top: 8px; font-size: 0.9rem; color: #64748b;">${statusText}</div>
+            <div class="status-block">
+                <div class="status-badge">
+                    <span class="status-dot"></span>
+                    ${statusLabel}
+                </div>
+                <div class="status-sub">${statusText}</div>
             </div>
 
-            <div class="booking-id-section">
-                <div class="booking-id-box">
-                    <div class="booking-id-label">Booking Reference</div>
-                    <div class="booking-id-value">${bookingId}</div>
-                </div>
-            </div>
-            
-            <div class="section">
-                <div class="section-title">👤 Guest Information</div>
-                <div class="detail-grid">
-                    <div class="detail-item">
-                        <span class="label">Primary Guest</span>
-                        <span class="value">${decodeURIComponent(name)}</span>
-                    </div>
+            <div class="booking-ref">
+                <div class="booking-ref-box">
+                    <div class="booking-ref-label">Booking Reference</div>
+                    <div class="booking-ref-value">${bookingId}</div>
                 </div>
             </div>
 
+            <div class="divider"></div>
+
             <div class="section">
-                <div class="section-title">🏨 Room Details</div>
+                <div class="section-header">
+                    <div class="section-icon guest">👤</div>
+                    <div class="section-title">Guest Information</div>
+                </div>
                 <div class="detail-grid">
                     <div class="detail-item">
-                        <span class="label">Room Number</span>
-                        <span class="value">Room ${room}</span>
+                        <span class="detail-label">Primary Guest</span>
+                        <span class="detail-value">${decodeURIComponent(name)}</span>
                     </div>
                     <div class="detail-item">
-                        <span class="label">Duration</span>
-                        <span class="value">${nights} Night(s)</span>
+                        <span class="detail-label">Booking Status</span>
+                        <span class="detail-value" style="color: ${statusColor};">${statusText}</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="section">
+                <div class="section-header">
+                    <div class="section-icon room">🏨</div>
+                    <div class="section-title">Room Details</div>
+                </div>
+                <div class="detail-grid">
+                    <div class="detail-item">
+                        <span class="detail-label">Room Number</span>
+                        <span class="detail-value">Room ${room}</span>
                     </div>
                     <div class="detail-item">
-                        <span class="label">Check-in Date</span>
-                        <span class="value">${checkIn}</span>
+                        <span class="detail-label">Duration</span>
+                        <span class="detail-value">${nights} Night(s)</span>
                     </div>
                     <div class="detail-item">
-                        <span class="label">Check-out Date</span>
-                        <span class="value">${checkOut}</span>
+                        <span class="detail-label">Check-in Date</span>
+                        <span class="detail-value">${checkIn}</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Check-out Date</span>
+                        <span class="detail-value">${checkOut}</span>
                     </div>
                 </div>
             </div>
 
             ${(extraBed > 0 || pickup > 0 || meals > 0) ? `
             <div class="section">
-                <div class="section-title">✨ Additional Services</div>
+                <div class="section-header">
+                    <div class="section-icon services">✨</div>
+                    <div class="section-title">Additional Services</div>
+                </div>
                 <div class="detail-grid">
                     ${extraBed > 0 ? `
                     <div class="detail-item">
-                        <span class="label">Extra Bed</span>
-                        <span class="value">${extraBed.toLocaleString()} ${currency}</span>
+                        <span class="detail-label">Extra Bed</span>
+                        <span class="detail-value">${extraBed.toLocaleString()} ${currency}</span>
                     </div>` : ''}
                     ${pickup > 0 ? `
                     <div class="detail-item">
-                        <span class="label">Airport Pickup</span>
-                        <span class="value">${pickup.toLocaleString()} ${currency}</span>
+                        <span class="detail-label">Airport Pickup</span>
+                        <span class="detail-value">${pickup.toLocaleString()} ${currency}</span>
                     </div>` : ''}
                     ${meals > 0 ? `
                     <div class="detail-item">
-                        <span class="label">Meals (Paid Separately)</span>
-                        <span class="value" style="color: #ea580c;">${meals.toLocaleString()} EGP</span>
+                        <span class="detail-label">Meals (Paid Separately)</span>
+                        <span class="detail-value" style="color: #ea580c;">${meals.toLocaleString()} EGP</span>
                     </div>` : ''}
                 </div>
             </div>
             ` : ''}
-            
-            <div class="total-section">
-                <div class="total-row">
-                    <span class="total-label">Total Amount</span>
-                    <span class="total-value">${parseInt(total).toLocaleString()} ${currency}</span>
+
+            <div class="total-block">
+                <div class="total-label">
+                    Total Amount
+                    <span>Including all services</span>
                 </div>
+                <div class="total-value">${parseInt(total).toLocaleString()} ${currency}</div>
             </div>
         </div>
-        
+
         <div class="footer">
-            <p>📍 Operational System Wisma Nusantara Cairo, 68 Taha Hussein, First Settlement, Cairo, Egypt</p>
-            <p>📱 WhatsApp: +20 150 704 9289 | 🌐 wismanusantara.com</p>
-            <p style="margin-top: 20px; font-size: 0.75rem; opacity: 0.7;">
-                Generated on ${new Date().toLocaleString('en-US')}
-            </p>
-            <button class="print-btn" onclick="window.print()">
-                🖨️ Download PDF / Print
-            </button>
-            ${phone ? `<button class="wa-btn" id="sendWaBtn" onclick="sendWhatsApp()">📱 Kirim WA</button>` : ''}
+            <div class="footer-contacts">
+                <span class="footer-contact">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#64748b" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+                    68 Taha Hussein, First Settlement, Cairo
+                </span>
+                <span class="footer-contact">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#64748b" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+                    +62 851-8991-6769
+                </span>
+            </div>
+            <div class="footer-time">Generated on ${new Date().toLocaleString('en-US')}</div>
+            <div class="btn-group">
+                <button class="print-btn" onclick="window.print()">🖨️ Download PDF / Print</button>
+                ${phone ? `<button class="wa-btn" id="sendWaBtn" onclick="sendWhatsApp()">📱 Kirim WA</button>` : ''}
+            </div>
         </div>
     </div>
 
@@ -342,82 +278,43 @@ export async function GET(request: NextRequest) {
         btn.disabled = true;
         btn.textContent = '⏳ Membuat PDF...';
         btn.style.opacity = '0.7';
-
         try {
-            // Hide buttons before capture
             const buttons = document.querySelectorAll('.print-btn, .wa-btn');
             buttons.forEach(b => b.style.display = 'none');
-
-            // Capture the confirmation container as image
             const container = document.querySelector('.container');
-            const canvas = await html2canvas(container, {
-                scale: 2,
-                useCORS: true,
-                allowTaint: true,
-                backgroundColor: '#ffffff',
-                logging: false
-            });
-
-            // Show buttons again
+            const canvas = await html2canvas(container, { scale: 2, useCORS: true, allowTaint: true, backgroundColor: '#ffffff', logging: false });
             buttons.forEach(b => b.style.display = '');
-
-            // Convert to PDF
             const imgData = canvas.toDataURL('image/jpeg', 0.95);
             const pdfWidth = 210;
             const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
-
             const { jsPDF } = window.jspdf;
-            const doc = new jsPDF({
-                orientation: 'portrait',
-                unit: 'mm',
-                format: [pdfWidth, pdfHeight]
-            });
+            const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: [pdfWidth, pdfHeight] });
             doc.addImage(imgData, 'JPEG', 0, 0, pdfWidth, pdfHeight);
-
             const pdfBase64 = doc.output('datauristring').split(',')[1];
-
             btn.textContent = '📤 Mengirim ke WA...';
-
             const response = await fetch('/api/booking/hotel/invoice/send-wa', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    phone: '${phone}',
-                    pdfBase64: pdfBase64,
-                    bookingId: '${bookingId}',
-                    guestName: '${decodeURIComponent(name)}',
-                    total: '${total}',
-                    currency: '${currency}',
-                    status: '${paymentStatus}',
-                    room: '${room}',
-                    nights: '${nights}',
-                    checkIn: '${checkIn}',
-                    checkOut: '${checkOut}'
+                    phone: '${phone}', pdfBase64, bookingId: '${bookingId}',
+                    guestName: '${decodeURIComponent(name)}', total: '${total}',
+                    currency: '${currency}', status: '${paymentStatus}',
+                    room: '${room}', nights: '${nights}',
+                    checkIn: '${checkIn}', checkOut: '${checkOut}'
                 })
             });
-
             const data = await response.json();
-
             if (data.success) {
                 btn.textContent = '✅ Terkirim!';
                 btn.style.background = '#16a34a';
-                setTimeout(() => {
-                    btn.textContent = '📱 Kirim WA';
-                    btn.style.background = '#25D366';
-                    btn.style.opacity = '1';
-                    btn.disabled = false;
-                }, 3000);
+                setTimeout(() => { btn.textContent = '📱 Kirim WA'; btn.style.background = '#25D366'; btn.style.opacity = '1'; btn.disabled = false; }, 3000);
             } else {
                 alert('❌ Gagal: ' + (data.error || 'Unknown error'));
-                btn.textContent = '📱 Kirim WA';
-                btn.style.opacity = '1';
-                btn.disabled = false;
+                btn.textContent = '📱 Kirim WA'; btn.style.opacity = '1'; btn.disabled = false;
             }
         } catch(err) {
             alert('❌ Error: ' + err.message);
-            btn.textContent = '📱 Kirim WA';
-            btn.style.opacity = '1';
-            btn.disabled = false;
+            btn.textContent = '📱 Kirim WA'; btn.style.opacity = '1'; btn.disabled = false;
         }
     }
     </script>
@@ -426,8 +323,6 @@ export async function GET(request: NextRequest) {
 `
 
     return new NextResponse(html, {
-        headers: {
-            'Content-Type': 'text/html; charset=utf-8',
-        },
+        headers: { 'Content-Type': 'text/html; charset=utf-8' },
     })
 }
