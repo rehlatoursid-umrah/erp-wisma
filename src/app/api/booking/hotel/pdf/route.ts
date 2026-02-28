@@ -12,7 +12,7 @@ export async function GET(request: NextRequest) {
     const checkOut = searchParams.get('checkOut') || ''
     const nights = searchParams.get('nights') || '0'
     const total = searchParams.get('total') || '0'
-    const paymentStatus = searchParams.get('paymentStatus') || 'pending'
+    const paymentStatus = searchParams.get('paymentStatus') || searchParams.get('status') || 'pending'
     const phone = searchParams.get('phone') || ''
 
     const logoPath = path.join(process.cwd(), 'public', 'media', 'sticky-header.png')
@@ -29,7 +29,7 @@ export async function GET(request: NextRequest) {
     const pickup = parseInt(searchParams.get('pickup') || '0')
     const meals = parseInt(searchParams.get('meals') || '0')
 
-    const isConfirmed = paymentStatus === 'confirmed' || paymentStatus === 'paid' || paymentStatus === 'checked-in' || paymentStatus === 'checked-out'
+    const isConfirmed = paymentStatus === 'confirmed' || paymentStatus === 'paid' || paymentStatus === 'checked-in' || paymentStatus === 'checked-out' || paymentStatus === 'booked'
     const statusLabel = isConfirmed ? 'BOOKING TERKONFIRMASI' : 'MENUNGGU KONFIRMASI'
     const statusColor = isConfirmed ? '#16a34a' : '#d97706'
     const statusBg = isConfirmed ? '#f0fdf4' : '#fffbeb'
