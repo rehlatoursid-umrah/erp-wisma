@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import fs from 'fs'
 import path from 'path'
+import { getPayload } from 'payload'
+import configPromise from '@payload-config'
 
 export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url)
@@ -10,7 +12,8 @@ export async function GET(request: NextRequest) {
     const event = searchParams.get('event') || ''
     const date = searchParams.get('date') || ''
     const total = searchParams.get('total') || '0'
-    const status = searchParams.get('status') || 'pending'
+    const urlStatus = searchParams.get('status') || 'pending'
+    const docId = searchParams.get('docId') || ''
 
     const logoPath = path.join(process.cwd(), 'public', 'media', 'sticky-header.png')
     let logoBase64 = ''
@@ -21,7 +24,31 @@ export async function GET(request: NextRequest) {
     }
     const logoSrc = logoBase64 ? `data:image/png;base64,${logoBase64}` : ''
 
-    const isPaid = status === 'paid' || status === 'confirmed'
+    // Query REAL payment status from database
+    let paymentStatus = urlStatus
+    try {
+        const payload = await getPayload({ config: configPromise })
+        if (docId) {
+            const invoiceQuery = await payload.find({
+                collection: 'transactions',
+                where: {
+                    and: [
+                        { 'relatedBooking.value': { equals: docId } },
+                        { bookingType: { equals: 'auditorium' } }
+                    ]
+                },
+                sort: '-createdAt',
+                limit: 1
+            })
+            if (invoiceQuery.docs.length > 0) {
+                paymentStatus = (invoiceQuery.docs[0] as any).paymentStatus || paymentStatus
+            }
+        }
+    } catch (e) {
+        console.error('Failed to query payment status from DB:', e)
+    }
+
+    const isPaid = paymentStatus === 'paid'
     const statusLabel = isPaid ? 'PAID / LUNAS' : 'UNPAID / BELUM LUNAS'
     const statusClass = isPaid ? 'paid' : 'unpaid'
 
