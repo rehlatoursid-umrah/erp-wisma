@@ -118,32 +118,21 @@ export async function GET(request: NextRequest) {
         .invoice-footer { text-align: center; padding: 30px; background: #f9fafb; border-top: 1px solid #e5e7eb; }
         #printBtn, #sendWaBtn {
             background: white;
-            border: none;
+            border: 1px solid #d1d5db;
             border-radius: 8px;
             cursor: pointer;
             font-size: 1rem;
             font-weight: 600;
             display: flex;
             align-items: center;
-            gap: 10px;
-            transition: all 0.3s ease;
+            justify-content: center;
+            gap: 8px;
+            transition: all 0.2s ease;
             padding: 12px 24px;
+            color: #374151;
         }
-        #printBtn {
-            color: #3b82f6; /* Blue text */
-            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.15);
-        }
-        #printBtn:hover { 
-            transform: translateY(-2px); 
-            box-shadow: 0 6px 16px rgba(59, 130, 246, 0.25); 
-        }
-        #sendWaBtn {
-            color: #128C7E; /* Green text */
-            box-shadow: 0 4px 12px rgba(37, 211, 102, 0.15);
-        }
-        #sendWaBtn:hover { 
-            transform: translateY(-2px); 
-            box-shadow: 0 6px 16px rgba(37, 211, 102, 0.25); 
+        #printBtn:hover, #sendWaBtn:hover { 
+            background: #f9fafb;
         }
         #sendWaBtn:disabled {
             opacity: 0.7;
