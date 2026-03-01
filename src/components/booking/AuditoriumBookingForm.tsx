@@ -97,13 +97,29 @@ export default function AuditoriumBookingForm({
     const hallRentalPrice = basePackagePrice + extraHoursPrice + afterHoursPrice
 
     // Additional services
-    const acPrice = AC_OPTIONS.find(o => o.value === formData.acOption)?.price || 0
-    const chairPrice = CHAIR_OPTIONS.find(o => o.value === formData.chairOption)?.price || 0
-    const projectorPrice = PROJECTOR_SCREEN_OPTIONS.find(o => o.value === formData.projectorScreen)?.price || 0
-    const tablePrice = TABLE_OPTIONS.find(o => o.value === formData.tableOption)?.price || 0
-    const platePrice = PLATE_OPTIONS.find(o => o.value === formData.plateOption)?.price || 0
-    const glassPrice = GLASS_OPTIONS.find(o => o.value === formData.glassOption)?.price || 0
+    const acOption = AC_OPTIONS.find(o => o.value === formData.acOption)
+    const chairOption = CHAIR_OPTIONS.find(o => o.value === formData.chairOption)
+    const projectorOption = PROJECTOR_SCREEN_OPTIONS.find(o => o.value === formData.projectorScreen)
+    const tableOption = TABLE_OPTIONS.find(o => o.value === formData.tableOption)
+    const plateOption = PLATE_OPTIONS.find(o => o.value === formData.plateOption)
+    const glassOption = GLASS_OPTIONS.find(o => o.value === formData.glassOption)
+
+    const acPrice = acOption?.price || 0
+    const chairPrice = chairOption?.price || 0
+    const projectorPrice = projectorOption?.price || 0
+    const tablePrice = tableOption?.price || 0
+    const platePrice = plateOption?.price || 0
+    const glassPrice = glassOption?.price || 0
     const servicesPrice = acPrice + chairPrice + projectorPrice + tablePrice + platePrice + glassPrice
+
+    // Build itemized services list
+    const serviceItems: { label: string; price: number; icon: string }[] = []
+    if (acPrice > 0) serviceItems.push({ label: acOption!.label, price: acPrice, icon: '❄️' })
+    if (chairPrice > 0) serviceItems.push({ label: chairOption!.label, price: chairPrice, icon: '🪑' })
+    if (projectorPrice > 0) serviceItems.push({ label: projectorOption!.label, price: projectorPrice, icon: '📽️' })
+    if (tablePrice > 0) serviceItems.push({ label: tableOption!.label, price: tablePrice, icon: '🪑' })
+    if (platePrice > 0) serviceItems.push({ label: plateOption!.label, price: platePrice, icon: '🍽️' })
+    if (glassPrice > 0) serviceItems.push({ label: glassOption!.label, price: glassPrice, icon: '🥛' })
 
     const totalPrice = hallRentalPrice + servicesPrice
 
@@ -117,6 +133,7 @@ export default function AuditoriumBookingForm({
       afterHoursPrice,
       hallRentalPrice,
       servicesPrice,
+      serviceItems,
       totalPrice,
     }
   }, [formData])
@@ -403,11 +420,19 @@ export default function AuditoriumBookingForm({
             <span>🏛️ Hall Rental Total</span>
             <span>{pricing.hallRentalPrice} EGP</span>
           </div>
-          {pricing.servicesPrice > 0 && (
-            <div className="price-line">
-              <span>⚙️ Additional Services</span>
-              <span>{pricing.servicesPrice} EGP</span>
-            </div>
+          {pricing.serviceItems.length > 0 && (
+            <>
+              <div className="price-line services-header">
+                <span>⚙️ Additional Services</span>
+                <span></span>
+              </div>
+              {pricing.serviceItems.map((item, i) => (
+                <div key={i} className="price-line service-item">
+                  <span>  {item.icon} {item.label}</span>
+                  <span>+{item.price} EGP</span>
+                </div>
+              ))}
+            </>
           )}
           <div className="price-line total">
             <span>Total</span>
@@ -575,6 +600,21 @@ export default function AuditoriumBookingForm({
         .price-line.subtotal {
           border-bottom: 1px dashed rgba(255, 255, 255, 0.3);
           font-weight: 600;
+        }
+
+        .price-line.services-header {
+          border-bottom: none;
+          padding-bottom: 0;
+          font-weight: 600;
+          color: #93c5fd;
+          font-size: 0.9rem;
+        }
+
+        .price-line.service-item {
+          font-size: 0.875rem;
+          color: #93c5fd;
+          padding: 2px 0;
+          border-bottom: none;
         }
 
         .price-line.total {
