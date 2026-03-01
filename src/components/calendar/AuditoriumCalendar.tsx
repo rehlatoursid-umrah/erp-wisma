@@ -1012,7 +1012,8 @@ export default function AuditoriumCalendar({
                         time: `${selectedBooking.startTime} - ${selectedBooking.endTime}`,
                         total: selectedBooking.totalPrice.toString(),
                         currency: 'EGP',
-                        status: selectedBooking.status, // Pass status here
+                        status: selectedBooking.status,
+                        phone: selectedBooking.whatsapp || '',
                         items: JSON.stringify(items)
                       })
                       window.open(`/api/booking/auditorium/pdf?${params.toString()}`, '_blank')
