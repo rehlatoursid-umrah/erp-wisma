@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import fs from 'fs'
 import path from 'path'
+import { getPayload } from 'payload'
+import configPromise from '@payload-config'
 
 export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url)
@@ -13,9 +15,36 @@ export async function GET(request: NextRequest) {
     const checkOut = searchParams.get('checkOut') || ''
     const total = searchParams.get('total') || '0'
     const currency = searchParams.get('currency') || 'USD'
-    const status = searchParams.get('status') || 'pending'
-    const isPaid = status === 'paid'
+    const urlStatus = searchParams.get('status') || 'pending'
     const phone = searchParams.get('phone') || ''
+    const bookingDocId = searchParams.get('docId') || ''
+
+    // Query REAL payment status from database
+    let status = urlStatus
+    try {
+        const payload = await getPayload({ config: configPromise })
+        if (bookingDocId) {
+            // Look up invoice by related booking document ID
+            const invoiceQuery = await payload.find({
+                collection: 'transactions',
+                where: {
+                    and: [
+                        { 'relatedBooking.value': { equals: bookingDocId } },
+                        { bookingType: { equals: 'hotel' } }
+                    ]
+                },
+                sort: '-createdAt',
+                limit: 1
+            })
+            if (invoiceQuery.docs.length > 0) {
+                status = (invoiceQuery.docs[0] as any).paymentStatus || status
+            }
+        }
+    } catch (e) {
+        console.error('Failed to query payment status from DB:', e)
+    }
+
+    const isPaid = status === 'paid'
 
     // Parse extra charges
     const extraBed = parseInt(searchParams.get('extraBed') || '0')

@@ -219,7 +219,7 @@ export async function PATCH(req: Request) {
                         await payload.update({
                             collection: relationSlug as any,
                             id: bookingId,
-                            data: { status: 'confirmed' }, // standardized status
+                            data: { status: 'paid' },
                             overrideAccess: true
                         })
                     }
