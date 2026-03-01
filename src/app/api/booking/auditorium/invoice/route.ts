@@ -257,38 +257,43 @@ export async function GET(request: NextRequest) {
             color: #666;
             font-size: 0.85rem;
         }
-        .print-btn {
-            background-color: #3b82f6;
-            color: white;
-            padding: 12px 24px;
+        #printBtn, #sendWaBtn {
             border: none;
-            border-radius: 6px;
+            border-radius: 10px;
             cursor: pointer;
-            font-size: 1rem;
-            font-weight: 500;
+            font-size: 1.05rem;
+            font-weight: 600;
             display: flex;
             align-items: center;
-            gap: 8px;
-            box-shadow: 0 2px 4px rgba(59, 130, 246, 0.2);
-            transition: all 0.2s;
-        }
-        .print-btn:hover { background-color: #2563eb; transform: translateY(-1px); }
-        .wa-btn {
-            background-color: #25D366;
+            gap: 10px;
+            transition: all 0.3s ease;
             color: white;
-            padding: 12px 24px;
-            border: none;
-            border-radius: 6px;
-            cursor: pointer;
-            font-size: 1rem;
-            font-weight: 500;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            box-shadow: 0 2px 4px rgba(37, 211, 102, 0.2);
-            transition: all 0.2s;
+            padding: 14px 28px;
         }
-        .wa-btn:hover { background-color: #128C7E; transform: translateY(-1px); }
+        #printBtn {
+            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+        }
+        #printBtn:hover { 
+            transform: translateY(-2px); 
+            box-shadow: 0 6px 16px rgba(59, 130, 246, 0.4); 
+        }
+        #sendWaBtn {
+            background: linear-gradient(135deg, #25D366 0%, #128C7E 100%);
+            box-shadow: 0 4px 12px rgba(37, 211, 102, 0.3);
+        }
+        #sendWaBtn:hover { 
+            transform: translateY(-2px); 
+            box-shadow: 0 6px 16px rgba(37, 211, 102, 0.4); 
+        }
+        #sendWaBtn:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+        .print-btn { display: none; } /* Fallback for older tests */
+        .wa-btn { display: none; }
         @media print {
             body { background: white; padding: 0; }
             .container { box-shadow: none; }
@@ -424,8 +429,8 @@ export async function GET(request: NextRequest) {
                 Invoice digenerate pada ${new Date().toLocaleString('id-ID')}
             </p>
             <div style="display: flex; justify-content: center; gap: 10px; margin-top: 20px;">
-                <button class="print-btn" onclick="window.print()">🖨️ Cetak Invoice</button>
-                ${phone ? `<button class="wa-btn" id="sendWaBtn" onclick="sendWhatsApp()">📱 Kirim WA</button>` : ''}
+                <button id="printBtn" onclick="window.print()">🖨️ Cetak Invoice</button>
+                ${phone ? `<button id="sendWaBtn" onclick="sendWhatsApp()">📱 Kirim WA</button>` : ''}
             </div>
         </div>
     </div>

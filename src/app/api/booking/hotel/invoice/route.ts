@@ -116,12 +116,45 @@ export async function GET(request: NextRequest) {
         .payment-info { background: #f9fafb; padding: 25px; border-radius: 8px; margin-top: 30px; border-left: 4px solid #111827; }
         .payment-info h3 { font-size: 1rem; color: #111827; margin-bottom: 15px; }
         .invoice-footer { text-align: center; padding: 30px; background: #f9fafb; border-top: 1px solid #e5e7eb; }
-        .print-btn { background: #111827; color: white; border: none; padding: 12px 30px; border-radius: 8px; cursor: pointer; font-size: 1rem; margin-top: 15px; }
-        .print-btn:hover { background: #374151; }
-        .wa-btn { background: #25D366; color: white; border: none; padding: 12px 30px; border-radius: 8px; cursor: pointer; font-size: 1rem; margin-top: 15px; margin-left: 10px; }
-        .wa-btn:hover { background: #1da851; }
+        #printBtn, #sendWaBtn {
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 1.05rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transition: all 0.3s ease;
+            color: white;
+            padding: 14px 28px;
+        }
+        #printBtn {
+            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+        }
+        #printBtn:hover { 
+            transform: translateY(-2px); 
+            box-shadow: 0 6px 16px rgba(59, 130, 246, 0.4); 
+        }
+        #sendWaBtn {
+            background: linear-gradient(135deg, #25D366 0%, #128C7E 100%);
+            box-shadow: 0 4px 12px rgba(37, 211, 102, 0.3);
+        }
+        #sendWaBtn:hover { 
+            transform: translateY(-2px); 
+            box-shadow: 0 6px 16px rgba(37, 211, 102, 0.4); 
+        }
+        #sendWaBtn:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+        .print-btn { display: none; } /* Fallback for older tests */
+        .wa-btn { display: none; }
         * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; color-adjust: exact !important; }
-        @media print { .print-btn, .wa-btn { display: none; } body { background: white; padding: 0; } .container { box-shadow: none; } }
+        @media print { #printBtn, #sendWaBtn, .print-btn, .wa-btn { display: none !important; } body { background: white; padding: 0; } .container { box-shadow: none; } }
     </style>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -225,8 +258,8 @@ export async function GET(request: NextRequest) {
         <div class="invoice-footer">
             <p>Terima kasih telah menginap di Wisma Nusantara Cairo</p>
             <div style="display: flex; justify-content: center; gap: 10px; margin-top: 20px;">
-                <button class="print-btn" onclick="window.print()">🖨️ Cetak Invoice</button>
-                ${phone ? `<button class="wa-btn" id="sendWaBtn" onclick="sendWhatsApp()">📱 Kirim WA</button>` : ''}
+                <button id="printBtn" onclick="window.print()">🖨️ Cetak Invoice</button>
+                ${phone ? `<button id="sendWaBtn" onclick="sendWhatsApp()">📱 Kirim WA</button>` : ''}
             </div>
         </div>
     </div>
