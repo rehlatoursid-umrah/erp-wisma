@@ -38,7 +38,9 @@ export async function POST(request: Request) {
 
         // Convert base64 PDF to Buffer
         const pdfBuffer = Buffer.from(pdfBase64, 'base64')
-        const invoiceFilename = `Invoice_${bookingId}.pdf`
+        // Generate PDF Filename based on request: Confirmation_Aula-[number booking]
+        const bookingNumber = bookingId.replace('AULA-', '')
+        const invoiceFilename = `Confirmation_Aula-${bookingNumber}.pdf`
 
         console.log(`📄 PDF received: ${pdfBuffer.length} bytes`)
         console.log(`📤 Sending PDF + caption to ${formattedPhone}`)
