@@ -423,7 +423,7 @@ export async function GET(request: NextRequest) {
             <p style="margin-top: 8px; font-size: 0.75rem; color: #999;">
                 Invoice digenerate pada ${new Date().toLocaleString('id-ID')}
             </p>
-            <div style="display: flex; gap: 10px; margin-top: 20px;">
+            <div style="display: flex; justify-content: center; gap: 10px; margin-top: 20px;">
                 <button class="print-btn" onclick="window.print()">🖨️ Cetak Invoice</button>
                 ${phone ? `<button class="wa-btn" id="sendWaBtn" onclick="sendWhatsApp()">📱 Kirim WA</button>` : ''}
             </div>
