@@ -910,6 +910,31 @@ export default function BPUPDPortal() {
                       </div>
                     )
                   })}
+
+                  {/* Grand Total Keseluruhan */}
+                  <div className="stat-item grand-total" style={{ borderLeft: '4px solid #10b981', paddingLeft: '16px' }}>
+                    <span className="label" style={{ fontWeight: 800, color: '#111827' }}>Total Keseluruhan</span>
+                    <div className="value-group">
+                      {(() => {
+                        const grandTotals: Record<string, number> = {}
+                        invoices.forEach(t => {
+                          const curr = t.currency || 'USD'
+                          grandTotals[curr] = (grandTotals[curr] || 0) + (t.amount || 0)
+                        })
+                        const hasGrandData = Object.keys(grandTotals).length > 0
+                        return (
+                          <>
+                            {Object.entries(grandTotals).filter(([_, val]) => val > 0).map(([curr, val]) => (
+                              <div key={curr} className={`value text-xl font-bold text-${curr === 'EGP' ? 'secondary' : 'primary'}`}>
+                                {val.toLocaleString()} {curr}
+                              </div>
+                            ))}
+                            {!hasGrandData && <div className="value text-gray-400">0</div>}
+                          </>
+                        )
+                      })()}
+                    </div>
+                  </div>
                 </div>
               </div>
 
