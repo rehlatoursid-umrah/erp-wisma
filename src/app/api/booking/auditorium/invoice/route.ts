@@ -14,6 +14,7 @@ export async function GET(request: NextRequest) {
     const total = searchParams.get('total') || '0'
     const urlStatus = searchParams.get('status') || 'pending'
     const docId = searchParams.get('docId') || ''
+    const phone = searchParams.get('phone') || ''
 
     const logoPath = path.join(process.cwd(), 'public', 'media', 'sticky-header.png')
     let logoBase64 = ''
@@ -96,6 +97,8 @@ export async function GET(request: NextRequest) {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Invoice - ${invoiceNumber}</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <style>
         * {
             margin: 0;
@@ -255,19 +258,37 @@ export async function GET(request: NextRequest) {
             font-size: 0.85rem;
         }
         .print-btn {
-            background: #111827;
+            background-color: #3b82f6;
             color: white;
+            padding: 12px 24px;
             border: none;
-            padding: 12px 30px;
-            border-radius: 8px;
+            border-radius: 6px;
             cursor: pointer;
             font-size: 1rem;
-            margin-top: 15px;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 2px 4px rgba(59, 130, 246, 0.2);
+            transition: all 0.2s;
         }
-        .print-btn:hover {
-            background: #374151;
+        .print-btn:hover { background-color: #2563eb; transform: translateY(-1px); }
+        .wa-btn {
+            background-color: #25D366;
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 2px 4px rgba(37, 211, 102, 0.2);
+            transition: all 0.2s;
         }
-        * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; color-adjust: exact !important; }
+        .wa-btn:hover { background-color: #128C7E; transform: translateY(-1px); }
         @media print {
             body { background: white; padding: 0; }
             .container { box-shadow: none; }
@@ -402,9 +423,105 @@ export async function GET(request: NextRequest) {
             <p style="margin-top: 8px; font-size: 0.75rem; color: #999;">
                 Invoice digenerate pada ${new Date().toLocaleString('id-ID')}
             </p>
-            <button class="print-btn" onclick="window.print()">🖨️ Cetak Invoice</button>
+            <div style="display: flex; gap: 10px; margin-top: 20px;">
+                <button class="print-btn" onclick="window.print()">🖨️ Cetak Invoice</button>
+                ${phone ? `<button class="wa-btn" id="sendWaBtn" onclick="sendWhatsApp()">📱 Kirim WA</button>` : ''}
+            </div>
         </div>
     </div>
+
+    <script>
+    async function sendWhatsApp() {
+        const btn = document.getElementById('sendWaBtn');
+        btn.disabled = true;
+        btn.textContent = '⏳ Membuat PDF...';
+        btn.style.opacity = '0.7';
+
+        try {
+            // Hide buttons before capture
+            const footer = document.querySelector('.invoice-footer');
+            const buttons = footer.querySelectorAll('button');
+            buttons.forEach(b => b.style.display = 'none');
+
+            // Capture the invoice container as image
+            const container = document.querySelector('.container');
+            const canvas = await html2canvas(container, {
+                scale: 2,
+                useCORS: true,
+                allowTaint: true,
+                backgroundColor: '#f5f5f5',
+                logging: false
+            });
+
+            // Show buttons again
+            buttons.forEach(b => b.style.display = '');
+
+            // Convert to PDF using jsPDF
+            const imgData = canvas.toDataURL('image/jpeg', 0.95);
+            const imgWidth = canvas.width;
+            const imgHeight = canvas.height;
+
+            const pdfWidth = 210;
+            const pdfHeight = (imgHeight * pdfWidth) / imgWidth;
+
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF({
+                orientation: pdfHeight > pdfWidth ? 'portrait' : 'landscape',
+                unit: 'mm',
+                format: [pdfWidth, pdfHeight]
+            });
+
+            doc.addImage(imgData, 'JPEG', 0, 0, pdfWidth, pdfHeight);
+
+            // Get PDF as base64
+            const pdfBase64 = doc.output('datauristring').split(',')[1];
+
+            btn.textContent = '📤 Mengirim ke WA...';
+
+            // Send to server
+            // We use the same route for WA sending: /api/booking/hotel/invoice/send-wa
+            // but we adapt the payload to fit the template for Auditorium
+            const response = await fetch('/api/booking/auditorium/invoice/send-wa', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    phone: '${phone}',
+                    pdfBase64: pdfBase64,
+                    bookingId: '${bookingId}',
+                    guestName: '${decodeURIComponent(name)}',
+                    eventName: '${decodeURIComponent(event)}',
+                    total: '${total}',
+                    currency: '${currency}',
+                    status: '${paymentStatus}',
+                    date: '${date}'
+                })
+            });
+
+            const data = await response.json();
+
+            if (data.success) {
+                btn.textContent = '✅ Terkirim!';
+                btn.style.background = '#16a34a';
+                setTimeout(() => {
+                    btn.textContent = '📱 Kirim WA';
+                    btn.style.background = '#25D366';
+                    btn.style.opacity = '1';
+                    btn.disabled = false;
+                }, 3000);
+            } else {
+                alert('❌ Gagal mengirim: ' + (data.error || 'Unknown error'));
+                btn.textContent = '📱 Kirim WA';
+                btn.style.opacity = '1';
+                btn.disabled = false;
+            }
+        } catch(err) {
+            alert('❌ Error: ' + err.message);
+            btn.textContent = '📱 Kirim WA';
+            btn.style.opacity = '1';
+            btn.disabled = false;
+        }
+    }
+    </script>
 </body>
 </html>
 `

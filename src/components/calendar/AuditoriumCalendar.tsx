@@ -917,6 +917,7 @@ export default function AuditoriumCalendar({
                         currency: 'EGP',
                         status: selectedBooking.status,
                         docId: selectedBooking.id,
+                        phone: selectedBooking.whatsapp || '',
                         items: JSON.stringify(items)
                       })
                       window.open(`/api/booking/auditorium/invoice?${params.toString()}`, '_blank')
