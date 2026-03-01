@@ -223,7 +223,7 @@ export async function GET(request: NextRequest) {
         </div>
         
         <div class="invoice-footer">
-            <p>Terima kasih telah menginap di Operational System Wisma Nusantara Cairo</p>
+            <p>Terima kasih telah menginap di Wisma Nusantara Cairo</p>
             <button class="print-btn" onclick="window.print()">🖨️ Cetak Invoice</button>
             ${phone ? `<button class="wa-btn" id="sendWaBtn" onclick="sendWhatsApp()">📱 Kirim WA</button>` : ''}
         </div>
