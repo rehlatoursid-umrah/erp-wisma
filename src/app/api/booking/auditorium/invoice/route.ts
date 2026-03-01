@@ -258,33 +258,33 @@ export async function GET(request: NextRequest) {
             font-size: 0.85rem;
         }
         #printBtn, #sendWaBtn {
+            background: white;
             border: none;
-            border-radius: 10px;
+            border-radius: 8px;
             cursor: pointer;
-            font-size: 1.05rem;
+            font-size: 1rem;
             font-weight: 600;
             display: flex;
             align-items: center;
             gap: 10px;
             transition: all 0.3s ease;
-            color: white;
-            padding: 14px 28px;
+            padding: 12px 24px;
         }
         #printBtn {
-            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
-            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+            color: #3b82f6; /* Blue text */
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.15);
         }
         #printBtn:hover { 
             transform: translateY(-2px); 
-            box-shadow: 0 6px 16px rgba(59, 130, 246, 0.4); 
+            box-shadow: 0 6px 16px rgba(59, 130, 246, 0.25); 
         }
         #sendWaBtn {
-            background: linear-gradient(135deg, #25D366 0%, #128C7E 100%);
-            box-shadow: 0 4px 12px rgba(37, 211, 102, 0.3);
+            color: #128C7E; /* Green text */
+            box-shadow: 0 4px 12px rgba(37, 211, 102, 0.15);
         }
         #sendWaBtn:hover { 
             transform: translateY(-2px); 
-            box-shadow: 0 6px 16px rgba(37, 211, 102, 0.4); 
+            box-shadow: 0 6px 16px rgba(37, 211, 102, 0.25); 
         }
         #sendWaBtn:disabled {
             opacity: 0.7;
@@ -294,10 +294,11 @@ export async function GET(request: NextRequest) {
         }
         .print-btn { display: none; } /* Fallback for older tests */
         .wa-btn { display: none; }
+        * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; color-adjust: exact !important; }
         @media print {
             body { background: white; padding: 0; }
             .container { box-shadow: none; }
-            .print-btn { display: none; }
+            #printBtn, #sendWaBtn, .print-btn, .wa-btn { display: none !important; }
         }
         .status-badge {
             display: inline-block;
