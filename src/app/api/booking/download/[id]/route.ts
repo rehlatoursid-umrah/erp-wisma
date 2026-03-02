@@ -1,11 +1,12 @@
-import { NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 import { PDFDocument, rgb, StandardFonts } from 'pdf-lib'
 
 export async function GET(
-    request: Request,
-    { params }: { params: { id: string } }
+    request: NextRequest,
+    props: { params: Promise<{ id: string }> }
 ) {
-    const bookingId = params.id
+    const params = await props.params
+    const bookingId = params?.id || 'UNKNOWN'
 
     try {
         const pdfDoc = await PDFDocument.create()
@@ -126,7 +127,7 @@ export async function GET(
 
         const pdfBytes = await pdfDoc.save()
 
-        return new NextResponse(pdfBytes, {
+        return new NextResponse(Buffer.from(pdfBytes), {
             headers: {
                 'Content-Type': 'application/pdf',
                 'Content-Disposition': `attachment; filename="Booking-${bookingId}.pdf"`,
