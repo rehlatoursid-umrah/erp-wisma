@@ -40,7 +40,7 @@ export const TABLE_OPTIONS = [
     { value: '3', label: '3 tables', price: 140 },
     { value: '6', label: '6 tables', price: 240 },
     { value: '9', label: '9 tables', price: 300 },
-    { value: 'more', label: 'More than 9 tables', price: 0 },
+    { value: 'more', label: 'More than 9 tables (Custom Price)', price: 0 },
 ]
 
 export const PLATE_OPTIONS = [
@@ -75,7 +75,7 @@ export function calculateDuration(startTime: string, endTime: string): number {
     return Math.ceil((endMinutes - startMinutes) / 60)
 }
 
-// Helper function to count after-hours (22:00 - 07:00)
+// Helper function to count after-hours (22:00 - 08:00)
 export function calculateAfterHours(startTime: string, endTime: string): number {
     if (!startTime || !endTime) return 0
 
@@ -83,14 +83,14 @@ export function calculateAfterHours(startTime: string, endTime: string): number 
 
     let afterHoursCount = 0
 
-    // Simple calculation: count hours that fall in 22:00-07:00 range
+    // Simple calculation: count hours that fall in 22:00-08:00 range
     let currentHour = startH
     const duration = calculateDuration(startTime, endTime)
 
     for (let i = 0; i < duration; i++) {
         const hour = currentHour % 24
-        // After hours: 22, 23, 0, 1, 2, 3, 4, 5, 6
-        if (hour >= 22 || hour < 7) {
+        // After hours: 22, 23, 0, 1, 2, 3, 4, 5, 6, 7
+        if (hour >= 22 || hour < 8) {
             afterHoursCount++
         }
         currentHour++

@@ -140,6 +140,30 @@ export default function AuditoriumBookingForm({
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target
+
+    // Auto-prefix Egypt phone numbers with +20
+    if (name === 'phoneEgypt' || name === 'whatsappEgypt') {
+      let val = value
+      // Remove any non-numeric characters (except the plus if it's there)
+      val = val.replace(/[^\d+]/g, '')
+
+      if (val === '') {
+        setFormData(prev => ({ ...prev, [name]: '' }))
+        return
+      }
+
+      if (!val.startsWith('+20')) {
+        // If they start typing 01x, replace 0 with +20 or prefix +20
+        if (val.startsWith('0')) {
+          val = '+20' + val.substring(1)
+        } else if (!val.startsWith('+')) {
+          val = '+20' + val
+        }
+      }
+      setFormData(prev => ({ ...prev, [name]: val }))
+      return
+    }
+
     setFormData(prev => ({ ...prev, [name]: value }))
   }
 
@@ -178,516 +202,738 @@ export default function AuditoriumBookingForm({
 
   return (
     <form onSubmit={handleSubmit} className="booking-form">
-      {/* Personal Information */}
-      <div className="form-section">
-        <h3>👤 Personal Information</h3>
-        <div className="form-group">
-          <label>Full Name *</label>
-          <input
-            type="text"
-            name="fullName"
-            className="form-input"
-            placeholder="Enter your full name"
-            value={formData.fullName}
-            onChange={handleChange}
-            required
-          />
-        </div>
-        <div className="form-group">
-          <label>Country of Origin *</label>
-          <input
-            type="text"
-            name="countryOfOrigin"
-            className="form-input"
-            placeholder="e.g., Indonesia, Egypt, etc."
-            value={formData.countryOfOrigin}
-            onChange={handleChange}
-            required
-          />
-        </div>
-      </div>
 
-      {/* Event Details */}
-      <div className="form-section">
-        <h3>🎉 Event Details</h3>
-        <div className="form-group">
-          <label>Event Name *</label>
-          <input
-            type="text"
-            name="eventName"
-            className="form-input"
-            placeholder="e.g., Wedding Reception, Seminar, etc."
-            value={formData.eventName}
-            onChange={handleChange}
-            required
-          />
-        </div>
-        <div className="form-group">
-          <label>Event Date *</label>
-          <input
-            type="date"
-            name="eventDate"
-            className="form-input"
-            value={formData.eventDate}
-            onChange={handleChange}
-            min={new Date().toISOString().split('T')[0]}
-            required
-          />
-        </div>
-        <div className="form-row two-cols">
-          <div className="form-group">
-            <label>Start Time *</label>
-            <select
-              name="startTime"
-              className="form-input time-select"
-              value={formData.startTime}
-              onChange={handleChange}
-              required
-            >
-              {Array.from({ length: 24 }, (_, h) => (
-                <option key={h} value={`${h.toString().padStart(2, '0')}:00`}>
-                  {h.toString().padStart(2, '0')}:00
-                </option>
-              ))}
-            </select>
-          </div>
-          <div className="form-group">
-            <label>End Time *</label>
-            <select
-              name="endTime"
-              className="form-input time-select"
-              value={formData.endTime}
-              onChange={handleChange}
-              required
-            >
-              {Array.from({ length: 24 }, (_, h) => (
-                <option key={h} value={`${h.toString().padStart(2, '0')}:00`}>
-                  {h.toString().padStart(2, '0')}:00
-                </option>
-              ))}
-            </select>
-          </div>
-        </div>
-
-        {/* Duration Info */}
-        {pricing.duration > 0 && (
-          <div className="duration-info">
-            <span className="duration-badge">
-              ⏱️ Duration: {pricing.duration} hour{pricing.duration > 1 ? 's' : ''}
-            </span>
-            {pricing.afterHoursCount > 0 && (
-              <span className="after-hours-badge">
-                🌙 {pricing.afterHoursCount} after-hours (22:00-07:00)
-              </span>
-            )}
-          </div>
-        )}
-      </div>
-
-      {/* Contact Information */}
-      <div className="form-section">
-        <h3>📞 Contact Information</h3>
-        <div className="form-row two-cols">
-          <div className="form-group">
-            <label>Phone Number (Egypt) *</label>
-            <input
-              type="tel"
-              name="phoneEgypt"
-              className="form-input"
-              placeholder="01xxxxxxxxx"
-              value={formData.phoneEgypt}
-              onChange={handleChange}
-              required
-            />
-          </div>
-          <div className="form-group">
-            <label>WhatsApp Number (Egypt) *</label>
-            <input
-              type="tel"
-              name="whatsappEgypt"
-              className="form-input"
-              placeholder="01xxxxxxxxx"
-              value={formData.whatsappEgypt}
-              onChange={handleChange}
-              required
-            />
-          </div>
-        </div>
-      </div>
-
-      {/* Additional Services */}
-      <div className="form-section">
-        <h3>⚙️ Additional Services</h3>
-        <p className="section-note">Select the services you need. All prices in EGP.</p>
-
-        <div className="form-row two-cols">
-          <div className="form-group">
-            <label>❄️ Air Conditioning</label>
-            <select
-              name="acOption"
-              className="form-input"
-              value={formData.acOption}
-              onChange={handleChange}
-            >
-              {AC_OPTIONS.map(renderPriceOption)}
-            </select>
-          </div>
-          <div className="form-group">
-            <label>🪑 Chairs</label>
-            <select
-              name="chairOption"
-              className="form-input"
-              value={formData.chairOption}
-              onChange={handleChange}
-            >
-              {CHAIR_OPTIONS.map(renderPriceOption)}
-            </select>
-          </div>
-        </div>
-
-        <div className="form-row two-cols">
-          <div className="form-group">
-            <label>📽️ Projector & Screen</label>
-            <select
-              name="projectorScreen"
-              className="form-input"
-              value={formData.projectorScreen}
-              onChange={handleChange}
-            >
-              {PROJECTOR_SCREEN_OPTIONS.map(renderPriceOption)}
-            </select>
-          </div>
-          <div className="form-group">
-            <label>🪑 Tables</label>
-            <select
-              name="tableOption"
-              className="form-input"
-              value={formData.tableOption}
-              onChange={handleChange}
-            >
-              {TABLE_OPTIONS.map(renderPriceOption)}
-            </select>
-          </div>
-        </div>
-
-        <div className="form-row two-cols">
-          <div className="form-group">
-            <label>🍽️ Plates</label>
-            <select
-              name="plateOption"
-              className="form-input"
-              value={formData.plateOption}
-              onChange={handleChange}
-            >
-              {PLATE_OPTIONS.map(renderPriceOption)}
-            </select>
-          </div>
-          <div className="form-group">
-            <label>🥛 Glasses</label>
-            <select
-              name="glassOption"
-              className="form-input"
-              value={formData.glassOption}
-              onChange={handleChange}
-            >
-              {GLASS_OPTIONS.map(renderPriceOption)}
-            </select>
-          </div>
-        </div>
-      </div>
-
-      {/* Price Summary */}
-      <div className="price-summary">
-        <h3>💰 Price Summary</h3>
-        <div className="price-breakdown">
-          <div className="price-line">
-            <span>🏛️ Base Package ({pricing.selectedPackage?.label || '-'})</span>
-            <span>{pricing.basePackagePrice} EGP</span>
-          </div>
-          {pricing.extraHours > 0 && (
-            <div className="price-line extra-hours">
-              <span>⏰ Extra Hours ({pricing.extraHours}h × {EXTRA_HOUR_RATE})</span>
-              <span>+{pricing.extraHoursPrice} EGP</span>
+      <div className="form-grid">
+        {/* Left Column - Personal & Event Details */}
+        <div className="form-column">
+          {/* Personal Information */}
+          <div className="bento-panel">
+            <div className="panel-header">
+              <span className="panel-icon">👤</span>
+              <h3>Personal Information</h3>
             </div>
-          )}
-          {pricing.afterHoursPrice > 0 && (
-            <div className="price-line after-hours">
-              <span>🌙 After Hours Surcharge ({pricing.afterHoursCount}h × {AFTER_HOURS_RATE})</span>
-              <span>+{pricing.afterHoursPrice} EGP</span>
-            </div>
-          )}
-          <div className="price-line subtotal">
-            <span>🏛️ Hall Rental Total</span>
-            <span>{pricing.hallRentalPrice} EGP</span>
-          </div>
-          {pricing.serviceItems.length > 0 && (
-            <>
-              <div className="price-line services-header">
-                <span>⚙️ Additional Services</span>
-                <span></span>
+            <div className="panel-content">
+              <div className="form-group">
+                <label>Full Name *</label>
+                <input
+                  type="text"
+                  name="fullName"
+                  className="premium-input"
+                  placeholder="Enter your full name"
+                  value={formData.fullName}
+                  onChange={handleChange}
+                  required
+                />
               </div>
-              {pricing.serviceItems.map((item, i) => (
-                <div key={i} className="price-line service-item">
-                  <span>  {item.icon} {item.label}</span>
-                  <span>+{item.price} EGP</span>
+              <div className="form-group">
+                <label>Country of Origin *</label>
+                <input
+                  type="text"
+                  name="countryOfOrigin"
+                  className="premium-input"
+                  placeholder="e.g., Indonesia, Egypt, etc."
+                  value={formData.countryOfOrigin}
+                  onChange={handleChange}
+                  required
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Event Details */}
+          <div className="bento-panel">
+            <div className="panel-header">
+              <span className="panel-icon">🎉</span>
+              <h3>Event Details</h3>
+            </div>
+            <div className="panel-content">
+              <div className="form-group">
+                <label>Event Name *</label>
+                <input
+                  type="text"
+                  name="eventName"
+                  className="premium-input"
+                  placeholder="e.g., Wedding Reception, Seminar, etc."
+                  value={formData.eventName}
+                  onChange={handleChange}
+                  required
+                />
+              </div>
+              <div className="form-group">
+                <label>Event Date *</label>
+                <input
+                  type="date"
+                  name="eventDate"
+                  className="premium-input date-input"
+                  value={formData.eventDate}
+                  onChange={handleChange}
+                  min={new Date().toISOString().split('T')[0]}
+                  required
+                />
+              </div>
+              <div className="form-row two-cols">
+                <div className="form-group">
+                  <label>Start Time *</label>
+                  <select
+                    name="startTime"
+                    className="premium-input select-input"
+                    value={formData.startTime}
+                    onChange={handleChange}
+                    required
+                  >
+                    {Array.from({ length: 24 }, (_, h) => (
+                      <option key={h} value={`${h.toString().padStart(2, '0')}:00`}>
+                        {h.toString().padStart(2, '0')}:00
+                      </option>
+                    ))}
+                  </select>
                 </div>
-              ))}
-            </>
-          )}
-          <div className="price-line total">
-            <span>Total</span>
-            <span className="price-value">{pricing.totalPrice} EGP</span>
+                <div className="form-group">
+                  <label>End Time *</label>
+                  <select
+                    name="endTime"
+                    className="premium-input select-input"
+                    value={formData.endTime}
+                    onChange={handleChange}
+                    required
+                  >
+                    {Array.from({ length: 24 }, (_, h) => (
+                      <option key={h} value={`${h.toString().padStart(2, '0')}:00`}>
+                        {h.toString().padStart(2, '0')}:00
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              {/* Duration Info */}
+              {pricing.duration > 0 && (
+                <div className="duration-info-box">
+                  <div className="duration-primary">
+                    <span className="info-icon">⏱️</span>
+                    <strong>{pricing.duration} hour{pricing.duration > 1 ? 's' : ''}</strong> Duration
+                  </div>
+                  {pricing.afterHoursCount > 0 && (
+                    <div className="duration-secondary">
+                      <span className="info-icon">🌙</span>
+                      {pricing.afterHoursCount}h after-hours (22:00-08:00)
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Contact Information */}
+          <div className="bento-panel">
+            <div className="panel-header">
+              <span className="panel-icon">📞</span>
+              <h3>Contact Information</h3>
+            </div>
+            <div className="panel-content">
+              <div className="form-row two-cols">
+                <div className="form-group">
+                  <label>Phone Number (Egypt) *</label>
+                  <input
+                    type="tel"
+                    name="phoneEgypt"
+                    className="premium-input"
+                    placeholder="+20 1xxxxxxxxx"
+                    value={formData.phoneEgypt}
+                    onChange={handleChange}
+                    required
+                  />
+                </div>
+                <div className="form-group">
+                  <label>WhatsApp Number (Egypt) *</label>
+                  <input
+                    type="tel"
+                    name="whatsappEgypt"
+                    className="premium-input"
+                    placeholder="+20 1xxxxxxxxx"
+                    value={formData.whatsappEgypt}
+                    onChange={handleChange}
+                    required
+                  />
+                </div>
+              </div>
+            </div>
           </div>
         </div>
-        <p className="price-note">* Price is calculated automatically based on your booking duration</p>
-      </div>
 
-      <div className="form-actions">
-        {onCancel && (
-          <button type="button" className="btn btn-secondary" onClick={onCancel} disabled={isSubmitting}>
-            Cancel
-          </button>
-        )}
-        <button type="submit" className="btn btn-primary" disabled={isSubmitting}>
-          {isSubmitting ? '⏳ Processing...' : '✓ Submit Reservation'}
-        </button>
-      </div>
+        {/* Right Column - Services & Price Summary */}
+        <div className="form-column">
 
-      <p className="form-note">
-        After submission, confirmation will be sent to your WhatsApp and our admin.
-      </p>
+          {/* Additional Services */}
+          <div className="bento-panel services-panel">
+            <div className="panel-header">
+              <span className="panel-icon">⚙️</span>
+              <div>
+                <h3>Additional Services</h3>
+                <p className="panel-subtitle">Select services. All prices in EGP.</p>
+              </div>
+            </div>
+
+            <div className="services-grid">
+              <div className="service-group">
+                <label>❄️ Air Conditioning</label>
+                <div className="select-wrapper">
+                  <select name="acOption" className="premium-select" value={formData.acOption} onChange={handleChange}>
+                    {AC_OPTIONS.map(renderPriceOption)}
+                  </select>
+                </div>
+              </div>
+
+              <div className="service-group">
+                <label>📽️ Projector & Screen</label>
+                <div className="select-wrapper">
+                  <select name="projectorScreen" className="premium-select" value={formData.projectorScreen} onChange={handleChange}>
+                    {PROJECTOR_SCREEN_OPTIONS.map(renderPriceOption)}
+                  </select>
+                </div>
+              </div>
+
+              <div className="service-group">
+                <label>🪑 Chairs</label>
+                <div className="select-wrapper">
+                  <select name="chairOption" className="premium-select" value={formData.chairOption} onChange={handleChange}>
+                    {CHAIR_OPTIONS.map(renderPriceOption)}
+                  </select>
+                </div>
+              </div>
+
+              <div className="service-group">
+                <label>🪑 Tables</label>
+                <div className="select-wrapper">
+                  <select name="tableOption" className="premium-select" value={formData.tableOption} onChange={handleChange}>
+                    {TABLE_OPTIONS.map(renderPriceOption)}
+                  </select>
+                </div>
+              </div>
+
+              <div className="service-group">
+                <label>🍽️ Plates</label>
+                <div className="select-wrapper">
+                  <select name="plateOption" className="premium-select" value={formData.plateOption} onChange={handleChange}>
+                    {PLATE_OPTIONS.map(renderPriceOption)}
+                  </select>
+                </div>
+              </div>
+
+              <div className="service-group">
+                <label>🥛 Glasses</label>
+                <div className="select-wrapper">
+                  <select name="glassOption" className="premium-select" value={formData.glassOption} onChange={handleChange}>
+                    {GLASS_OPTIONS.map(renderPriceOption)}
+                  </select>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Price Summary Receipt */}
+          <div className="receipt-panel">
+            <div className="receipt-header">
+              <h3>Receipt Summary</h3>
+              <div className="receipt-divider"></div>
+            </div>
+
+            <div className="receipt-body">
+              <div className="receipt-line primary">
+                <span className="label">🏛️ Base Package ({pricing.selectedPackage?.label || '-'})</span>
+                <span className="value">{pricing.basePackagePrice} EGP</span>
+              </div>
+
+              {pricing.extraHours > 0 && (
+                <div className="receipt-line warning">
+                  <span className="label">⏰ Extra Hours ({pricing.extraHours}h × {EXTRA_HOUR_RATE})</span>
+                  <span className="value">+{pricing.extraHoursPrice} EGP</span>
+                </div>
+              )}
+
+              {pricing.afterHoursPrice > 0 && (
+                <div className="receipt-line danger">
+                  <span className="label">🌙 After Hours ({pricing.afterHoursCount}h × {AFTER_HOURS_RATE})</span>
+                  <span className="value">+{pricing.afterHoursPrice} EGP</span>
+                </div>
+              )}
+
+              <div className="receipt-line subtotal">
+                <span className="label">Hall Rental Total</span>
+                <span className="value">{pricing.hallRentalPrice} EGP</span>
+              </div>
+
+              {pricing.serviceItems.length > 0 && (
+                <div className="receipt-services">
+                  <div className="services-title">Additional Services</div>
+                  {pricing.serviceItems.map((item, i) => (
+                    <div key={i} className="receipt-line secondary">
+                      <span className="label">{item.icon} {item.label}</span>
+                      <span className="value">+{item.price} EGP</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            <div className="receipt-footer">
+              <div className="receipt-divider dashed"></div>
+              <div className="receipt-total">
+                <span>Grand Total</span>
+                <div className="total-amount">
+                  <span className="currency">EGP</span>
+                  <span className="number">{pricing.totalPrice.toLocaleString()}</span>
+                </div>
+              </div>
+              <p className="receipt-note">* Price is auto-calculated based on duration</p>
+            </div>
+          </div>
+
+          <div className="form-actions-premium">
+            {onCancel && (
+              <button type="button" className="premium-btn ghost" onClick={onCancel} disabled={isSubmitting}>
+                Cancel
+              </button>
+            )}
+            <button type="submit" className="premium-btn primary" disabled={isSubmitting}>
+              {isSubmitting ? (
+                <>
+                  <span className="spinner-mini"></span>
+                  Processing...
+                </>
+              ) : (
+                <>Confirm Reservation <span>→</span></>
+              )}
+            </button>
+          </div>
+
+          <p className="secure-note">
+            🔒 Confirmation will be sent securely to WhatsApp
+          </p>
+        </div>
+      </div>
 
       <style jsx>{`
         .booking-form {
+          width: 100%;
+          font-family: 'Inter', system-ui, -apple-system, sans-serif;
+        }
+
+        .form-grid {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 1.5rem;
+          align-items: start;
+        }
+
+        .form-column {
           display: flex;
           flex-direction: column;
-          gap: var(--spacing-xl);
+          gap: 1.5rem;
         }
 
-        .form-section {
-          background: var(--color-bg-secondary);
-          border-radius: var(--radius-xl);
-          padding: var(--spacing-xl);
+        /* Bento Panels */
+        .bento-panel {
+          background: rgba(255, 255, 255, 0.02);
+          border: 1px solid rgba(255, 255, 255, 0.05);
+          border-radius: 20px;
+          padding: 1.75rem;
+          transition: border-color 0.3s ease;
         }
 
-        .form-section h3 {
-          margin: 0 0 var(--spacing-lg) 0;
-          font-size: 1.125rem;
-          color: var(--color-primary);
+        .bento-panel:focus-within {
+          border-color: rgba(139, 69, 19, 0.4);
+          box-shadow: 0 0 20px rgba(139, 69, 19, 0.05);
         }
 
-        .section-note {
-          font-size: 0.875rem;
-          color: var(--color-text-muted);
-          margin: 0 0 var(--spacing-lg) 0;
-        }
-
-        .form-row {
+        .panel-header {
           display: flex;
-          gap: var(--spacing-lg);
+          align-items: center;
+          gap: 0.75rem;
+          margin-bottom: 1.5rem;
         }
 
-        .form-row.two-cols > .form-group {
-          flex: 1;
+        .panel-icon {
+          font-size: 1.25rem;
+          background: rgba(255, 255, 255, 0.05);
+          width: 36px;
+          height: 36px;
+          border-radius: 10px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
+
+        .panel-header h3 {
+          margin: 0;
+          font-size: 1.125rem;
+          font-weight: 600;
+          color: #f3f4f6;
+          letter-spacing: -0.01em;
+        }
+
+        .panel-subtitle {
+          margin: 0.25rem 0 0 0;
+          font-size: 0.85rem;
+          color: #a1a1aa;
+        }
+
+        .panel-content {
+          display: flex;
+          flex-direction: column;
+          gap: 1.25rem;
+        }
+
+        .form-row.two-cols {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 1rem;
         }
 
         .form-group {
-          margin-bottom: var(--spacing-md);
+          display: flex;
+          flex-direction: column;
+          gap: 0.5rem;
         }
 
         .form-group label {
-          display: block;
-          margin-bottom: var(--spacing-xs);
+          font-size: 0.875rem;
           font-weight: 500;
-          font-size: 0.9375rem;
-          color: var(--color-text-secondary);
+          color: #a1a1aa;
         }
 
-        .form-input {
+        /* Premium Inputs */
+        .premium-input {
           width: 100%;
-          padding: var(--spacing-md);
-          border: 1px solid rgba(139, 69, 19, 0.2);
-          border-radius: var(--radius-lg);
-          font-size: 1rem;
-          background: var(--color-bg-card);
+          background: rgba(0, 0, 0, 0.2);
+          border: 1px solid rgba(255, 255, 255, 0.1);
+          border-radius: 12px;
+          padding: 0.875rem 1rem;
+          color: #ffffff;
+          font-size: 0.95rem;
           transition: all 0.2s ease;
         }
 
-        .form-input:focus {
-          outline: none;
-          border-color: var(--color-primary);
-          box-shadow: 0 0 0 3px rgba(139, 69, 19, 0.1);
+        .premium-input::placeholder {
+          color: #52525b;
         }
 
-        select.form-input {
+        .premium-input:focus {
+          outline: none;
+          border-color: rgba(139, 69, 19, 0.6);
+          background: rgba(0, 0, 0, 0.4);
+          box-shadow: 0 0 0 4px rgba(139, 69, 19, 0.1);
+        }
+
+        /* Select styling overrides using wrapper */
+        .select-wrapper {
+          position: relative;
+        }
+        
+        .select-wrapper::after {
+          content: '▾';
+          position: absolute;
+          right: 1rem;
+          top: 50%;
+          transform: translateY(-50%);
+          color: #a1a1aa;
+          pointer-events: none;
+          font-size: 1.2rem;
+        }
+
+        .premium-select, .select-input {
+          appearance: none;
+          padding-right: 2.5rem;
+          background: rgba(0, 0, 0, 0.2);
+          border: 1px solid rgba(255, 255, 255, 0.1);
+          border-radius: 12px;
+          padding: 0.875rem 1rem;
+          color: #ffffff;
+          font-size: 0.95rem;
+          width: 100%;
           cursor: pointer;
         }
-
-        select.time-select {
-          appearance: none;
-          background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%238B4513' viewBox='0 0 16 16'%3E%3Cpath d='M8 11L3 6h10l-5 5z'/%3E%3C/svg%3E");
-          background-repeat: no-repeat;
-          background-position: right 12px center;
-          padding-right: 36px;
+        
+        .premium-select:focus, .select-input:focus {
+          outline: none;
+          border-color: rgba(139, 69, 19, 0.6);
         }
 
-        select.time-select option {
-          padding: var(--spacing-sm);
-          font-size: 1rem;
+        .premium-select option, .select-input option {
+          background: #18181b;
+          color: #fff;
+          padding: 10px;
         }
 
-        /* Duration Info */
-        .duration-info {
-          display: flex;
-          flex-wrap: wrap;
-          gap: var(--spacing-sm);
-          margin-top: var(--spacing-md);
+        .date-input {
+          color-scheme: dark;
         }
 
-        .duration-badge {
-          background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%);
-          color: white;
-          padding: var(--spacing-xs) var(--spacing-md);
-          border-radius: var(--radius-lg);
-          font-size: 0.875rem;
-          font-weight: 600;
-        }
-
-        .after-hours-badge {
-          background: linear-gradient(135deg, #6B21A8 0%, #4C1D95 100%);
-          color: white;
-          padding: var(--spacing-xs) var(--spacing-md);
-          border-radius: var(--radius-lg);
-          font-size: 0.875rem;
-          font-weight: 600;
-        }
-
-        /* Price Summary */
-        .price-summary {
-          background: linear-gradient(135deg, var(--color-bg-dark) 0%, #2D2620 100%);
-          border-radius: var(--radius-xl);
-          padding: var(--spacing-xl);
-          color: white;
-        }
-
-        .price-summary h3 {
-          margin: 0 0 var(--spacing-lg) 0;
-          color: white;
-        }
-
-        .price-breakdown {
+        /* Duration Info Box */
+        .duration-info-box {
+          background: rgba(139, 69, 19, 0.1);
+          border: 1px solid rgba(139, 69, 19, 0.2);
+          border-radius: 12px;
+          padding: 1rem;
           display: flex;
           flex-direction: column;
-          gap: var(--spacing-md);
+          gap: 0.5rem;
+          margin-top: 0.5rem;
         }
 
-        .price-line {
+        .duration-primary {
+          color: #e5b072;
+          font-size: 0.95rem;
+          display: flex;
+          align-items: center;
+          gap: 0.5rem;
+        }
+
+        .duration-primary strong {
+          color: #fff;
+          font-weight: 600;
+        }
+
+        .duration-secondary {
+          color: #a78bfa;
+          font-size: 0.85rem;
+          display: flex;
+          align-items: center;
+          gap: 0.5rem;
+        }
+
+        /* Services Grid */
+        .services-grid {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 1.25rem;
+        }
+
+        /* Receipt Panel */
+        .receipt-panel {
+          background: linear-gradient(180deg, rgba(20, 20, 23, 0.8) 0%, rgba(15, 15, 17, 0.9) 100%);
+          border: 1px solid rgba(255, 255, 255, 0.08);
+          border-radius: 20px;
+          padding: 2rem;
+          position: relative;
+          overflow: hidden;
+          box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5);
+        }
+
+        .receipt-panel::before {
+          content: '';
+          position: absolute;
+          top: 0;
+          left: 0;
+          right: 0;
+          height: 4px;
+          background: linear-gradient(90deg, #8B4513, #e5b072, #8B4513);
+        }
+
+        .receipt-header {
+          text-align: center;
+          margin-bottom: 1.5rem;
+        }
+
+        .receipt-header h3 {
+          margin: 0;
+          font-size: 1.25rem;
+          font-weight: 600;
+          letter-spacing: 2px;
+          text-transform: uppercase;
+          color: #ffffff;
+        }
+
+        .receipt-divider {
+          height: 1px;
+          background: rgba(255, 255, 255, 0.1);
+          margin: 1rem 0;
+        }
+        
+        .receipt-divider.dashed {
+          background: transparent;
+          border-top: 1px dashed rgba(255, 255, 255, 0.2);
+        }
+
+        .receipt-body {
+          display: flex;
+          flex-direction: column;
+          gap: 0.75rem;
+        }
+
+        .receipt-line {
           display: flex;
           justify-content: space-between;
-          font-size: 1rem;
-          padding: var(--spacing-sm) 0;
-          border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+          align-items: center;
+          font-size: 0.95rem;
         }
 
-        .price-line.extra-hours {
-          color: #FCD34D;
-        }
+        .receipt-line.primary .label { color: #f3f4f6; }
+        .receipt-line.primary .value { color: #f3f4f6; font-weight: 500; }
+        
+        .receipt-line.warning .label { color: #fcd34d; }
+        .receipt-line.warning .value { color: #fcd34d; font-weight: 500; }
+        
+        .receipt-line.danger .label { color: #fca5a5; }
+        .receipt-line.danger .value { color: #fca5a5; font-weight: 500; }
+        
+        .receipt-line.secondary .label { color: #a1a1aa; font-size: 0.85rem; }
+        .receipt-line.secondary .value { color: #a1a1aa; font-size: 0.85rem; }
 
-        .price-line.after-hours {
-          color: #C4B5FD;
+        .receipt-line.subtotal {
+          margin-top: 0.5rem;
+          padding-top: 0.75rem;
+          border-top: 1px solid rgba(255, 255, 255, 0.05);
         }
+        
+        .receipt-line.subtotal .label { color: #a1a1aa; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 1px; }
+        .receipt-line.subtotal .value { color: #ffffff; font-weight: 600; }
 
-        .price-line.subtotal {
-          border-bottom: 1px dashed rgba(255, 255, 255, 0.3);
-          font-weight: 600;
-        }
-
-        .price-line.services-header {
-          border-bottom: none;
-          padding-bottom: 0;
-          font-weight: 600;
-          color: #93c5fd;
-          font-size: 0.9rem;
-        }
-
-        .price-line.service-item {
-          font-size: 0.875rem;
-          color: #93c5fd;
-          padding: 2px 0;
-          border-bottom: none;
-        }
-
-        .price-line.total {
-          border-bottom: none;
-          border-top: 2px solid rgba(255, 255, 255, 0.3);
-          padding-top: var(--spacing-md);
-          margin-top: var(--spacing-sm);
-          font-weight: 700;
-          font-size: 1.25rem;
-        }
-
-        .price-value {
-          font-size: 1.75rem;
-          color: var(--color-primary-light);
-        }
-
-        .price-note {
-          margin: var(--spacing-md) 0 0 0;
-          font-size: 0.8125rem;
-          opacity: 0.7;
-        }
-
-        .form-actions {
+        .receipt-services {
+          margin-top: 0.5rem;
+          background: rgba(0,0,0,0.2);
+          border-radius: 8px;
+          padding: 0.75rem;
           display: flex;
-          gap: var(--spacing-md);
-          justify-content: ${isModal ? 'flex-end' : 'center'};
+          flex-direction: column;
+          gap: 0.5rem;
         }
 
-        .btn {
-          padding: var(--spacing-md) var(--spacing-2xl);
-          border-radius: var(--radius-lg);
+        .services-title {
+          font-size: 0.75rem;
+          text-transform: uppercase;
+          letter-spacing: 1px;
+          color: #71717a;
+          margin-bottom: 0.25rem;
+        }
+
+        .receipt-total {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          margin-top: 1rem;
+        }
+
+        .receipt-total > span {
+          font-size: 1.125rem;
           font-weight: 600;
+          color: #ffffff;
+        }
+
+        .total-amount {
+          display: flex;
+          align-items: baseline;
+          gap: 0.25rem;
+        }
+
+        .total-amount .currency {
           font-size: 1rem;
+          color: #e5b072;
+          font-weight: 600;
+        }
+
+        .total-amount .number {
+          font-size: 2rem;
+          font-weight: 700;
+          color: #ffffff;
+          letter-spacing: -1px;
+        }
+
+        .receipt-note {
+          text-align: center;
+          font-size: 0.75rem;
+          color: #52525b;
+          margin: 1rem 0 0 0;
+        }
+
+        /* Actions */
+        .form-actions-premium {
+          display: flex;
+          gap: 1rem;
+          margin-top: 0.5rem;
+        }
+
+        .premium-btn {
+          flex: 1;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 0.75rem;
+          padding: 1.125rem 2rem;
+          border-radius: 14px;
+          font-size: 1rem;
+          font-weight: 600;
           cursor: pointer;
           transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+          border: none;
         }
 
-        .btn:disabled {
-          opacity: 0.6;
+        .premium-btn:disabled {
+          opacity: 0.7;
           cursor: not-allowed;
         }
 
-        .btn-secondary {
-          background: var(--color-bg-secondary);
-          border: 1px solid rgba(139, 69, 19, 0.2);
-          color: var(--color-text-primary);
+        .premium-btn.ghost {
+          background: rgba(255, 255, 255, 0.05);
+          color: #ffffff;
+          border: 1px solid rgba(255, 255, 255, 0.1);
         }
 
-        .btn-secondary:hover:not(:disabled) {
-          background: var(--color-bg-primary);
+        .premium-btn.ghost:hover:not(:disabled) {
+          background: rgba(255, 255, 255, 0.1);
         }
 
-        .btn-primary {
-          background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%);
-          border: none;
-          color: white;
+        .premium-btn.primary {
+          background: linear-gradient(135deg, #8B4513 0%, #A0522D 100%);
+          color: #ffffff;
+          box-shadow: 0 4px 14px rgba(139, 69, 19, 0.4);
         }
 
-        .btn-primary:hover:not(:disabled) {
+        .premium-btn.primary:hover:not(:disabled) {
           transform: translateY(-2px);
-          box-shadow: var(--shadow-lg);
+          box-shadow: 0 6px 20px rgba(139, 69, 19, 0.6);
         }
 
-        .form-note {
+        .premium-btn.primary span {
+          transition: transform 0.2s;
+        }
+
+        .premium-btn.primary:hover:not(:disabled) span {
+          transform: translateX(4px);
+        }
+
+        .secure-note {
           text-align: center;
-          font-size: 0.875rem;
-          color: var(--color-text-muted);
+          font-size: 0.85rem;
+          color: #71717a;
           margin: 0;
         }
 
-        @media (max-width: 768px) {
+        .spinner-mini {
+          width: 18px;
+          height: 18px;
+          border: 2px solid rgba(255,255,255,0.3);
+          border-top-color: #fff;
+          border-radius: 50%;
+          animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+          to { transform: rotate(360deg); }
+        }
+
+        @media (max-width: 900px) {
+          .form-grid {
+            grid-template-columns: 1fr;
+          }
+        }
+        
+        @media (max-width: 600px) {
           .form-row.two-cols {
-            flex-direction: column;
+            grid-template-columns: 1fr;
+          }
+          .services-grid {
+            grid-template-columns: 1fr;
           }
         }
       `}</style>
