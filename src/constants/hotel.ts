@@ -1,10 +1,9 @@
-// Room type configuration with pricing and availability
 export const ROOM_TYPES = {
-    single: { label: 'Single Bed', price: 30, maxQty: 4, allowExtraBed: false, icon: 'Single' },
-    double: { label: 'Double Bed', price: 35, maxQty: 5, allowExtraBed: true, icon: 'Double' },
-    triple: { label: 'Triple Bed', price: 30, maxQty: 1, allowExtraBed: true, icon: 'Triple' },
-    quadruple: { label: 'Quadruple', price: 35, maxQty: 2, allowExtraBed: true, icon: 'Quad' },
-    homestay: { label: 'Homestay', price: 100, maxQty: 1, allowExtraBed: true, icon: 'Home', description: 'Living room, Kitchen, Toilet, 3 Bedrooms' },
+    single: { label: 'Single Bed', price: 30, maxQty: 4, allowExtraBed: false, icon: '🛏️' },
+    double: { label: 'Double Bed', price: 35, maxQty: 5, allowExtraBed: true, icon: '🛌' },
+    triple: { label: 'Triple Bed', price: 30, maxQty: 1, allowExtraBed: true, icon: '👨‍👩‍👦' },
+    quadruple: { label: 'Quadruple', price: 35, maxQty: 2, allowExtraBed: true, icon: '👨‍👩‍👧‍👦' },
+    homestay: { label: 'Homestay', price: 100, maxQty: 1, allowExtraBed: true, icon: '🏠', description: 'Living room, Kitchen, Toilet, 3 Bedrooms' },
 }
 
 export const AIRPORT_PICKUP = [

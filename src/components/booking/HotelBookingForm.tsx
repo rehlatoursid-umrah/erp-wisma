@@ -385,8 +385,8 @@ export default function HotelBookingForm({ initialDate, onClose, isModal = false
 
                                     {room.allowExtraBed && (
                                         <div className="extra-bed" style={{ opacity: qty > 0 ? 1 : 0.4 }}>
-                                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-                                                <label style={{ margin: 0 }}>Extra Bed (+${EXTRA_BED_PRICE}/night)</label>
+                                            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+                                                <label style={{ margin: 0, lineHeight: 1.2 }}>Extra Bed (+${EXTRA_BED_PRICE}/n)</label>
                                                 <span style={{ fontSize: '0.75rem', color: '#71717a' }}>Max: {qty}</span>
                                             </div>
                                             <div className="qty-selector small">
@@ -1039,7 +1039,7 @@ const formStyles = `
         margin-bottom: 8px;
     }
 
-    .room-icon { font-size: 1.8rem; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3)); }
+    .room-icon { font-size: 2.5rem; filter: drop-shadow(0 2px 8px rgba(0,0,0,0.4)); margin-bottom: 4px; }
     .room-name { font-weight: 600; color: #f3f4f6; font-size: 1.1rem; }
     .room-desc { font-size: 0.8rem; color: #a1a1aa; margin: 0 0 12px; line-height: 1.4; }
     .room-price { font-size: 1.25rem; font-weight: 700; color: #e5b072; margin-bottom: 4px; }
