@@ -386,7 +386,8 @@ export default function AuditoriumCalendar({
             className="modal"
             onClick={e => e.stopPropagation()}
             style={{
-              background: '#ffffff',
+              background: '#0f0f11',
+              border: '1px solid rgba(255, 255, 255, 0.1)',
               borderRadius: '24px',
               width: '90%',
               maxWidth: '800px',
@@ -398,10 +399,10 @@ export default function AuditoriumCalendar({
             }}
           >
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-              <h2 style={{ margin: 0, color: '#111827' }}>Buat Booking Auditorium</h2>
+              <h2 style={{ margin: 0, color: '#f3f4f6' }}>Buat Booking Auditorium</h2>
               <button
                 onClick={() => setIsBookingModalOpen(false)}
-                style={{ background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                style={{ background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#a1a1aa' }}
               >
                 <X size={24} />
               </button>
