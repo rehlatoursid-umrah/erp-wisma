@@ -210,10 +210,9 @@ export async function GET(request: NextRequest) {
         <div class="invoice-body">
             <div class="invoice-details">
                 <div class="bill-to">
-                    <h3>Tagihan Kepada</h3>
-                    <p><strong>\${customerName}</strong><br>
-                    \${customerWA && customerWA !== '-' ? \`WhatsApp: \${customerWA}<br>\` : ''}
-                    Tipe: \${bookingType.replace('_', ' ').toUpperCase()}</p>
+                    <p><strong>${customerName}</strong><br>
+                    ${customerWA && customerWA !== '-' ? `WhatsApp: ${customerWA}<br>` : ''}
+                    Tipe: ${bookingType.replace('_', ' ').toUpperCase()}</p>
                 </div>
                 <div class="invoice-info">
                     <h3>Info Invoice</h3>
@@ -239,14 +238,14 @@ export async function GET(request: NextRequest) {
                 <table class="totals-table">
                     <tr>
                         <td>Subtotal</td>
-                        <td>\${subtotal ? subtotal.toLocaleString() : totalAmount.toLocaleString()} \${currency}</td>
+                        <td>${subtotal ? subtotal.toLocaleString() : totalAmount.toLocaleString()} ${currency}</td>
                     </tr>
-                    \${discount > 0 ? \`
+                    ${discount > 0 ? `
                     <tr>
                         <td>Diskon</td>
-                        <td style="color: #dc2626;">-\${discount.toLocaleString()} \${currency}</td>
+                        <td style="color: #dc2626;">-${discount.toLocaleString()} ${currency}</td>
                     </tr>
-                    \` : ''}
+                    ` : ''}
                     <tr class="grand-total">
                         <td>Total</td>
                         <td>${totalAmount.toLocaleString()} ${currency}</td>
@@ -260,7 +259,7 @@ export async function GET(request: NextRequest) {
                     Informasi Pembayaran
                 </h3>
                 <p style="color: #4b5563; font-size: 0.9rem;">
-                    \${isPaid ? \`Pembayaran telah lunas secara \${paymentMethod ? paymentMethod.toUpperCase() : 'CASH'} kepada resepsionis.\` : 'Pembayaran HANYA dapat dilakukan secara CASH (TUNAI) kepada resepsionis atau Transfer resmi Wisma Nusantara Cairo.'}
+                    ${isPaid ? `Pembayaran telah lunas secara ${paymentMethod ? paymentMethod.toUpperCase() : 'CASH'} kepada resepsionis.` : 'Pembayaran HANYA dapat dilakukan secara CASH (TUNAI) kepada resepsionis atau Transfer resmi Wisma Nusantara Cairo.'}
                 </p>
             </div>
         </div>
