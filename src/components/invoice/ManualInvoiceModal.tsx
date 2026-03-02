@@ -521,7 +521,17 @@ export default function ManualInvoiceModal({ isOpen, onClose, onSuccess, initial
                         )}
 
                         <div className="buttons">
-                            <button type="button" className="action-btn preview" onClick={() => window.print()}>
+                            <button
+                                type="button"
+                                className="action-btn preview"
+                                onClick={() => {
+                                    if (initialData?.id) {
+                                        window.open(`/api/finance/invoice/pdf?id=${initialData.id}`, '_blank');
+                                    } else {
+                                        alert('Silakan save/simpan invoice terlebih dahulu sebelum mencetak PDF.');
+                                    }
+                                }}
+                            >
                                 {initialData ? '🖨️ Cetak PDF' : '🖨️ Preview / Print'}
                             </button>
                             <button type="submit" disabled={isLoading} className="action-btn save">
@@ -711,7 +721,7 @@ export default function ManualInvoiceModal({ isOpen, onClose, onSuccess, initial
                     }
                 }
             `}</style>
-        </div>,
+        </div >,
         document.body
     )
 }
