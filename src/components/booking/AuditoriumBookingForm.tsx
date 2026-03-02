@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import {
   HALL_PACKAGES,
   AFTER_HOURS_RATE,
@@ -62,6 +62,7 @@ export default function AuditoriumBookingForm({
   isModal = false,
 }: AuditoriumBookingFormProps) {
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [isPageLoading, setIsPageLoading] = useState(true)
   const [formData, setFormData] = useState({
     fullName: '',
     countryOfOrigin: '',
@@ -78,6 +79,14 @@ export default function AuditoriumBookingForm({
     plateOption: '',
     glassOption: '',
   })
+
+  useEffect(() => {
+    // Simulate initial page load for premium feel
+    const timer = setTimeout(() => {
+      setIsPageLoading(false)
+    }, 600)
+    return () => clearTimeout(timer)
+  }, [])
 
   // Calculate all prices automatically
   const pricing = useMemo(() => {
@@ -513,6 +522,13 @@ export default function AuditoriumBookingForm({
         </div>
       </div>
 
+      {(isSubmitting || isPageLoading) && (
+        <div className="loading-overlay">
+          <div className="loading-spinner">⏳</div>
+          <p>{isPageLoading ? 'Memuat formulir...' : 'Memproses konfirmasi booking...'}</p>
+        </div>
+      )}
+
       <style jsx>{`
         .booking-form {
           width: 100%;
@@ -935,6 +951,37 @@ export default function AuditoriumBookingForm({
           .services-grid {
             grid-template-columns: 1fr;
           }
+        }
+
+        /* Loading Overlay (Same as Dashboard Login) */
+        .loading-overlay {
+          position: fixed;
+          inset: 0;
+          background: rgba(0, 0, 0, 0.7);
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          z-index: 1000;
+          backdrop-filter: blur(4px);
+        }
+
+        .loading-spinner {
+          font-size: 3rem;
+          animation: spin 1s linear infinite;
+        }
+
+        .loading-overlay p {
+          color: white;
+          margin-top: 1rem;
+          font-size: 1.125rem;
+          font-weight: 500;
+          letter-spacing: 0.5px;
+        }
+
+        @keyframes spin {
+          from { transform: rotate(0deg); }
+          to { transform: rotate(360deg); }
         }
       `}</style>
     </form>

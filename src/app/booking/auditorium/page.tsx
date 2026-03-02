@@ -1,12 +1,21 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import AuditoriumBookingForm, { AuditoriumBookingData } from '@/components/booking/AuditoriumBookingForm'
 
 export default function AuditoriumBookingPage() {
   const router = useRouter()
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [isPageLoading, setIsPageLoading] = useState(true)
+
+  useEffect(() => {
+    // Simulate initial page load for premium feel
+    const timer = setTimeout(() => {
+      setIsPageLoading(false)
+    }, 600)
+    return () => clearTimeout(timer)
+  }, [])
 
   const handleSubmit = async (data: AuditoriumBookingData) => {
     try {
@@ -95,6 +104,13 @@ export default function AuditoriumBookingPage() {
           <div className="loading-overlay">
             <div className="loading-spinner">✨</div>
             <p>Securing your reservation...</p>
+          </div>
+        )}
+
+        {isPageLoading && (
+          <div className="loading-overlay">
+            <div className="loading-spinner">⏳</div>
+            <p>Memuat formulir...</p>
           </div>
         )}
       </div>
@@ -304,9 +320,40 @@ export default function AuditoriumBookingPage() {
             grid-template-columns: 1fr;
           }
 
-          .form-wrapper {
-            padding: 1.5rem;
+          .bento-card {
+            padding: 1rem;
           }
+        }
+
+        /* Loading Overlay (Same as Dashboard Login) */
+        .loading-overlay {
+          position: fixed;
+          inset: 0;
+          background: rgba(0, 0, 0, 0.7);
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          z-index: 1000;
+          backdrop-filter: blur(4px);
+        }
+
+        .loading-spinner {
+          font-size: 3rem;
+          animation: spin 1s linear infinite;
+        }
+
+        .loading-overlay p {
+          color: white;
+          margin-top: 1rem;
+          font-size: 1.125rem;
+          font-weight: 500;
+          letter-spacing: 0.5px;
+        }
+
+        @keyframes spin {
+          from { transform: rotate(0deg); }
+          to { transform: rotate(360deg); }
         }
       `}</style>
     </div>
