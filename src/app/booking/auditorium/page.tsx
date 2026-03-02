@@ -43,7 +43,6 @@ export default function AuditoriumBookingPage() {
     <div className="booking-page">
       <div className="booking-container">
         <header className="booking-header">
-          <a href="/" className="back-link">← Back to Home</a>
           <div className="header-content">
             <h1>🏛️ Auditorium Reservation</h1>
             <p>Wisma Nusantara Cairo</p>
@@ -53,12 +52,10 @@ export default function AuditoriumBookingPage() {
         <div className="booking-info">
           <h2>Auditorium Facilities</h2>
           <ul>
-            <li>✓ Capacity up to 200 people</li>
-            <li>✓ Air conditioning available</li>
-            <li>✓ Professional sound system</li>
-            <li>✓ Projector & screen</li>
-            <li>✓ Tables & chairs</li>
-            <li>✓ Strategic location in Cairo</li>
+            <li>✓ Capacity up to 100 people</li>
+            <li>✓ Professional sound system including 2 mic</li>
+            <li>✓ Air conditioning (available exclude)</li>
+            <li>✓ Projector & screen (available exclude)</li>
           </ul>
         </div>
 
