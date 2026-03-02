@@ -13,7 +13,7 @@ export default function AuditoriumBookingPage() {
     // Simulate initial page load for premium feel
     const timer = setTimeout(() => {
       setIsPageLoading(false)
-    }, 600)
+    }, 5000)
     return () => clearTimeout(timer)
   }, [])
 
@@ -108,9 +108,27 @@ export default function AuditoriumBookingPage() {
         )}
 
         {isPageLoading && (
-          <div className="loading-overlay">
-            <div className="loading-spinner">⏳</div>
-            <p>Memuat formulir...</p>
+          <div style={{
+            position: 'fixed',
+            inset: 0,
+            backgroundColor: '#0f0f11', // Solid dark background to hide unstyled content
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 9999,
+            fontFamily: "'Inter', system-ui, -apple-system, sans-serif"
+          }}>
+            <style>{`
+              @keyframes spin-inline {
+                from { transform: rotate(0deg); }
+                to { transform: rotate(360deg); }
+              }
+            `}</style>
+            <div style={{ fontSize: '3rem', animation: 'spin-inline 1s linear infinite' }}>⏳</div>
+            <p style={{ color: 'white', marginTop: '1rem', fontSize: '1.125rem', fontWeight: 500, letterSpacing: '0.5px' }}>
+              Memuat formulir...
+            </p>
           </div>
         )}
       </div>
