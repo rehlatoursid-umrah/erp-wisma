@@ -29,36 +29,41 @@ const SALES_PEOPLE = [
     { id: 'S008', name: 'Rausan Fiqri' }
 ]
 
-const PREDEFINED_ITEMS = [
-    // Auditorium
-    { name: 'Sewa Aula (4 Hours)', price: 420 },
-    { name: 'Sewa Aula (9 Hours)', price: 900 },
-    { name: 'Extra Time (1 jam)', price: 115 },
-    { name: 'AC (4-6 hours)', price: 150 },
-    { name: 'AC (7-9 hours)', price: 200 },
-    { name: 'Kursi (10 chairs)', price: 190 },
-    { name: 'Kursi (20 chairs)', price: 380 },
-    { name: 'Kursi (30 chairs)', price: 540 },
-    { name: 'Meja (1 table)', price: 40 },
-    { name: 'Meja (9 tables)', price: 300 },
-    { name: 'Projector/Screen (Screen only)', price: 75 },
-    { name: 'Projector/Screen (Full Set)', price: 150 },
-    { name: 'Sound System', price: 200 },
-    { name: 'Layanan Kebersihan', price: 100 },
-
-    // Hotel
-    { name: 'Kamar Standard (1 Malam)', price: 30 },
-    { name: 'Kamar VIP (1 Malam)', price: 45 },
-    { name: 'Extra Bed', price: 10 },
-    { name: 'Airport Pickup', price: 25 },
-    { name: 'Breakfast', price: 5 },
-
-    // Visa & Transport
-    { name: 'Visa Approval', price: 35 },
-    { name: 'Sewa Hiace (1 Hari)', price: 1200 },
-    { name: 'Sewa Coaster (1 Hari)', price: 1800 },
-    { name: 'Sewa Sedan (1 Hari)', price: 800 }
-]
+const PREDEFINED_ITEMS: Record<string, { name: string, price: number }[]> = {
+    'auditorium': [
+        // Akan diisi data dari user
+        { name: 'Sewa Aula (4 Hours)', price: 420 },
+        { name: 'Sewa Aula (9 Hours)', price: 900 },
+        { name: 'Extra Time (1 jam)', price: 115 },
+        { name: 'AC (4-6 hours)', price: 150 },
+        { name: 'AC (7-9 hours)', price: 200 },
+        { name: 'Kursi (10 chairs)', price: 190 },
+        { name: 'Kursi (20 chairs)', price: 380 },
+        { name: 'Kursi (30 chairs)', price: 540 },
+        { name: 'Meja (1 table)', price: 40 },
+        { name: 'Meja (9 tables)', price: 300 },
+        { name: 'Projector/Screen (Screen only)', price: 75 },
+        { name: 'Projector/Screen (Full Set)', price: 150 },
+        { name: 'Sound System', price: 200 },
+        { name: 'Layanan Kebersihan', price: 100 },
+    ],
+    'hotel': [
+        { name: 'Kamar Standard (1 Malam)', price: 30 },
+        { name: 'Kamar VIP (1 Malam)', price: 45 },
+        { name: 'Extra Bed', price: 10 },
+        { name: 'Airport Pickup', price: 25 },
+        { name: 'Breakfast', price: 5 },
+    ],
+    'visa_arrival': [
+        { name: 'Visa Approval', price: 35 },
+    ],
+    'rental': [
+        { name: 'Sewa Hiace (1 Hari)', price: 1200 },
+        { name: 'Sewa Coaster (1 Hari)', price: 1800 },
+        { name: 'Sewa Sedan (1 Hari)', price: 800 }
+    ],
+    'manual': []
+}
 
 export default function ManualInvoiceModal({ isOpen, onClose, onSuccess, initialData }: ManualInvoiceModalProps) {
     const [isLoading, setIsLoading] = useState(false)
@@ -351,20 +356,22 @@ export default function ManualInvoiceModal({ isOpen, onClose, onSuccess, initial
                                                 />
                                                 {activeDropdown === idx && (
                                                     <div className="item-dropdown">
-                                                        {PREDEFINED_ITEMS.filter(pre => pre.name.toLowerCase().includes(item.itemName.toLowerCase())).map((pre, i) => (
-                                                            <div
-                                                                key={i}
-                                                                className="dropdown-item"
-                                                                onClick={() => {
-                                                                    updateItem(idx, 'itemName', pre.name)
-                                                                    updateItem(idx, 'priceUnit', pre.price)
-                                                                    setActiveDropdown(null)
-                                                                }}
-                                                            >
-                                                                <span className="dropdown-name">{pre.name}</span>
-                                                                <span className="dropdown-price">{pre.price.toLocaleString()}</span>
-                                                            </div>
-                                                        ))}
+                                                        {(PREDEFINED_ITEMS[bookingType] || [])
+                                                            .filter(pre => pre.name.toLowerCase().includes(item.itemName.toLowerCase()))
+                                                            .map((pre, i) => (
+                                                                <div
+                                                                    key={i}
+                                                                    className="dropdown-item"
+                                                                    onClick={() => {
+                                                                        updateItem(idx, 'itemName', pre.name)
+                                                                        updateItem(idx, 'priceUnit', pre.price)
+                                                                        setActiveDropdown(null)
+                                                                    }}
+                                                                >
+                                                                    <span className="dropdown-name">{pre.name}</span>
+                                                                    <span className="dropdown-price">{pre.price.toLocaleString()}</span>
+                                                                </div>
+                                                            ))}
                                                     </div>
                                                 )}
                                             </div>
