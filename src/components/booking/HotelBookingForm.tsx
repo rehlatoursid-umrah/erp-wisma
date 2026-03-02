@@ -160,6 +160,27 @@ export default function HotelBookingForm({ initialDate, onClose, isModal = false
         }))
     }
 
+    const handleDownloadPDF = async () => {
+        if (!bookingId) return
+
+        try {
+            const response = await fetch(`/api/booking/download/${bookingId}`)
+            if (!response.ok) throw new Error('Download failed')
+
+            const blob = await response.blob()
+            const url = window.URL.createObjectURL(blob)
+            const a = document.createElement('a')
+            a.href = url
+            a.download = `Booking-${bookingId}.pdf`
+            document.body.appendChild(a)
+            a.click()
+            window.URL.revokeObjectURL(url)
+            document.body.removeChild(a)
+        } catch (error) {
+            alert('Failed to download PDF. Please try again.')
+        }
+    }
+
     const getTotalRooms = () => {
         return formData.singleQty + formData.doubleQty + formData.tripleQty + formData.quadrupleQty + formData.homestayQty
     }
@@ -200,22 +221,49 @@ export default function HotelBookingForm({ initialDate, onClose, isModal = false
         return (
             <div className="booking-form success">
                 <div className="success-content">
-                    <div className="success-icon">✅</div>
+                    <div className="success-icon">🎉</div>
                     <h2>Booking Berhasil!</h2>
-                    <p className="booking-id">ID: <strong>{bookingId}</strong></p>
+                    <p className="booking-id">Booking ID: <strong>{bookingId}</strong></p>
+
                     <div className="success-summary">
-                        <p>📧 Konfirmasi akan dikirim ke WhatsApp Anda</p>
-                        <p>💰 Total: <strong>${pricing.totalUSD} USD</strong> + <strong>{pricing.totalEGP} EGP</strong></p>
+                        <p>
+                            <span>📧 WhatsApp Konfirmasi:</span>
+                            <strong>Terkirim</strong>
+                        </p>
+                        <p>
+                            <span>🏨 Status Kamar:</span>
+                            <strong style={{ color: '#e5b072' }}>Menunggu Pembayaran</strong>
+                        </p>
+                        <p style={{ marginTop: '16px', paddingTop: '16px', borderTop: '1px dashed rgba(255,255,255,0.1)' }}>
+                            <span>💰 Total Tagihan:</span>
+                            <strong style={{ fontSize: '1.25rem' }}>${pricing.totalUSD} USD <span style={{ fontSize: '1rem', color: '#a1a1aa', fontWeight: 'normal' }}>+ {pricing.totalEGP} EGP</span></strong>
+                        </p>
                     </div>
-                    <button className="btn btn-primary" onClick={() => {
-                        if (onClose) {
-                            onClose()
-                        } else {
-                            window.location.href = '/booking/hotel'
-                        }
-                    }}>
-                        {onClose ? 'Tutup' : 'Booking Lagi'}
-                    </button>
+
+                    <div style={{ display: 'flex', gap: '16px', justifyContent: 'center', marginTop: '32px' }}>
+                        <button
+                            className="btn btn-secondary"
+                            onClick={handleDownloadPDF}
+                            style={{ display: 'flex', alignItems: 'center', gap: '8px' }}
+                        >
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                                <polyline points="7 10 12 15 17 10"></polyline>
+                                <line x1="12" y1="15" x2="12" y2="3"></line>
+                            </svg>
+                            Download PDF
+                        </button>
+
+                        <button className="btn btn-primary" onClick={() => {
+                            if (onClose) {
+                                onClose()
+                            } else {
+                                window.location.href = '/booking/hotel'
+                            }
+                        }}>
+                            {onClose ? 'Tutup' : 'Booking Lagi'}
+                        </button>
+                    </div>
                 </div>
                 <style jsx>{successStyles}</style>
             </div>
@@ -488,7 +536,7 @@ export default function HotelBookingForm({ initialDate, onClose, isModal = false
                                         {/* 3. Daily Toggle */}
                                         {mealData.qty > 0 && (
                                             <div style={{
-                                                marginTop: '12px', padding: '8px', background: '#f9fafb',
+                                                marginTop: '12px', padding: '8px', background: 'rgba(0,0,0,0.2)',
                                                 borderRadius: '8px', fontSize: '0.85rem'
                                             }}>
                                                 <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
@@ -575,11 +623,11 @@ export default function HotelBookingForm({ initialDate, onClose, isModal = false
 
                         {/* Extra Beds Summary */}
                         {pricing.extraBedTotal > 0 && (
-                            <div className="summary-row" style={{ color: '#ea580c', borderTop: '1px dashed #e5e7eb', marginTop: '8px', paddingTop: '8px' }}>
+                            <div className="summary-row" style={{ color: '#e5b072', borderTop: '1px dashed rgba(255,255,255,0.1)', marginTop: '8px', paddingTop: '12px' }}>
                                 <span>
                                     Extra Bed ({formData.doubleExtraBed + formData.tripleExtraBed + formData.quadrupleExtraBed + formData.homestayExtraBed} beds)
                                     <br />
-                                    <span style={{ fontSize: '0.8rem', color: '#666' }}>
+                                    <span style={{ fontSize: '0.8rem', color: '#a1a1aa' }}>
                                         ${EXTRA_BED_PRICE}/night × {nights} nights
                                     </span>
                                 </span>
@@ -674,6 +722,12 @@ export default function HotelBookingForm({ initialDate, onClose, isModal = false
             )}
 
             {/* Navigation */}
+            {isSubmitting && (
+                <div className="loading-overlay">
+                    <div className="loading-spinner">⏳</div>
+                    <p>Securing your reservation...</p>
+                </div>
+            )}
             <div className="form-nav">
                 {step > 1 && (
                     <button className="btn btn-secondary" onClick={() => setStep(step - 1)}>
@@ -713,17 +767,73 @@ const formStyles = `
     .booking-form {
         max-width: 800px;
         margin: 0 auto;
-        padding: 24px;
-        background: white;
-        border-radius: 20px;
-        box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+        padding: 2.5rem;
+        background: rgba(255, 255, 255, 0.03);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        border: 1px solid rgba(255, 255, 255, 0.05);
+        border-radius: 24px;
+        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+        position: relative;
+        overflow: hidden;
+    }
+
+    /* Loading Overlay Styles (for form submission) */
+    .loading-overlay {
+        position: absolute;
+        inset: 0;
+        background: rgba(15, 15, 17, 0.85);
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        z-index: 50;
+        border-radius: 24px;
+    }
+
+    .loading-spinner {
+        font-size: 3rem;
+        animation: spin 1.5s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+        margin-bottom: 1rem;
+    }
+
+    .loading-overlay p {
+        color: #f3f4f6;
+        font-size: 1.125rem;
+        font-weight: 500;
+        letter-spacing: 0.5px;
+        animation: pulseText 2s infinite ease-in-out;
+    }
+
+    @keyframes pulseText {
+        0%, 100% { opacity: 0.7; }
+        50% { opacity: 1; text-shadow: 0 0 10px rgba(229, 176, 114, 0.3); }
+    }
+    @keyframes spin {
+        from { transform: rotate(0deg); }
+        to { transform: rotate(360deg); }
     }
 
     .progress-bar {
         display: flex;
         justify-content: space-between;
         margin-bottom: 32px;
-        padding: 0 20px;
+        padding: 0 10px;
+        position: relative;
+    }
+
+    /* Connecting Line */
+    .progress-bar::before {
+        content: '';
+        position: absolute;
+        top: 18px;
+        left: 30px;
+        right: 30px;
+        height: 2px;
+        background: rgba(255, 255, 255, 0.1);
+        z-index: 0;
     }
 
     .step {
@@ -731,15 +841,19 @@ const formStyles = `
         flex-direction: column;
         align-items: center;
         gap: 8px;
-        opacity: 0.4;
+        opacity: 0.5;
         transition: all 0.3s ease;
+        z-index: 1;
+        position: relative;
     }
 
     .step.active { opacity: 1; }
     .step.current .step-number { 
-        background: #8B4513; 
-        color: white; 
-        transform: scale(1.2);
+        background: linear-gradient(135deg, #e5b072 0%, #a4703f 100%);
+        color: #000; 
+        transform: scale(1.15);
+        box-shadow: 0 0 15px rgba(229, 176, 114, 0.4);
+        border: none;
     }
 
     .step-number {
@@ -749,41 +863,55 @@ const formStyles = `
         align-items: center;
         justify-content: center;
         border-radius: 50%;
-        background: #e5e7eb;
+        background: #1f1f22;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        color: #a1a1aa;
         font-weight: 700;
         transition: all 0.3s ease;
     }
 
-    .step.active .step-number { background: #22c55e; color: white; }
+    .step.active .step-number { 
+        background: rgba(229, 176, 114, 0.15);
+        color: #e5b072;
+        border-color: rgba(229, 176, 114, 0.3);
+    }
 
     .step-label {
         font-size: 0.75rem;
         font-weight: 500;
-        color: #6b7280;
+        color: #a1a1aa;
+        background: #0f0f11; /* to mask the line behind text */
+        padding: 0 4px;
+        border-radius: 4px;
     }
 
     .form-step {
-        animation: fadeIn 0.3s ease;
+        animation: fadeIn 0.4s ease-out;
     }
 
     .form-step h2 {
         margin: 0 0 24px;
-        color: #1f2937;
+        color: #ffffff;
         font-size: 1.5rem;
+        font-weight: 600;
+        letter-spacing: -0.5px;
     }
 
     .subtitle {
-        color: #6b7280;
+        color: #a1a1aa;
         margin: -16px 0 24px;
-        font-size: 0.9rem;
+        font-size: 0.95rem;
     }
 
     .section-title {
         font-weight: 600;
-        color: #374151;
-        margin: 24px 0 12px;
+        color: #e5b072;
+        margin: 28px 0 16px;
         padding-bottom: 8px;
-        border-bottom: 2px solid #f3f4f6;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        font-size: 0.85rem;
     }
 
     .form-group {
@@ -794,21 +922,37 @@ const formStyles = `
         display: block;
         margin-bottom: 8px;
         font-weight: 500;
-        color: #374151;
+        color: #e4e4e7;
+        font-size: 0.95rem;
     }
 
     .form-group input, .form-group select {
         width: 100%;
-        padding: 12px 16px;
-        border: 2px solid #e5e7eb;
+        padding: 14px 16px;
+        background: rgba(0, 0, 0, 0.2);
+        border: 1px solid rgba(255, 255, 255, 0.1);
         border-radius: 12px;
         font-size: 1rem;
-        transition: border-color 0.2s;
+        color: #ffffff;
+        transition: all 0.3s ease;
     }
 
     .form-group input:focus, .form-group select:focus {
         outline: none;
-        border-color: #8B4513;
+        border-color: #e5b072;
+        box-shadow: 0 0 0 3px rgba(229, 176, 114, 0.1);
+        background: rgba(0, 0, 0, 0.4);
+    }
+
+    .form-group input::placeholder, .form-group select::placeholder {
+        color: #52525b;
+    }
+
+    /* Style for date picker icon */
+    input[type="date"]::-webkit-calendar-picker-indicator,
+    input[type="time"]::-webkit-calendar-picker-indicator {
+        filter: invert(0.8) sepia(1) saturate(3) hue-rotate(340deg);
+        cursor: pointer;
     }
 
     .form-row {
@@ -817,25 +961,55 @@ const formStyles = `
         gap: 16px;
     }
 
+    /* ------ Bento Grid Look matches room-card and meal-card ------ */
     .room-grid {
         display: grid;
         grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
         gap: 16px;
     }
 
-    .room-card {
-        border: 2px solid #e5e7eb;
+    .room-card, .pickup-card, .meal-card {
+        background: rgba(255, 255, 255, 0.02);
+        border: 1px solid rgba(255, 255, 255, 0.05);
         border-radius: 16px;
         padding: 20px;
         text-align: center;
-        transition: all 0.2s;
-        cursor: pointer;
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+    }
+    .pickup-card {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        text-align: left;
+    }
+    .meal-card {
+        text-align: left;
     }
 
-    .room-card:hover { border-color: #8B4513; }
-    .room-card.selected { 
-        border-color: #22c55e; 
-        background: #f0fdf4;
+    .room-card:hover, .pickup-card:hover, .meal-card:hover { 
+        background: rgba(255, 255, 255, 0.04);
+        border-color: rgba(229, 176, 114, 0.3);
+        transform: translateY(-2px);
+    }
+    
+    .room-card.selected, .pickup-card.selected, .meal-card.selected { 
+        background: rgba(229, 176, 114, 0.08);
+        border-color: #e5b072;
+        box-shadow: inset 0 0 20px rgba(229, 176, 114, 0.05);
+    }
+
+    /* Highlight badge for selected items */
+    .room-card.selected::before, .pickup-card.selected::before, .meal-card.selected::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 4px;
+        height: 100%;
+        background: #e5b072;
+        border-radius: 4px 0 0 4px;
     }
 
     .room-header {
@@ -846,109 +1020,107 @@ const formStyles = `
         margin-bottom: 8px;
     }
 
-    .room-icon { font-size: 1.5rem; }
-    .room-name { font-weight: 600; color: #1f2937; }
-    .room-desc { font-size: 0.75rem; color: #6b7280; margin: 0 0 8px; }
-    .room-price { font-size: 1.25rem; font-weight: 700; color: #8B4513; }
-    .room-max { font-size: 0.75rem; color: #9ca3af; margin-bottom: 12px; }
+    .room-icon { font-size: 1.8rem; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3)); }
+    .room-name { font-weight: 600; color: #f3f4f6; font-size: 1.1rem; }
+    .room-desc { font-size: 0.8rem; color: #a1a1aa; margin: 0 0 12px; line-height: 1.4; }
+    .room-price { font-size: 1.25rem; font-weight: 700; color: #e5b072; margin-bottom: 4px; }
+    .room-max { font-size: 0.75rem; color: #71717a; margin-bottom: 16px; }
 
     .qty-selector {
         display: flex;
         align-items: center;
         justify-content: center;
         gap: 16px;
+        background: rgba(0,0,0,0.2);
+        padding: 4px;
+        border-radius: 100px;
+        border: 1px solid rgba(255,255,255,0.05);
     }
 
     .qty-selector button {
-        width: 36px;
-        height: 36px;
-        border: 2px solid #e5e7eb;
+        width: 32px;
+        height: 32px;
+        border: none;
         border-radius: 50%;
-        background: white;
+        background: rgba(255,255,255,0.05);
+        color: #e4e4e7;
         font-size: 1.25rem;
         cursor: pointer;
         transition: all 0.2s;
+        display: flex;
+        align-items: center;
+        justify-content: center;
     }
 
     .qty-selector button:hover:not(:disabled) {
-        background: #8B4513;
-        color: white;
-        border-color: #8B4513;
+        background: #e5b072;
+        color: #000;
+        box-shadow: 0 0 10px rgba(229,176,114,0.3);
     }
 
     .qty-selector button:disabled {
-        opacity: 0.3;
+        opacity: 0.2;
         cursor: not-allowed;
     }
 
     .qty-selector span {
-        font-size: 1.25rem;
-        font-weight: 700;
-        min-width: 30px;
+        font-size: 1.1rem;
+        font-weight: 600;
+        min-width: 24px;
+        color: #f3f4f6;
     }
 
-    .qty-selector.small button { width: 28px; height: 28px; font-size: 1rem; }
-    .qty-selector.inline { justify-content: flex-start; }
+    .qty-selector.small button { width: 26px; height: 26px; font-size: 1rem; }
+    .qty-selector.inline { 
+        justify-content: flex-start; 
+        background: transparent; 
+        border: none; 
+        padding: 0; 
+    }
+    .qty-selector.inline button {
+        background: rgba(0,0,0,0.3);
+        border: 1px solid rgba(255,255,255,0.1);
+    }
 
     .extra-bed {
-        margin-top: 12px;
-        padding-top: 12px;
-        border-top: 1px dashed #e5e7eb;
+        margin-top: 16px;
+        padding-top: 16px;
+        border-top: 1px dashed rgba(255,255,255,0.1);
+        text-align: left;
     }
 
     .extra-bed label {
         display: block;
-        font-size: 0.75rem;
-        color: #6b7280;
+        font-size: 0.8rem;
+        color: #a1a1aa;
         margin-bottom: 8px;
     }
 
     .selection-summary {
-        margin-top: 20px;
-        padding: 12px 20px;
-        background: #f0fdf4;
+        margin-top: 24px;
+        padding: 16px 20px;
+        background: rgba(229, 176, 114, 0.05);
+        border: 1px solid rgba(229, 176, 114, 0.2);
         border-radius: 12px;
         text-align: center;
-        color: #166534;
+        color: #e5b072;
+        font-weight: 500;
     }
 
     .nights-badge {
         display: inline-block;
-        margin-top: 16px;
+        margin-top: 20px;
         padding: 8px 20px;
-        background: #fef3c7;
-        color: #92400e;
+        background: rgba(229, 176, 114, 0.1);
+        color: #e5b072;
+        border: 1px solid rgba(229, 176, 114, 0.2);
         border-radius: 20px;
         font-weight: 600;
+        letter-spacing: 0.5px;
     }
 
-    .pickup-options {
-        display: flex;
-        flex-direction: column;
-        gap: 12px;
-    }
-
-    .pickup-card {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        padding: 16px 20px;
-        border: 2px solid #e5e7eb;
-        border-radius: 12px;
-        cursor: pointer;
-        transition: all 0.2s;
-    }
-
-    .pickup-card:hover { border-color: #8B4513; }
-    .pickup-card.selected { 
-        border-color: #22c55e; 
-        background: #f0fdf4;
-    }
-
-    .pickup-price {
-        font-weight: 700;
-        color: #8B4513;
-    }
+    .pickup-label { color: #f3f4f6; font-weight: 500; }
+    .pickup-price { font-weight: 700; color: #e5b072; }
 
     .meal-grid {
         display: grid;
@@ -956,107 +1128,91 @@ const formStyles = `
         gap: 20px;
     }
 
-    .meal-card {
-        border: 2px solid #e5e7eb;
-        border-radius: 16px;
-        padding: 20px;
-        transition: all 0.2s;
-    }
-
-    .meal-card.selected {
-        border-color: #22c55e;
-        background: #f0fdf4;
-    }
-
     .meal-header {
         display: flex;
         justify-content: space-between;
         align-items: center;
         margin-bottom: 16px;
+        padding-bottom: 12px;
+        border-bottom: 1px solid rgba(255,255,255,0.05);
     }
 
-    .meal-name { font-weight: 600; font-size: 1.1rem; }
-    .meal-price { font-weight: 700; color: #8B4513; }
-
-    .meal-timing {
-        margin-top: 16px;
-        padding-top: 16px;
-        border-top: 1px dashed #e5e7eb;
+    .meal-name { font-weight: 600; font-size: 1.1rem; color: #f3f4f6; }
+    
+    select option {
+        background: #18181b; /* Dark bg for dropdown options */
+        color: #f3f4f6;
     }
 
-    .meal-timing label:first-child {
-        display: block;
-        font-size: 0.875rem;
-        color: #6b7280;
-        margin-bottom: 12px;
-    }
-
-    .timing-grid {
-        display: grid;
-        grid-template-columns: repeat(3, 1fr);
-        gap: 8px;
-    }
-
-    .timing-checkbox {
-        display: flex;
-        align-items: center;
-        gap: 6px;
-        font-size: 0.75rem;
-        cursor: pointer;
-    }
-
-    .timing-checkbox input { accent-color: #8B4513; }
-
+    /* ------ Summary Receipt ------ */
     .summary-section {
-        padding: 20px;
-        background: #f9fafb;
-        border-radius: 12px;
+        padding: 24px;
+        background: rgba(0, 0, 0, 0.2);
+        border: 1px solid rgba(255, 255, 255, 0.05);
+        border-radius: 16px;
         margin-bottom: 16px;
     }
 
     .summary-section h3 {
-        margin: 0 0 16px;
-        font-size: 1rem;
-        color: #374151;
+        margin: 0 0 20px;
+        font-size: 1.1rem;
+        color: #e5b072;
+        font-weight: 600;
+        letter-spacing: 0.5px;
+        border-bottom: 1px solid rgba(255,255,255,0.05);
+        padding-bottom: 12px;
     }
 
     .summary-row {
         display: flex;
         justify-content: space-between;
-        padding: 8px 0;
-        border-bottom: 1px solid #e5e7eb;
+        padding: 10px 0;
+        color: #d4d4d8;
+        font-size: 0.95rem;
     }
 
-    .summary-row:last-child { border-bottom: none; }
+    .summary-row strong { color: #f3f4f6; font-weight: 600; }
+    .summary-row span:last-child { color: #f3f4f6; font-weight: 500; }
 
     .summary-total {
-        background: #1f2937;
-        color: white;
-        padding: 20px;
-        border-radius: 12px;
+        background: linear-gradient(135deg, rgba(229, 176, 114, 0.1) 0%, rgba(139, 69, 19, 0.1) 100%);
+        border: 1px solid rgba(229, 176, 114, 0.2);
+        padding: 24px;
+        border-radius: 16px;
+        margin-top: 24px;
     }
 
     .total-row {
         display: flex;
         justify-content: space-between;
         padding: 8px 0;
-        opacity: 0.8;
+        color: #d4d4d8;
+        font-size: 1rem;
     }
+    .total-row strong { color: #f3f4f6; }
 
     .grand-total {
         display: flex;
         justify-content: space-between;
-        padding-top: 16px;
-        margin-top: 8px;
-        border-top: 1px solid rgba(255,255,255,0.2);
+        align-items: center;
+        padding-top: 20px;
+        margin-top: 12px;
+        border-top: 1px dashed rgba(229, 176, 114, 0.3);
         font-size: 1.25rem;
+        color: #f3f4f6;
+    }
+
+    .grand-total strong {
+        font-size: 1.5rem;
+        color: #e5b072;
+        font-weight: 700;
     }
 
     .form-nav {
         display: flex;
         margin-top: 32px;
-        padding-top: 20px;
-        border-top: 2px solid #f3f4f6;
+        padding-top: 24px;
+        border-top: 1px solid rgba(255, 255, 255, 0.05);
     }
 
     .nav-spacer { flex: 1; }
@@ -1069,6 +1225,11 @@ const formStyles = `
         font-weight: 600;
         cursor: pointer;
         transition: all 0.2s;
+        letter-spacing: 0.5px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
     }
 
     .btn:disabled {
@@ -1077,26 +1238,37 @@ const formStyles = `
     }
 
     .btn-primary {
-        background: #8B4513;
-        color: white;
+        background: linear-gradient(135deg, #e5b072 0%, #a4703f 100%);
+        color: #000;
+        box-shadow: 0 4px 15px rgba(229, 176, 114, 0.2);
     }
 
     .btn-primary:hover:not(:disabled) {
-        background: #6d3610;
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(229, 176, 114, 0.3);
     }
 
     .btn-secondary {
-        background: #f3f4f6;
-        color: #374151;
+        background: rgba(255, 255, 255, 0.05);
+        color: #d4d4d8;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    .btn-secondary:hover {
+        background: rgba(255, 255, 255, 0.1);
+        color: #fff;
     }
 
     .btn-success {
-        background: #22c55e;
+        background: linear-gradient(135deg, #10b981 0%, #059669 100%);
         color: white;
+        box-shadow: 0 4px 15px rgba(16, 185, 129, 0.2);
+        padding: 16px 36px;
+        font-size: 1.1rem;
     }
 
     .btn-success:hover:not(:disabled) {
-        background: #16a34a;
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(16, 185, 129, 0.3);
     }
 
     @keyframes fadeIn {
@@ -1105,10 +1277,11 @@ const formStyles = `
     }
 
     @media (max-width: 640px) {
+        .booking-form { padding: 1.5rem; }
         .form-row { grid-template-columns: 1fr; }
         .room-grid { grid-template-columns: 1fr; }
-        .timing-grid { grid-template-columns: 1fr; }
         .progress-bar { padding: 0; gap: 4px; }
+        .progress-bar::before { left: 15px; right: 15px; }
         .step-label { display: none; }
     }
 `
@@ -1116,34 +1289,64 @@ const formStyles = `
 const successStyles = `
     .booking-form.success {
         text-align: center;
-        padding: 60px 40px;
+        padding: 4rem 2rem;
+        background: rgba(20, 20, 23, 0.6);
+        border: 1px solid rgba(34, 197, 94, 0.3);
+        box-shadow: 0 0 40px rgba(34, 197, 94, 0.1);
     }
 
     .success-icon {
-        font-size: 4rem;
-        margin-bottom: 20px;
+        font-size: 4.5rem;
+        margin-bottom: 24px;
+        animation: scaleIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        filter: drop-shadow(0 0 20px rgba(34,197,94,0.4));
     }
 
     .success-content h2 {
         margin: 0 0 16px;
-        color: #166534;
+        color: #4ade80;
+        font-size: 2rem;
+        font-weight: 700;
+        letter-spacing: -0.5px;
     }
 
     .booking-id {
-        font-size: 1.25rem;
-        color: #374151;
-        margin-bottom: 24px;
+        font-size: 1.1rem;
+        color: #a1a1aa;
+        margin-bottom: 32px;
+        background: rgba(0,0,0,0.3);
+        padding: 8px 16px;
+        border-radius: 8px;
+        display: inline-block;
+        border: 1px dashed rgba(255,255,255,0.1);
     }
+    
+    .booking-id strong { color: #f3f4f6; font-family: monospace; font-size: 1.25rem; }
 
     .success-summary {
-        background: #f0fdf4;
-        padding: 20px;
-        border-radius: 12px;
-        margin-bottom: 24px;
+        background: rgba(34, 197, 94, 0.05);
+        border: 1px solid rgba(34, 197, 94, 0.2);
+        padding: 24px;
+        border-radius: 16px;
+        margin-bottom: 32px;
+        text-align: left;
+        max-width: 400px;
+        margin-left: auto;
+        margin-right: auto;
     }
 
     .success-summary p {
-        margin: 8px 0;
-        color: #166534;
+        margin: 12px 0;
+        color: #d4d4d8;
+        display: flex;
+        justify-content: space-between;
+        font-size: 1.05rem;
+    }
+    
+    .success-summary strong { color: #f3f4f6; }
+
+    @keyframes scaleIn {
+        from { transform: scale(0); opacity: 0; }
+        to { transform: scale(1); opacity: 1; }
     }
 `
