@@ -39,22 +39,24 @@ export async function POST(request: Request) {
         // Convert base64 PDF to Buffer
         const pdfBuffer = Buffer.from(pdfBase64, 'base64')
         // Generate PDF Filename based on request
-        const invoiceFilename = `Invoice_${bookingId}.pdf`
+        const bookingNumber = bookingId.replace('AULA-', '')
+        const invoiceFilename = `Confirmation_Aula-${bookingNumber}.pdf`
 
         console.log(`📄 PDF received: ${pdfBuffer.length} bytes`)
         console.log(`📤 Sending PDF + caption to ${formattedPhone}`)
 
         // Build caption text
-        const statusText = status === 'paid' ? '✅ LUNAS' : '⏳ BELUM LUNAS'
-        const captionText = `📄 *INVOICE - Wisma Nusantara Cairo*
+        const isConfirmed = status === 'paid' || status === 'confirmed'
+        const statusText = isConfirmed ? '✅ Booking Confirmed' : '⏳ Booking Pending'
+        const captionText = `📄 *BOOKING CONFIRMATION - Wisma Nusantara Cairo*
 
 ━━━━━━━━━━━━━━━━━━━━━━
 
-🏢 *Detail Booking Auditorium/Aula*
+🏨 *Detail Booking*
 • Booking ID: *${bookingId}*
-• Nama: *${guestName}*
-• Acara: *${eventName || '-'}*
-• Tanggal: ${date}
+• Penyewa: *${guestName}*
+• Layanan: *Sewa Auditorium*
+• Tanggal Acara: ${date}
 
 💰 *Total: ${parseInt(total).toLocaleString()} ${currency}*
 
@@ -66,7 +68,7 @@ export async function POST(request: Request) {
 
 📞 Admin: +62 851-8991-6769
 
-_Terima kasih telah menggunakan layanan Wisma Nusantara Cairo_ 🏢`
+_Terima kasih telah menggunakan layanan Wisma Nusantara Cairo_ 🏠`
 
         // Send PDF + caption as ONE message via GoWA /send/file (multipart/form-data)
         const formData = new FormData()
@@ -85,7 +87,7 @@ _Terima kasih telah menggunakan layanan Wisma Nusantara Cairo_ 🏢`
         if (response.status >= 200 && response.status < 300) {
             return NextResponse.json({
                 success: true,
-                message: `Invoice PDF berhasil dikirim ke WhatsApp ${phone}`,
+                message: `Booking Confirmation PDF berhasil dikirim ke WhatsApp ${phone}`,
             })
         } else {
             console.error('❌ GoWA file send failed:', response.data)

@@ -300,7 +300,7 @@ export async function GET(request: NextRequest) {
             doc.addImage(imgData, 'JPEG', 0, 0, pdfWidth, pdfHeight);
             const pdfBase64 = doc.output('datauristring').split(',')[1];
             btn.textContent = '📤 Mengirim ke WA...';
-            const response = await fetch('/api/booking/hotel/invoice/send-wa', {
+            const response = await fetch('/api/booking/auditorium/pdf/send-wa', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
