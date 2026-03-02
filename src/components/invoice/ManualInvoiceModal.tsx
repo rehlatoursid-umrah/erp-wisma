@@ -29,6 +29,37 @@ const SALES_PEOPLE = [
     { id: 'S008', name: 'Rausan Fiqri' }
 ]
 
+const PREDEFINED_ITEMS = [
+    // Auditorium
+    { name: 'Sewa Aula (4 Hours)', price: 420 },
+    { name: 'Sewa Aula (9 Hours)', price: 900 },
+    { name: 'Extra Time (1 jam)', price: 115 },
+    { name: 'AC (4-6 hours)', price: 150 },
+    { name: 'AC (7-9 hours)', price: 200 },
+    { name: 'Kursi (10 chairs)', price: 190 },
+    { name: 'Kursi (20 chairs)', price: 380 },
+    { name: 'Kursi (30 chairs)', price: 540 },
+    { name: 'Meja (1 table)', price: 40 },
+    { name: 'Meja (9 tables)', price: 300 },
+    { name: 'Projector/Screen (Screen only)', price: 75 },
+    { name: 'Projector/Screen (Full Set)', price: 150 },
+    { name: 'Sound System', price: 200 },
+    { name: 'Layanan Kebersihan', price: 100 },
+
+    // Hotel
+    { name: 'Kamar Standard (1 Malam)', price: 30 },
+    { name: 'Kamar VIP (1 Malam)', price: 45 },
+    { name: 'Extra Bed', price: 10 },
+    { name: 'Airport Pickup', price: 25 },
+    { name: 'Breakfast', price: 5 },
+
+    // Visa & Transport
+    { name: 'Visa Approval', price: 35 },
+    { name: 'Sewa Hiace (1 Hari)', price: 1200 },
+    { name: 'Sewa Coaster (1 Hari)', price: 1800 },
+    { name: 'Sewa Sedan (1 Hari)', price: 800 }
+]
+
 export default function ManualInvoiceModal({ isOpen, onClose, onSuccess, initialData }: ManualInvoiceModalProps) {
     const [isLoading, setIsLoading] = useState(false)
     const [mounted, setMounted] = useState(false)
@@ -45,6 +76,8 @@ export default function ManualInvoiceModal({ isOpen, onClose, onSuccess, initial
     const [items, setItems] = useState<InvoiceItem[]>([
         { id: '1', itemName: '', quantity: 1, priceUnit: 0, total: 0 }
     ])
+
+    const [activeDropdown, setActiveDropdown] = useState<number | null>(null)
 
     const [currency, setCurrency] = useState('EGP')
     const [discountType, setDiscountType] = useState<'amount' | 'percent'>('amount')
@@ -304,13 +337,35 @@ export default function ManualInvoiceModal({ isOpen, onClose, onSuccess, initial
                                 {items.map((item, idx) => (
                                     <tr key={item.id}>
                                         <td>
-                                            <input
-                                                className="table-input"
-                                                value={item.itemName}
-                                                onChange={e => updateItem(idx, 'itemName', e.target.value)}
-                                                placeholder="Service or Item name"
-                                                required
-                                            />
+                                            <div style={{ position: 'relative' }}>
+                                                <input
+                                                    className="table-input"
+                                                    value={item.itemName}
+                                                    onChange={e => updateItem(idx, 'itemName', e.target.value)}
+                                                    onFocus={() => setActiveDropdown(idx)}
+                                                    onBlur={() => setTimeout(() => setActiveDropdown(null), 200)}
+                                                    placeholder="Service or Item name"
+                                                    required
+                                                />
+                                                {activeDropdown === idx && (
+                                                    <div className="item-dropdown">
+                                                        {PREDEFINED_ITEMS.filter(pre => pre.name.toLowerCase().includes(item.itemName.toLowerCase())).map((pre, i) => (
+                                                            <div
+                                                                key={i}
+                                                                className="dropdown-item"
+                                                                onClick={() => {
+                                                                    updateItem(idx, 'itemName', pre.name)
+                                                                    updateItem(idx, 'priceUnit', pre.price)
+                                                                    setActiveDropdown(null)
+                                                                }}
+                                                            >
+                                                                <span className="dropdown-name">{pre.name}</span>
+                                                                <span className="dropdown-price">{pre.price.toLocaleString()}</span>
+                                                            </div>
+                                                        ))}
+                                                    </div>
+                                                )}
+                                            </div>
                                         </td>
                                         <td>
                                             <input
@@ -494,6 +549,30 @@ export default function ManualInvoiceModal({ isOpen, onClose, onSuccess, initial
                 .table-input {
                     width: 100%; padding: 6px; border: 1px solid #cbd5e1; border-radius: 4px;
                 }
+                .item-dropdown {
+                    position: absolute;
+                    top: 100%; left: 0; right: 0;
+                    background: white;
+                    border: 1px solid #cbd5e1;
+                    border-radius: 6px;
+                    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+                    max-height: 200px;
+                    overflow-y: auto;
+                    z-index: 50;
+                    margin-top: 4px;
+                }
+                .dropdown-item {
+                    display: flex;
+                    justify-content: space-between;
+                    padding: 8px 12px;
+                    cursor: pointer;
+                    border-bottom: 1px solid #f1f5f9;
+                    font-size: 0.85rem;
+                }
+                .dropdown-item:last-child { border-bottom: none; }
+                .dropdown-item:hover { background: #f8fafc; }
+                .dropdown-name { color: #1e293b; font-weight: 500; }
+                .dropdown-price { color: #2563eb; font-weight: 600; }
                 .amount-display {
                     padding: 6px; background: #f8fafc; text-align: right; border-radius: 4px; font-weight: 500;
                 }
