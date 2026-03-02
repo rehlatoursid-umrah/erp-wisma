@@ -945,11 +945,30 @@ export default function AuditoriumBookingForm({
         }
         
         @media (max-width: 600px) {
-          .form-row.two-cols {
+          .form-row.two-cols, .services-grid {
             grid-template-columns: 1fr;
+            gap: 1rem;
           }
-          .services-grid {
-            grid-template-columns: 1fr;
+          .bento-panel {
+            padding: 1.25rem;
+          }
+          .panel-header h3 {
+            font-size: 1.1rem;
+          }
+          .receipt-panel {
+            padding: 1.5rem;
+          }
+          .total-amount .number {
+            font-size: 1.75rem;
+          }
+          .form-actions-premium {
+            flex-direction: column-reverse;
+            gap: 12px;
+            margin-top: 1.5rem;
+          }
+          .premium-btn {
+            width: 100%;
+            justify-content: center;
           }
         }
 

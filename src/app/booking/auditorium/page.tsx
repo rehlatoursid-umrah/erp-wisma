@@ -329,17 +329,35 @@ export default function AuditoriumBookingPage() {
           .booking-page {
             padding: 2rem 1rem;
           }
-          
           .header-content h1 {
-            font-size: 2rem;
+            font-size: 2.25rem;
           }
-
           .bento-grid {
             grid-template-columns: 1fr;
           }
+        }
 
+        @media (max-width: 600px) {
+          .booking-page {
+            padding: 1.25rem 0.5rem;
+          }
+          .header-content h1 {
+            font-size: 1.75rem;
+          }
+          .header-content p {
+            font-size: 1rem;
+          }
+          .booking-info-bento {
+            padding: 1.25rem;
+            border-radius: 16px;
+            margin-bottom: -0.5rem;
+          }
           .bento-card {
             padding: 1rem;
+          }
+          .form-wrapper {
+            padding: 1.25rem;
+            border-radius: 16px;
           }
         }
 

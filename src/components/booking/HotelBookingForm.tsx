@@ -1305,12 +1305,55 @@ const formStyles = `
     }
 
     @media (max-width: 640px) {
-        .booking-form { padding: 1.5rem; }
-        .form-row { grid-template-columns: 1fr; }
-        .room-grid { grid-template-columns: 1fr; }
-        .progress-bar { padding: 0; gap: 4px; }
-        .progress-bar::before { left: 15px; right: 15px; }
+        .booking-form { 
+            padding: 1.25rem; 
+            border-radius: 16px;
+        }
+        .form-step h2 {
+            font-size: 1.35rem;
+            margin-bottom: 16px;
+            letter-spacing: -0.25px;
+        }
+        .subtitle { font-size: 0.85rem; margin-bottom: 20px; }
+        .form-row { grid-template-columns: 1fr; gap: 12px; }
+        .room-grid { grid-template-columns: 1fr; gap: 12px; }
+        
+        .progress-bar { 
+            padding: 0; 
+            margin-bottom: 24px;
+        }
+        .progress-bar::before { left: 15px; right: 15px; top: 15px; }
         .step-label { display: none; }
+        .step-number { width: 30px; height: 30px; font-size: 0.85rem; }
+        
+        .form-nav {
+            flex-direction: column-reverse;
+            gap: 12px;
+            margin-top: 24px;
+            padding-top: 20px;
+        }
+        .btn { width: 100%; justify-content: center; }
+        .nav-spacer { display: none; }
+        
+        .room-card, .pickup-card, .meal-card {
+            padding: 16px;
+        }
+        .pickup-card {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 12px;
+        }
+        .meal-header {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 8px;
+        }
+        select option { font-size: 0.95rem; }
+        
+        .summary-section { padding: 16px; }
+        .summary-total { padding: 16px; }
+        .grand-total { font-size: 1.1rem; flex-direction: column; align-items: flex-start; gap: 8px; }
+        .grand-total strong { font-size: 1.35rem; }
     }
 `
 
@@ -1369,6 +1412,41 @@ const successStyles = `
         display: flex;
         justify-content: space-between;
         font-size: 1.05rem;
+    }
+
+    .success-actions {
+        display: flex;
+        gap: 16px;
+        justify-content: center;
+        margin-top: 40px;
+    }
+    
+    @media (max-width: 640px) {
+        .booking-form.success {
+            padding: 2.5rem 1.25rem;
+        }
+        .success-icon { font-size: 3.5rem; margin-bottom: 20px; }
+        .success-content h2 { font-size: 1.5rem; }
+        .booking-id { font-size: 0.95rem; padding: 8px 12px; }
+        .booking-id strong { font-size: 1.1rem; }
+        
+        .success-summary {
+            padding: 16px;
+            margin-bottom: 24px;
+        }
+        .success-summary p {
+            flex-direction: column;
+            gap: 4px;
+            font-size: 0.95rem;
+            text-align: left;
+        }
+        
+        .success-actions {
+            flex-direction: column;
+            margin-top: 24px;
+            gap: 12px;
+        }
+        .success-actions .btn { width: 100%; justify-content: center; }
     }
     
     .success-summary strong { color: #f3f4f6; }
