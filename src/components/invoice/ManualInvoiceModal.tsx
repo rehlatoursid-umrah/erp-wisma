@@ -217,30 +217,35 @@ export default function ManualInvoiceModal({ isOpen, onClose, onSuccess, initial
         setIsLoading(true)
 
         try {
+            const isUpdate = !!initialData;
+
+            const payload = {
+                id: isUpdate ? initialData.id : undefined,
+                invoiceNo: orderNumber,
+                customerName,
+                customerWA: customerWA || '-',
+                items: items.map(i => ({
+                    itemName: i.itemName,
+                    quantity: i.quantity,
+                    priceUnit: i.priceUnit,
+                    subtotal: i.total
+                })),
+                totalAmount: grandTotal,
+                subtotal: subtotal,
+                discount: discountAmount,
+                currency,
+                notes: customerNotes,
+                salesperson,
+                invoiceDate,
+                paymentStatus: 'paid', // Validated by checkbox
+                paymentMethod: paymentReceived ? paymentMethod : undefined,
+                bookingType: bookingType
+            };
+
             const res = await fetch('/api/finance/invoice', {
-                method: 'POST',
+                method: isUpdate ? 'PUT' : 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    invoiceNo: orderNumber,
-                    customerName,
-                    customerWA: customerWA || '-',
-                    items: items.map(i => ({
-                        itemName: i.itemName,
-                        quantity: i.quantity,
-                        priceUnit: i.priceUnit,
-                        subtotal: i.total
-                    })),
-                    totalAmount: grandTotal,
-                    subtotal: subtotal,
-                    discount: discountAmount,
-                    currency,
-                    notes: customerNotes,
-                    salesperson,
-                    invoiceDate,
-                    paymentStatus: 'paid', // Validated by checkbox
-                    paymentMethod: paymentReceived ? paymentMethod : undefined,
-                    bookingType: bookingType
-                })
+                body: JSON.stringify(payload)
             })
 
             if (res.ok) {
@@ -519,11 +524,9 @@ export default function ManualInvoiceModal({ isOpen, onClose, onSuccess, initial
                             <button type="button" className="action-btn preview" onClick={() => window.print()}>
                                 {initialData ? '🖨️ Cetak PDF' : '🖨️ Preview / Print'}
                             </button>
-                            {!initialData && (
-                                <button type="submit" disabled={isLoading} className="action-btn save">
-                                    {isLoading ? 'Saving...' : '💾 Save Invoice'}
-                                </button>
-                            )}
+                            <button type="submit" disabled={isLoading} className="action-btn save">
+                                {isLoading ? 'Saving...' : (initialData ? '💾 Update Invoice' : '💾 Save Invoice')}
+                            </button>
                         </div>
                     </div>
                 </form>

@@ -235,6 +235,97 @@ export async function PATCH(req: Request) {
     }
 }
 
+// PUT: Full Update Invoice (items, totals, etc.)
+export async function PUT(req: Request) {
+    try {
+        const payload = await getPayload({ config: configPromise })
+        const body = await req.json()
+        const {
+            id,
+            customerName,
+            customerWA,
+            items,
+            totalAmount,
+            subtotal,
+            discount,
+            currency,
+            notes,
+            invoiceDate
+        } = body
+
+        if (!id) {
+            return NextResponse.json({ error: 'Missing Invoice ID' }, { status: 400 })
+        }
+
+        const currentInvoice = await payload.findByID({
+            collection: 'transactions',
+            id: id
+        })
+
+        if (!currentInvoice) {
+            return NextResponse.json({ error: 'Invoice not found' }, { status: 404 })
+        }
+
+        const updatedInvoice = await payload.update({
+            collection: 'transactions',
+            id: id,
+            data: {
+                customerName,
+                customerWA,
+                items: items.map((item: any) => ({
+                    itemName: item.itemName || 'Item',
+                    quantity: Number(item.quantity) || 1,
+                    priceUnit: Number(item.priceUnit) || 0,
+                    subtotal: Number(item.subtotal) || 0,
+                })),
+                totalAmount,
+                subtotal,
+                discount,
+                currency,
+                notes,
+                invoiceDate: invoiceDate || currentInvoice.invoiceDate
+            },
+            overrideAccess: true
+        })
+
+        // If the invoice is already paid, we should also update the synchronized cashflow amount
+        if (currentInvoice.paymentStatus === 'paid' && currentInvoice.invoiceNo) {
+            try {
+                const cashflowQuery = await payload.find({
+                    collection: 'cashflow',
+                    where: {
+                        description: {
+                            contains: currentInvoice.invoiceNo
+                        }
+                    },
+                    limit: 1
+                })
+
+                if (cashflowQuery.docs.length > 0) {
+                    await payload.update({
+                        collection: 'cashflow',
+                        id: cashflowQuery.docs[0].id,
+                        data: {
+                            amount: totalAmount, // Update to the new total amount
+                            currency: currency,
+                        },
+                        overrideAccess: true
+                    })
+                    console.log(`Synced cashflow amount for invoice ${currentInvoice.invoiceNo} to ${totalAmount}`);
+                }
+            } catch (cfError) {
+                console.error('Error syncing associated cashflow on full update:', cfError)
+            }
+        }
+
+        return NextResponse.json(updatedInvoice)
+
+    } catch (error: any) {
+        console.error('Error fully updating invoice:', error)
+        return NextResponse.json({ error: 'Failed to update invoice entirely', details: error.message }, { status: 500 })
+    }
+}
+
 // DELETE: Delete Invoice and Cascade to Cashflow
 export async function DELETE(req: Request) {
     try {
