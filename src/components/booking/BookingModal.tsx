@@ -91,10 +91,14 @@ export default function BookingModal({
     if (type === 'hotel') {
         return (
             <div className="modal-overlay open" onClick={onClose}>
-                <div className="modal booking-modal wide" onClick={e => e.stopPropagation()}>
-                    <div className="modal-header">
-                        <h3>🛏️ Book Hotel Room</h3>
-                        <button className="btn btn-icon" onClick={onClose}>✕</button>
+                <div
+                    className="modal booking-modal wide"
+                    onClick={e => e.stopPropagation()}
+                    style={{ background: '#0f0f11', border: '1px solid rgba(255, 255, 255, 0.1)' }}
+                >
+                    <div className="modal-header" style={{ borderBottom: '1px solid rgba(255, 255, 255, 0.05)' }}>
+                        <h3 style={{ color: '#f3f4f6' }}>🛏️ Book Hotel Room</h3>
+                        <button className="btn btn-icon" onClick={onClose} style={{ color: '#a1a1aa' }}>✕</button>
                     </div>
                     <div className="modal-body-scroll">
                         <HotelBookingForm
