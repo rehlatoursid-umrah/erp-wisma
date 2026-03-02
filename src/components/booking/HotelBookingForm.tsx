@@ -364,23 +364,43 @@ export default function HotelBookingForm({ initialDate, onClose, isModal = false
 
                                     <div className="qty-selector">
                                         <button
-                                            onClick={() => updateField(qtyField, Math.max(0, qty - 1))}
+                                            onClick={() => {
+                                                const newQty = Math.max(0, qty - 1);
+                                                updateField(qtyField, newQty);
+                                                // Clamp extra bed if it exceeds new room quantity
+                                                if (room.allowExtraBed && (formData[extraBedField] as number) > newQty) {
+                                                    updateField(extraBedField, newQty);
+                                                }
+                                            }}
                                             disabled={qty <= 0}
+                                            title="Decrease Room"
                                         >−</button>
                                         <span>{qty}</span>
                                         <button
                                             onClick={() => updateField(qtyField, Math.min(room.maxQty, qty + 1))}
                                             disabled={qty >= room.maxQty}
+                                            title="Increase Room"
                                         >+</button>
                                     </div>
 
-                                    {room.allowExtraBed && qty > 0 && (
-                                        <div className="extra-bed">
-                                            <label>Extra Bed (+${EXTRA_BED_PRICE}/night)</label>
+                                    {room.allowExtraBed && (
+                                        <div className="extra-bed" style={{ opacity: qty > 0 ? 1 : 0.4 }}>
+                                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                                                <label style={{ margin: 0 }}>Extra Bed (+${EXTRA_BED_PRICE}/night)</label>
+                                                <span style={{ fontSize: '0.75rem', color: '#71717a' }}>Max: {qty}</span>
+                                            </div>
                                             <div className="qty-selector small">
-                                                <button onClick={() => updateField(extraBedField, Math.max(0, (formData[extraBedField] as number) - 1))}>−</button>
+                                                <button
+                                                    onClick={() => updateField(extraBedField, Math.max(0, (formData[extraBedField] as number) - 1))}
+                                                    disabled={qty === 0 || (formData[extraBedField] as number) <= 0}
+                                                    title="Decrease Extra Bed"
+                                                >−</button>
                                                 <span>{formData[extraBedField] as number}</span>
-                                                <button onClick={() => updateField(extraBedField, (formData[extraBedField] as number) + 1)}>+</button>
+                                                <button
+                                                    onClick={() => updateField(extraBedField, Math.min(qty, (formData[extraBedField] as number) + 1))}
+                                                    disabled={qty === 0 || (formData[extraBedField] as number) >= qty}
+                                                    title="Increase Extra Bed"
+                                                >+</button>
                                             </div>
                                         </div>
                                     )}
@@ -976,7 +996,6 @@ const formStyles = `
         text-align: center;
         transition: all 0.3s ease;
         position: relative;
-        overflow: hidden;
     }
     .pickup-card {
         display: flex;
