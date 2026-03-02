@@ -1102,17 +1102,26 @@ const formStyles = `
     }
 
     .extra-bed {
-        margin-top: 16px;
-        padding-top: 16px;
-        border-top: 1px dashed rgba(255,255,255,0.1);
+        margin-top: 20px;
+        padding: 14px 16px;
+        background: rgba(0, 0, 0, 0.2);
+        border: 1px solid rgba(255, 255, 255, 0.05);
+        border-radius: 12px;
         text-align: left;
+        transition: all 0.3s ease;
+    }
+
+    .room-card.selected .extra-bed {
+        background: rgba(229, 176, 114, 0.05);
+        border-color: rgba(229, 176, 114, 0.15);
     }
 
     .extra-bed label {
         display: block;
-        font-size: 0.8rem;
-        color: #a1a1aa;
-        margin-bottom: 8px;
+        font-size: 0.85rem;
+        font-weight: 500;
+        color: #e4e4e7;
+        margin-bottom: 4px;
     }
 
     .selection-summary {
