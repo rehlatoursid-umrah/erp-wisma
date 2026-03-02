@@ -139,16 +139,18 @@ export default function ManualInvoiceModal({ isOpen, onClose, onSuccess, initial
     const grandTotal = Math.max(0, subtotal - discountAmount)
 
     const updateItem = (index: number, field: keyof InvoiceItem, value: any) => {
-        const newItems = [...items]
-        const item = { ...newItems[index], [field]: value }
+        setItems(prevItems => {
+            const newItems = [...prevItems]
+            const item = { ...newItems[index], [field]: value }
 
-        // Auto-calc total
-        if (field === 'quantity' || field === 'priceUnit') {
-            item.total = Number(item.quantity) * Number(item.priceUnit)
-        }
+            // Auto-calc total
+            if (field === 'quantity' || field === 'priceUnit') {
+                item.total = Number(item.quantity) * Number(item.priceUnit)
+            }
 
-        newItems[index] = item
-        setItems(newItems)
+            newItems[index] = item
+            return newItems
+        })
     }
 
     const addItem = () => {
