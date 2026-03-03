@@ -22,8 +22,16 @@ const dirname = path.dirname(filename)
 
 const getMongoUri = () => {
     let uri = process.env.MONGODB_URI || 'mongodb://localhost:27017/win-os'
-    if (uri && !uri.includes('directConnection=true') && !uri.startsWith('mongodb+srv://')) {
-        uri = uri.includes('?') ? `${uri}&directConnection=true` : `${uri}?directConnection=true`
+    if (uri && !uri.startsWith('mongodb+srv://')) {
+        const params = []
+        if (!uri.includes('directConnection=true')) params.push('directConnection=true')
+        if (!uri.includes('authSource=admin')) params.push('authSource=admin')
+
+        if (params.length > 0) {
+            uri = uri.includes('?')
+                ? `${uri}&${params.join('&')}`
+                : `${uri}?${params.join('&')}`
+        }
     }
     return uri
 }
