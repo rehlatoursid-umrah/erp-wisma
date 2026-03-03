@@ -20,6 +20,14 @@ import { LaporanPiket } from './collections/LaporanPiket'
 const filename = fileURLToPath(import.meta.url)
 const dirname = path.dirname(filename)
 
+const getMongoUri = () => {
+    let uri = process.env.MONGODB_URI || 'mongodb://localhost:27017/win-os'
+    if (uri && !uri.includes('directConnection=true') && !uri.startsWith('mongodb+srv://')) {
+        uri = uri.includes('?') ? `${uri}&directConnection=true` : `${uri}?directConnection=true`
+    }
+    return uri
+}
+
 export default buildConfig({
     admin: {
         user: Users.slug,
@@ -46,7 +54,7 @@ export default buildConfig({
         outputFile: path.resolve(dirname, 'payload-types.ts'),
     },
     db: mongooseAdapter({
-        url: process.env.MONGODB_URI || 'mongodb://localhost:27017/win-os',
+        url: getMongoUri(),
     }),
     sharp,
 })
