@@ -17,20 +17,36 @@ function HotelSuccessContent() {
         if (!bookingId || bookingId === 'N/A') return
 
         try {
-            const response = await fetch(`/api/booking/download/${bookingId}`)
-            if (!response.ok) throw new Error('Download failed')
+            const res = await fetch(`/api/booking/hotel/details/${bookingId}`)
+            const data = await res.json()
+            if (!data.success) {
+                alert('Could not fetch booking details for confirmation.')
+                return
+            }
 
-            const blob = await response.blob()
-            const url = window.URL.createObjectURL(blob)
-            const a = document.createElement('a')
-            a.href = url
-            a.download = `Booking-${bookingId}.pdf`
-            document.body.appendChild(a)
-            a.click()
-            window.URL.revokeObjectURL(url)
-            document.body.removeChild(a)
+            const booking = data.booking
+            const pricing = booking.pricing || {}
+
+            const params = new URLSearchParams({
+                bookingId: booking.bookingId,
+                name: booking.guest?.fullName || '',
+                room: booking.assignedRooms ? booking.assignedRooms.join(', ') : '',
+                nights: booking.nights?.toString() || '1',
+                checkIn: booking.checkIn ? booking.checkIn.split('T')[0] : '',
+                checkOut: booking.checkOut ? booking.checkOut.split('T')[0] : '',
+                total: pricing.grandTotal?.toString() || '0',
+                currency: 'USD',
+                status: booking.status || 'pending',
+                phone: booking.guest?.whatsapp || '',
+                extraBed: (pricing.extraBedTotal || 0).toString(),
+                pickup: (pricing.pickupTotal || 0).toString(),
+                meals: (pricing.mealsTotal || 0).toString()
+            })
+
+            window.open(`/api/booking/hotel/pdf?${params.toString()}`, '_blank')
         } catch (error) {
-            alert('Failed to download PDF. Please try again.')
+            console.error(error)
+            alert('Failed to generation confirmation. Please try again.')
         }
     }
 
@@ -147,11 +163,8 @@ function HotelSuccessContent() {
                     </a>
                     <button onClick={handleDownloadPDF} type="button" className="premium-btn primary">
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
-                        Download Invoice
+                        Download Confirmation
                     </button>
-                    <Link href="/dashboard" className="premium-btn ghost">
-                        Go to Dashboard
-                    </Link>
                 </div>
 
             </div>
