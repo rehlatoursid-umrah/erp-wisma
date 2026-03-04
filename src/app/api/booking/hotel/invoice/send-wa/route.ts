@@ -7,7 +7,7 @@ export const dynamic = 'force-dynamic'
 export async function POST(request: Request) {
     try {
         const data = await request.json()
-        const { phone, pdfBase64, bookingId, guestName, total, currency, status, room, nights, checkIn, checkOut } = data
+        const { phone, pdfBase64, bookingId, guestName, total, currency, status, room, nights, checkIn, checkOut, type } = data
 
         if (!phone) {
             return NextResponse.json({ success: false, error: 'Nomor WhatsApp customer tidak tersedia' }, { status: 400 })
@@ -38,14 +38,17 @@ export async function POST(request: Request) {
 
         // Convert base64 PDF to Buffer
         const pdfBuffer = Buffer.from(pdfBase64, 'base64')
-        const invoiceFilename = `Invoice_${bookingId}.pdf`
+
+        const isConfirmation = type === 'confirmation'
+        const invoiceFilename = isConfirmation ? `Confirmation_Hotel-${bookingId}.pdf` : `Invoice_Hotel-${bookingId}.pdf`
 
         console.log(`📄 PDF received: ${pdfBuffer.length} bytes`)
         console.log(`📤 Sending PDF + caption to ${formattedPhone}`)
 
         // Build caption text
         const statusText = status === 'paid' ? '✅ LUNAS' : '⏳ BELUM LUNAS'
-        const captionText = `📄 *BOOKING CONFIRMATION - Wisma Nusantara Cairo*
+        const titleText = isConfirmation ? 'BOOKING CONFIRMATION' : 'INVOICE'
+        const captionText = `📄 *${titleText} - Wisma Nusantara Cairo*
 
 ━━━━━━━━━━━━━━━━━━━━━━
 

@@ -41,7 +41,7 @@ export async function GET(request: NextRequest) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Booking Hotel - ${bookingId}</title>
+    <title>Confirmation_Hotel-${bookingId}</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -296,6 +296,7 @@ export async function GET(request: NextRequest) {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
+                    type: 'confirmation',
                     phone: '${phone}', pdfBase64, bookingId: '${bookingId}',
                     guestName: '${decodeURIComponent(name)}', total: '${total}',
                     currency: '${currency}', status: '${paymentStatus}',
@@ -316,6 +317,29 @@ export async function GET(request: NextRequest) {
             alert('❌ Error: ' + err.message);
             btn.textContent = '📱 Kirim WA'; btn.style.opacity = '1'; btn.disabled = false;
         }
+    }
+
+    if (new URLSearchParams(window.location.search).get('action') === 'download') {
+        window.onload = async () => {
+            const btnGroup = document.querySelector('.btn-group');
+            if (btnGroup) btnGroup.style.display = 'none';
+            document.title = 'Generating PDF...';
+            
+            try {
+                const container = document.querySelector('.container');
+                const canvas = await html2canvas(container, { scale: 2, useCORS: true, backgroundColor: '#ffffff', logging: false });
+                const imgData = canvas.toDataURL('image/jpeg', 0.95);
+                const pdfWidth = 210;
+                const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
+                const doc = new window.jspdf.jsPDF({ orientation: 'portrait', unit: 'mm', format: [pdfWidth, pdfHeight] });
+                doc.addImage(imgData, 'JPEG', 0, 0, pdfWidth, pdfHeight);
+                doc.save('Confirmation_Hotel-' + '${bookingId}' + '.pdf');
+                setTimeout(() => window.close(), 1000);
+            } catch (err) {
+                console.error(err);
+                alert('Telah terjadi kesalahan saat men-download PDF.');
+            }
+        };
     }
     </script>
 </body>

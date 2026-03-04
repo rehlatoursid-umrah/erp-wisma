@@ -79,7 +79,7 @@ export async function GET(request: NextRequest) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Invoice - ${bookingId}</title>
+    <title>Invoice_Hotel-${bookingId}</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f5f5f5; padding: 20px; color: #111827; }
@@ -307,6 +307,7 @@ export async function GET(request: NextRequest) {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
+                    type: 'invoice',
                     phone: '${phone}',
                     pdfBase64: pdfBase64,
                     bookingId: '${bookingId}',
