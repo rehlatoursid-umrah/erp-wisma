@@ -31,59 +31,84 @@ function HotelSuccessContent() {
     }
 
     return (
-        <div style={{ maxWidth: '800px', margin: '0 auto', padding: '40px 20px' }}>
-            <div className="booking-form success">
-                <div className="success-content">
-                    <div className="success-icon">🎉</div>
-                    <h2>Booking Kamar Hotel Berhasil!</h2>
-                    {bookingId && <p className="booking-id">Booking ID: <strong>{bookingId}</strong></p>}
+        <main className="booking-page">
+            <div className="booking-container">
+                <div className="form-wrapper">
+                    <div style={{ maxWidth: '800px', margin: '0 auto', padding: '40px 20px' }}>
+                        <div className="booking-form success">
+                            <div className="success-content">
+                                <div className="success-icon">🎉</div>
+                                <h2>Booking Kamar Hotel Berhasil!</h2>
+                                {bookingId && <p className="booking-id">Booking ID: <strong>{bookingId}</strong></p>}
 
-                    <div className="success-summary">
-                        <p>
-                            <span>📧 WhatsApp Konfirmasi:</span>
-                            <strong>Terkirim</strong>
-                        </p>
-                        <p>
-                            <span>🏨 Status Kamar:</span>
-                            <strong style={{ color: '#e5b072' }}>Menunggu Pembayaran</strong>
-                        </p>
-                        <p style={{ marginTop: '16px', paddingTop: '16px', borderTop: '1px dashed rgba(255,255,255,0.1)' }}>
-                            <span>💰 Total Tagihan:</span>
-                            <strong style={{ fontSize: '1.25rem' }}>\${totalUSD} USD <span style={{ fontSize: '1rem', color: '#a1a1aa', fontWeight: 'normal' }}>+ {totalEGP} EGP</span></strong>
-                        </p>
-                    </div>
+                                <div className="success-summary">
+                                    <p>
+                                        <span>📧 WhatsApp Konfirmasi:</span>
+                                        <strong>Terkirim</strong>
+                                    </p>
+                                    <p>
+                                        <span>🏨 Status Kamar:</span>
+                                        <strong style={{ color: '#e5b072' }}>Menunggu Pembayaran</strong>
+                                    </p>
+                                    <p style={{ marginTop: '16px', paddingTop: '16px', borderTop: '1px dashed rgba(255,255,255,0.1)' }}>
+                                        <span>💰 Total Tagihan:</span>
+                                        <strong style={{ fontSize: '1.25rem' }}>${totalUSD} USD <span style={{ fontSize: '1rem', color: '#a1a1aa', fontWeight: 'normal' }}>+ {totalEGP} EGP</span></strong>
+                                    </p>
+                                </div>
 
-                    <div className="success-actions">
-                        <button
-                            className="btn btn-secondary"
-                            onClick={handleDownloadPDF}
-                            style={{ display: 'flex', alignItems: 'center', gap: '8px' }}
-                        >
-                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-                                <polyline points="7 10 12 15 17 10"></polyline>
-                                <line x1="12" y1="15" x2="12" y2="3"></line>
-                            </svg>
-                            Download PDF Invoice
-                        </button>
-                        <button
-                            className="btn btn-primary"
-                            onClick={() => window.location.href = '/booking/hotel'}
-                        >
-                            Buat Booking Baru
-                        </button>
-                        <button
-                            className="btn btn-secondary"
-                            onClick={() => window.location.href = '/dashboard'}
-                        >
-                            Kembali ke Kalender
-                        </button>
+                                <div className="success-actions">
+                                    <button
+                                        className="btn btn-secondary"
+                                        onClick={handleDownloadPDF}
+                                        style={{ display: 'flex', alignItems: 'center', gap: '8px' }}
+                                    >
+                                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                                            <polyline points="7 10 12 15 17 10"></polyline>
+                                            <line x1="12" y1="15" x2="12" y2="3"></line>
+                                        </svg>
+                                        Download PDF Invoice
+                                    </button>
+                                    <button
+                                        className="btn btn-primary"
+                                        onClick={() => window.location.href = '/booking/hotel'}
+                                    >
+                                        Buat Booking Baru
+                                    </button>
+                                    <button
+                                        className="btn btn-secondary"
+                                        onClick={() => window.location.href = '/dashboard'}
+                                    >
+                                        Kembali ke Kalender
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
 
             <style dangerouslySetInnerHTML={{
                 __html: `
+                .booking-page {
+                    min-height: 100vh;
+                    background: #0f0f11;
+                    background-image: 
+                        radial-gradient(circle at 15% 50%, rgba(139, 69, 19, 0.08) 0%, transparent 50%),
+                        radial-gradient(circle at 85% 30%, rgba(200, 150, 80, 0.05) 0%, transparent 50%);
+                    padding: 4rem 1.5rem;
+                    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+                    color: #f3f4f6;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                }
+
+                .booking-container {
+                    width: 100%;
+                    max-width: 800px;
+                }
+
                 .booking-form.success {
                     text-align: center;
                 padding: 4rem 2rem;
@@ -149,6 +174,11 @@ function HotelSuccessContent() {
                 }
 
                 @media (max-width: 640px) {
+                    .booking-page {
+                        padding: 2rem 1rem;
+                        align-items: flex-start;
+                    }
+
                     .booking-form.success {
                     padding: 2.5rem 1.25rem;
                     }
@@ -181,7 +211,7 @@ function HotelSuccessContent() {
                 to {transform: scale(1); opacity: 1; }
                 }
             ` }} />
-        </div>
+        </main>
     )
 }
 
