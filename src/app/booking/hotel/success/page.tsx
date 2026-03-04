@@ -9,6 +9,9 @@ function HotelSuccessContent() {
     const bookingId = searchParams.get('id') || 'N/A'
     const totalUSD = searchParams.get('usd') || '0'
     const totalEGP = searchParams.get('egp') || '0'
+    const checkIn = searchParams.get('cin') || ''
+    const checkOut = searchParams.get('cout') || ''
+    const nights = searchParams.get('nights') || '1'
 
     const handleDownloadPDF = async () => {
         if (!bookingId || bookingId === 'N/A') return
@@ -21,7 +24,7 @@ function HotelSuccessContent() {
             const url = window.URL.createObjectURL(blob)
             const a = document.createElement('a')
             a.href = url
-            a.download = \`Booking-\${bookingId}.pdf\`
+            a.download = `Booking-${bookingId}.pdf`
             document.body.appendChild(a)
             a.click()
             window.URL.revokeObjectURL(url)
@@ -76,6 +79,21 @@ function HotelSuccessContent() {
                                 <div className="content">
                                     <span className="label">Payment Status</span>
                                     <span className="value" style={{ color: '#e5b072' }}>Waiting for Payment</span>
+                                </div>
+                            </div>
+
+                            <div className="detail-row">
+                                <div className="icon">🗓️</div>
+                                <div className="content">
+                                    <span className="label">Check-in Date</span>
+                                    <span className="value">{checkIn}</span>
+                                </div>
+                            </div>
+                            <div className="detail-row">
+                                <div className="icon">🗓️</div>
+                                <div className="content">
+                                    <span className="label">Check-out Date</span>
+                                    <span className="value">{checkOut} ({nights} nights)</span>
                                 </div>
                             </div>
                         </div>
@@ -138,7 +156,8 @@ function HotelSuccessContent() {
 
             </div>
 
-            <style dangerouslySetInnerHTML={{ __html: `
+            <style dangerouslySetInnerHTML={{
+                __html: `
                 .success - page {
                 min - height: 100vh;
                 background: #0f0f11;

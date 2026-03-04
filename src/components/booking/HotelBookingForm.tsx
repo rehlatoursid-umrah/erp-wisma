@@ -202,7 +202,7 @@ export default function HotelBookingForm({ initialDate, onClose, isModal = false
                 if (onSuccess) {
                     onSuccess()
                 } else {
-                    window.location.href = `/booking/hotel/success?id=${data.booking.bookingId}&usd=${pricing.totalUSD}&egp=${pricing.totalEGP}`
+                    window.location.href = `/booking/hotel/success?id=${data.booking.bookingId}&usd=${pricing.totalUSD}&egp=${pricing.totalEGP}&cin=${formData.checkInDate}&cout=${formData.checkOutDate}&nights=${nights}`
                 }
             } else {
                 alert(data.error || 'Booking failed')
