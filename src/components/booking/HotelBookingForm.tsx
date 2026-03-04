@@ -199,9 +199,11 @@ export default function HotelBookingForm({ initialDate, onClose, isModal = false
             })
             const data = await response.json()
             if (data.success) {
-                setBookingId(data.booking.bookingId)
-                setSubmitSuccess(true)
-                if (onSuccess) onSuccess()
+                if (onSuccess) {
+                    onSuccess()
+                } else {
+                    window.location.href = `/booking/hotel/success?id=${data.booking.bookingId}&usd=${pricing.totalUSD}&egp=${pricing.totalEGP}`
+                }
             } else {
                 alert(data.error || 'Booking failed')
             }
@@ -216,59 +218,6 @@ export default function HotelBookingForm({ initialDate, onClose, isModal = false
     const isStep1Valid = formData.fullName && formData.country && formData.passport && formData.phone && formData.whatsapp
     const isStep2Valid = getTotalRooms() > 0
     const isStep3Valid = formData.adults >= 1 && formData.checkInDate && formData.checkOutDate && nights >= 1
-
-    if (submitSuccess) {
-        return (
-            <div className="booking-form success">
-                <div className="success-content">
-                    <div className="success-icon">🎉</div>
-                    <h2>Booking Berhasil!</h2>
-                    <p className="booking-id">Booking ID: <strong>{bookingId}</strong></p>
-
-                    <div className="success-summary">
-                        <p>
-                            <span>📧 WhatsApp Konfirmasi:</span>
-                            <strong>Terkirim</strong>
-                        </p>
-                        <p>
-                            <span>🏨 Status Kamar:</span>
-                            <strong style={{ color: '#e5b072' }}>Menunggu Pembayaran</strong>
-                        </p>
-                        <p style={{ marginTop: '16px', paddingTop: '16px', borderTop: '1px dashed rgba(255,255,255,0.1)' }}>
-                            <span>💰 Total Tagihan:</span>
-                            <strong style={{ fontSize: '1.25rem' }}>${pricing.totalUSD} USD <span style={{ fontSize: '1rem', color: '#a1a1aa', fontWeight: 'normal' }}>+ {pricing.totalEGP} EGP</span></strong>
-                        </p>
-                    </div>
-
-                    <div style={{ display: 'flex', gap: '16px', justifyContent: 'center', marginTop: '32px' }}>
-                        <button
-                            className="btn btn-secondary"
-                            onClick={handleDownloadPDF}
-                            style={{ display: 'flex', alignItems: 'center', gap: '8px' }}
-                        >
-                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-                                <polyline points="7 10 12 15 17 10"></polyline>
-                                <line x1="12" y1="15" x2="12" y2="3"></line>
-                            </svg>
-                            Download PDF
-                        </button>
-
-                        <button className="btn btn-primary" onClick={() => {
-                            if (onClose) {
-                                onClose()
-                            } else {
-                                window.location.href = '/booking/hotel'
-                            }
-                        }}>
-                            {onClose ? 'Tutup' : 'Booking Lagi'}
-                        </button>
-                    </div>
-                </div>
-                <style jsx>{successStyles}</style>
-            </div>
-        )
-    }
 
     return (
         <div className="booking-form">
