@@ -43,7 +43,21 @@ function HotelSuccessContent() {
                 meals: (pricing.mealsTotal || 0).toString()
             })
 
-            window.open(`/api/booking/hotel/pdf?${params.toString()}`, '_blank')
+            // Download PDF directly from the WA format generator
+            const pdfRes = await fetch(`/api/booking/hotel/pdf?${params.toString()}`)
+            if (!pdfRes.ok) throw new Error('PDF generate failed')
+
+            // Revert back to blob downloading so we can force filename
+            const blob = await pdfRes.blob()
+            const url = window.URL.createObjectURL(blob)
+            const a = document.createElement('a')
+            a.href = url
+            a.download = `Invoice_${booking.bookingId}.pdf`
+            document.body.appendChild(a)
+            a.click()
+            window.URL.revokeObjectURL(url)
+            document.body.removeChild(a)
+
         } catch (error) {
             console.error(error)
             alert('Failed to generation confirmation. Please try again.')

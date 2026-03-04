@@ -45,7 +45,7 @@ export async function POST(request: Request) {
 
         // Build caption text
         const statusText = status === 'paid' ? '✅ LUNAS' : '⏳ BELUM LUNAS'
-        const captionText = `📄 *INVOICE - Wisma Nusantara Cairo*
+        const captionText = `📄 *BOOKING CONFIRMATION - Wisma Nusantara Cairo*
 
 ━━━━━━━━━━━━━━━━━━━━━━
 
