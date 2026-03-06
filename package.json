@@ -48,5 +48,15 @@
   },
   "engines": {
     "node": ">=18.0.0"
-  }
+  },
+  "main": "index.js",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/rehlatoursid-umrah/erp-wisma.git"
+  },
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/rehlatoursid-umrah/erp-wisma/issues"
+  },
+  "homepage": "https://github.com/rehlatoursid-umrah/erp-wisma#readme"
 }

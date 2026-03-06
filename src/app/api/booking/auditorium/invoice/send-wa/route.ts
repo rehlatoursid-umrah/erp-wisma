@@ -76,6 +76,10 @@ _Terima kasih telah menggunakan layanan Wisma Nusantara Cairo_ 🏢`
 
         const response = await axios.post(`${baseUrl}/send/file`, formData, {
             auth: { username: whatsappUsername, password: whatsappPassword },
+            headers: {
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36',
+                'Accept': 'application/json, text/plain, */*',
+            },
             timeout: 45000,
             validateStatus: () => true,
         })

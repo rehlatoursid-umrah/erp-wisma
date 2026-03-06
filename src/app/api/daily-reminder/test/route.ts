@@ -22,6 +22,10 @@ export async function GET(request: Request) {
 
     const authConfig = {
         auth: { username, password },
+        headers: {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36',
+            'Accept': 'application/json, text/plain, */*',
+        },
         timeout: 15000,
         validateStatus: () => true as const,
     }
