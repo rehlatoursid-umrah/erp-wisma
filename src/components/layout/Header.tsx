@@ -236,6 +236,10 @@ export default function Header({ onMenuClick, balances }: HeaderProps & {
              z-index: 50;
              border-radius: 0; /* Flat edge on top for sticky */
              margin-bottom: var(--spacing-md);
+             background: rgba(30, 30, 30, 0.85); /* Glassmorphism background */
+             backdrop-filter: blur(12px);
+             -webkit-backdrop-filter: blur(12px);
+             border-bottom: 1px solid rgba(255, 255, 255, 0.05);
           }
 
           .header-left {

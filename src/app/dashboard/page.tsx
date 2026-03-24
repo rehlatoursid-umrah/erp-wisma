@@ -12,6 +12,7 @@ import {
 } from 'lucide-react'
 import Sidebar from '@/components/layout/Sidebar'
 import Header from '@/components/layout/Header'
+import BottomNav from '@/components/layout/BottomNav'
 import LiveCalendar from '@/components/calendar/LiveCalendar'
 import HotelCalendar from '@/components/calendar/HotelCalendar'
 import AuditoriumCalendar from '@/components/calendar/AuditoriumCalendar'
@@ -550,6 +551,8 @@ export default function DashboardPage() {
         type={bookingModal.type}
         selectedDate={bookingModal.date}
       />
+      
+      <BottomNav />
 
       <style jsx>{`
         .dashboard-layout {

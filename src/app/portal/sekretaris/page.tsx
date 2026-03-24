@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import Sidebar from '@/components/layout/Sidebar'
 import Header from '@/components/layout/Header'
+import BottomNav from '@/components/layout/BottomNav'
 import PortalPinGuard from '@/components/auth/PortalPinGuard'
 
 export default function SekretarisPortal() {
@@ -525,6 +526,8 @@ export default function SekretarisPortal() {
           )}
 
         </main>
+      
+      <BottomNav />
 
         <style jsx global>{`
         .dashboard-layout { display: flex; min-height: 100vh; background: var(--color-bg-primary); }
