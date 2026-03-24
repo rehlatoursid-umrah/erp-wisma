@@ -1,4 +1,4 @@
-﻿'use client'
+'use client'
 
 import { useState, useEffect, useCallback } from 'react'
 import {
@@ -235,117 +235,149 @@ export default function HotelCalendar({ onBookRoom, refreshTrigger = 0, onUpdate
       {loading ? (
         <div className="loading"><div className="loading-spinner">⏳</div><p>Loading data...</p></div>
       ) : (
-        <div className="calendar-scroll">
-          <table className="room-table">
-            <thead>
-              <tr>
-                <th className="room-header">Room</th>
-                {days.map((day, idx) => (
-                  <th
-                    key={idx}
-                    className={`day-header ${isToday(day) ? 'today' : ''}`}
-                  >
-                    <span className="day-name">
-                      {day.toLocaleDateString('en-US', { weekday: 'short' }).slice(0, 3)}
-                    </span>
-                    <span className="day-date">{day.getDate()}</span>
-                  </th>
+        <>
+          {/* Desktop Grid */}
+          <div className="calendar-scroll desktop-only">
+            <table className="room-table">
+              <thead>
+                <tr>
+                  <th className="room-header">Room</th>
+                  {days.map((day, idx) => (
+                    <th
+                      key={idx}
+                      className={`day-header ${isToday(day) ? 'today' : ''}`}
+                    >
+                      <span className="day-name">
+                        {day.toLocaleDateString('en-US', { weekday: 'short' }).slice(0, 3)}
+                      </span>
+                      <span className="day-date">{day.getDate()}</span>
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {/* Floor 1 Header */}
+                <tr className="floor-header">
+                  <td colSpan={days.length + 1}>Floor 1</td>
+                </tr>
+                {HOTEL_ROOMS.filter(r => r.floor === 1).map(room => (
+                  <tr key={room.number}>
+                    <td className="room-info">
+                      <strong>{room.number}</strong>
+                      <span className="room-type">{getRoomTypeIcon(room.type)} {room.type}</span>
+                      <span className="room-price">${room.price}/night</span>
+                    </td>
+                    {days.map((day, idx) => {
+                      const booking = getBookingForDate(room.number, day)
+                      return (
+                        <td
+                          key={idx}
+                          className={`day-cell ${booking ? 'booked' : 'available'} ${isToday(day) ? 'today' : ''}`}
+                          onClick={() => booking ? setSelectedBooking(booking) : onBookRoom?.(room.number, day)}
+                          title={booking ? `${booking.guestName} (${booking.status})` : 'Available'}
+                          style={booking ? { backgroundColor: getColorByName(booking.guestName) + '30' } : {}}
+                        >
+                          {booking && (
+                            <span className="booking-indicator" style={{ backgroundColor: getColorByName(booking.guestName) }}></span>
+                          )}
+                        </td>
+                      )
+                    })}
+                  </tr>
                 ))}
-              </tr>
-            </thead>
-            <tbody>
-              {/* Floor 1 Header */}
-              <tr className="floor-header">
-                <td colSpan={days.length + 1}>Floor 1</td>
-              </tr>
-              {HOTEL_ROOMS.filter(r => r.floor === 1).map(room => (
-                <tr key={room.number}>
-                  <td className="room-info">
-                    <strong>{room.number}</strong>
-                    <span className="room-type">{getRoomTypeIcon(room.type)} {room.type}</span>
-                    <span className="room-price">${room.price}/night</span>
-                  </td>
-                  {days.map((day, idx) => {
-                    const booking = getBookingForDate(room.number, day)
-                    return (
-                      <td
-                        key={idx}
-                        className={`day-cell ${booking ? 'booked' : 'available'} ${isToday(day) ? 'today' : ''}`}
-                        onClick={() => booking ? setSelectedBooking(booking) : onBookRoom?.(room.number, day)}
-                        title={booking ? `${booking.guestName} (${booking.status})` : 'Available'}
-                        style={booking ? { backgroundColor: getColorByName(booking.guestName) + '30' } : {}}
-                      >
-                        {booking && (
-                          <span className="booking-indicator" style={{ backgroundColor: getColorByName(booking.guestName) }}></span>
-                        )}
-                      </td>
-                    )
-                  })}
-                </tr>
-              ))}
 
-              {/* Floor 2 Header */}
-              <tr className="floor-header">
-                <td colSpan={days.length + 1}>Floor 2</td>
-              </tr>
-              {HOTEL_ROOMS.filter(r => r.floor === 2).map(room => (
-                <tr key={room.number}>
-                  <td className="room-info">
-                    <strong>{room.number}</strong>
-                    <span className="room-type">{getRoomTypeIcon(room.type)} {room.type}</span>
-                    <span className="room-price">${room.price}/night</span>
-                  </td>
-                  {days.map((day, idx) => {
-                    const booking = getBookingForDate(room.number, day)
-                    return (
-                      <td
-                        key={idx}
-                        className={`day-cell ${booking ? 'booked' : 'available'} ${isToday(day) ? 'today' : ''}`}
-                        onClick={() => booking ? setSelectedBooking(booking) : onBookRoom?.(room.number, day)}
-                        title={booking ? `${booking.guestName} (${booking.status})` : 'Available'}
-                        style={booking ? { backgroundColor: getColorByName(booking.guestName) + '30' } : {}}
-                      >
-                        {booking && (
-                          <span className="booking-indicator" style={{ backgroundColor: getColorByName(booking.guestName) }}></span>
-                        )}
-                      </td>
-                    )
-                  })}
+                {/* Floor 2 Header */}
+                <tr className="floor-header">
+                  <td colSpan={days.length + 1}>Floor 2</td>
                 </tr>
-              ))}
+                {HOTEL_ROOMS.filter(r => r.floor === 2).map(room => (
+                  <tr key={room.number}>
+                    <td className="room-info">
+                      <strong>{room.number}</strong>
+                      <span className="room-type">{getRoomTypeIcon(room.type)} {room.type}</span>
+                      <span className="room-price">${room.price}/night</span>
+                    </td>
+                    {days.map((day, idx) => {
+                      const booking = getBookingForDate(room.number, day)
+                      return (
+                        <td
+                          key={idx}
+                          className={`day-cell ${booking ? 'booked' : 'available'} ${isToday(day) ? 'today' : ''}`}
+                          onClick={() => booking ? setSelectedBooking(booking) : onBookRoom?.(room.number, day)}
+                          title={booking ? `${booking.guestName} (${booking.status})` : 'Available'}
+                          style={booking ? { backgroundColor: getColorByName(booking.guestName) + '30' } : {}}
+                        >
+                          {booking && (
+                            <span className="booking-indicator" style={{ backgroundColor: getColorByName(booking.guestName) }}></span>
+                          )}
+                        </td>
+                      )
+                    })}
+                  </tr>
+                ))}
 
-              {/* Homestay Header */}
-              <tr className="floor-header homestay">
-                <td colSpan={days.length + 1}>Homestay</td>
-              </tr>
-              {HOTEL_ROOMS.filter(r => r.floor === 0).map(room => (
-                <tr key={room.number}>
-                  <td className="room-info">
-                    <strong>{room.number}</strong>
-                    <span className="room-type">{getRoomTypeIcon(room.type)} 3 Rooms + Facilities</span>
-                    <span className="room-price">${room.price}/night</span>
-                  </td>
-                  {days.map((day, idx) => {
-                    const booking = getBookingForDate(room.number, day)
-                    return (
-                      <td
-                        key={idx}
-                        className={`day-cell ${booking ? 'booked' : 'available'} ${isToday(day) ? 'today' : ''}`}
-                        onClick={() => booking ? setSelectedBooking(booking) : onBookRoom?.(room.number, day)}
-                        title={booking ? `${booking.guestName} (${booking.status})` : 'Available'}
-                        style={booking ? { backgroundColor: getStatusColor(booking.status) + '30' } : {}}
-                      >
-                        {booking && (
-                          <span className="booking-indicator" style={{ backgroundColor: getStatusColor(booking.status) }}></span>
-                        )}
-                      </td>
-                    )
-                  })}
+                {/* Homestay Header */}
+                <tr className="floor-header homestay">
+                  <td colSpan={days.length + 1}>Homestay</td>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+                {HOTEL_ROOMS.filter(r => r.floor === 0).map(room => (
+                  <tr key={room.number}>
+                    <td className="room-info">
+                      <strong>{room.number}</strong>
+                      <span className="room-type">{getRoomTypeIcon(room.type)} 3 Rooms + Facilities</span>
+                      <span className="room-price">${room.price}/night</span>
+                    </td>
+                    {days.map((day, idx) => {
+                      const booking = getBookingForDate(room.number, day)
+                      return (
+                        <td
+                          key={idx}
+                          className={`day-cell ${booking ? 'booked' : 'available'} ${isToday(day) ? 'today' : ''}`}
+                          onClick={() => booking ? setSelectedBooking(booking) : onBookRoom?.(room.number, day)}
+                          title={booking ? `${booking.guestName} (${booking.status})` : 'Available'}
+                          style={booking ? { backgroundColor: getStatusColor(booking.status) + '30' } : {}}
+                        >
+                          {booking && (
+                            <span className="booking-indicator" style={{ backgroundColor: getStatusColor(booking.status) }}></span>
+                          )}
+                        </td>
+                      )
+                    })}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          {/* Mobile Agenda View */}
+          <div className="agenda-view-mobile mobile-only">
+            <h4 className="agenda-title">Booking Bulan Ini</h4>
+            {bookings.length === 0 ? (
+              <div className="empty-agenda">Belum ada booking bulan ini.</div>
+            ) : (
+              <div className="agenda-list">
+                {bookings.map((booking) => (
+                  <div 
+                    key={booking.id} 
+                    className={`agenda-booking-item status-${booking.status}`}
+                    onClick={() => setSelectedBooking(booking)}
+                  >
+                    <div className="agenda-header">
+                      <span className="room-badge">Kamar {booking.roomNumber}</span>
+                    </div>
+                    <div className="agenda-guest">
+                      <strong>{booking.guestName}</strong> 
+                      <span className="agenda-country">({booking.guestCountry})</span>
+                    </div>
+                    <div className="agenda-dates">
+                      <CalendarIcon size={12} style={{display:'inline', marginBottom:'-2px'}}/> {booking.checkIn.split('T')[0]} &rarr; {booking.checkOut.split('T')[0]} ({booking.nights}N)
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </>
       )}
 
       {/* Booking Detail Modal */}
@@ -1061,6 +1093,89 @@ export default function HotelCalendar({ onBookRoom, refreshTrigger = 0, onUpdate
                 @keyframes slideUp {
                     from { transform: translateY(20px); opacity: 0; }
                     to { transform: translateY(0); opacity: 1; }
+                }
+
+                @media (min-width: 769px) {
+                  .mobile-only { display: none !important; }
+                }
+
+                @media (max-width: 768px) {
+                  .desktop-only { display: none !important; }
+                  
+                  .calendar-header { flex-direction: column; align-items: stretch; }
+                  .calendar-nav h3 { text-align: left; }
+                  .legend { display: none; } /* Hide dot legend on mobile */
+
+                  .agenda-title {
+                    font-size: 1.1rem;
+                    margin-bottom: 16px;
+                    color: var(--color-text-secondary);
+                    padding-top: var(--spacing-md);
+                  }
+
+                  .agenda-list {
+                    display: flex;
+                    flex-direction: column;
+                    gap: 12px;
+                  }
+
+                  .agenda-booking-item {
+                    display: flex;
+                    flex-direction: column;
+                    gap: 6px;
+                    background: var(--color-bg-primary);
+                    border: 1px solid var(--color-bg-secondary);
+                    border-radius: var(--radius-lg);
+                    padding: 16px;
+                    cursor: pointer;
+                    transition: all 0.2s;
+                    border-left: 4px solid #ccc;
+                  }
+
+                  .agenda-booking-item:active {
+                    transform: scale(0.98);
+                  }
+
+                  .agenda-booking-item.status-pending { border-left-color: #f59e0b; }
+                  .agenda-booking-item.status-confirmed, .agenda-booking-item.status-paid, .agenda-booking-item.status-checked-in { border-left-color: #22c55e; }
+
+                  .agenda-header {
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                  }
+
+                  .room-badge {
+                    font-weight: 700;
+                    color: var(--color-primary);
+                    font-size: 0.95rem;
+                  }
+
+                  .agenda-guest {
+                    font-size: 1rem;
+                    color: var(--color-text-primary);
+                  }
+
+                  .agenda-country {
+                    font-size: 0.8rem;
+                    color: var(--color-text-muted);
+                    font-weight: normal;
+                  }
+
+                  .agenda-dates {
+                    font-size: 0.8rem;
+                    color: var(--color-text-muted);
+                    font-weight: 600;
+                  }
+
+                  .empty-agenda {
+                    text-align: center;
+                    padding: 32px;
+                    color: var(--color-text-muted);
+                    background: var(--color-bg-primary);
+                    border-radius: var(--radius-lg);
+                    border: 1px dashed var(--color-bg-secondary);
+                  }
                 }
             `}</style>
     </div >

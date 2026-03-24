@@ -297,8 +297,8 @@ export default function AuditoriumCalendar({
         </div>
       </div>
 
-      {/* Calendar Grid */}
-      <div className="calendar-grid">
+      {/* Desktop Calendar Grid */}
+      <div className="calendar-grid desktop-only">
         {daysOfWeek.map(day => (
           <div key={day} className="calendar-header-cell">{day}</div>
         ))}
@@ -343,6 +343,44 @@ export default function AuditoriumCalendar({
             )}
           </div>
         ))}
+      </div>
+
+      {/* Mobile Agenda View */}
+      <div className="agenda-view-mobile mobile-only">
+        <h4 className="agenda-title">Agenda Bulan Ini</h4>
+        <div className="agenda-list">
+          {calendarDays.filter(day => day.isCurrentMonth && day.bookings.length > 0).length === 0 ? (
+            <div className="empty-agenda">Belum ada booking bulan ini.</div>
+          ) : (
+            calendarDays.filter(day => day.isCurrentMonth && day.bookings.length > 0).map((day, idx) => (
+              <div key={idx} className="agenda-day-card" onClick={() => handleDayClick(day.date)}>
+                <div className="agenda-date-badge">
+                  <span className="agenda-date-num">{day.date.getDate()}</span>
+                  <span className="agenda-date-name">{daysOfWeek[day.date.getDay()]}</span>
+                </div>
+                <div className="agenda-bookings">
+                  {day.bookings.map(booking => (
+                    <div 
+                      key={booking.id} 
+                      className={`agenda-booking-item status-${booking.status}`}
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        e.preventDefault()
+                        handleBookingClick(booking)
+                      }}
+                    >
+                      <div className="agenda-time"><Clock size={12} style={{display: 'inline', marginBottom: '-2px'}}/> {booking.startTime} - {booking.endTime}</div>
+                      <div className="agenda-event">{booking.eventName}</div>
+                      <div className="agenda-meta">
+                        <span><User size={12}/> {booking.bookerName}</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ))
+          )}
+        </div>
       </div>
 
       {/* Legend */}
@@ -1336,6 +1374,131 @@ export default function AuditoriumCalendar({
         @keyframes slideUp {
             from { transform: translateY(20px); opacity: 0; }
             to { transform: translateY(0); opacity: 1; }
+        }
+
+        @media (min-width: 769px) {
+          .mobile-only { display: none !important; }
+        }
+
+        @media (max-width: 768px) {
+          .desktop-only { display: none !important; }
+
+          .calendar-header {
+            flex-direction: column;
+            align-items: stretch;
+          }
+
+          .calendar-nav {
+            justify-content: space-between;
+          }
+
+          .agenda-title {
+            font-size: 1.1rem;
+            margin-bottom: 16px;
+            color: var(--color-text-secondary);
+            padding-top: var(--spacing-md);
+          }
+
+          .agenda-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+          }
+
+          .agenda-day-card {
+            display: flex;
+            gap: 16px;
+            background: var(--color-bg-primary);
+            border: 1px solid var(--color-bg-secondary);
+            border-radius: var(--radius-lg);
+            padding: 16px;
+            cursor: pointer;
+            transition: all 0.2s;
+          }
+
+          .agenda-day-card:active {
+            transform: scale(0.98);
+          }
+
+          .agenda-date-badge {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            min-width: 50px;
+            border-right: 1px dashed var(--color-bg-secondary);
+            padding-right: 16px;
+          }
+
+          .agenda-date-num {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--color-primary);
+            line-height: 1;
+          }
+
+          .agenda-date-name {
+            font-size: 0.8rem;
+            color: var(--color-text-muted);
+            text-transform: uppercase;
+            font-weight: 600;
+            margin-top: 4px;
+          }
+
+          .agenda-bookings {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            flex: 1;
+          }
+
+          .agenda-booking-item {
+            padding: 12px;
+            border-radius: var(--radius-md);
+            background: rgba(0,0,0,0.02);
+            border-left: 3px solid #ccc;
+          }
+
+          .agenda-booking-item.status-pending {
+            border-left-color: #f59e0b;
+            background: rgba(245,158,11,0.05);
+          }
+
+          .agenda-booking-item.status-confirmed {
+            border-left-color: #22c55e;
+            background: rgba(34,197,94,0.05);
+          }
+
+          .agenda-time {
+            font-size: 0.75rem;
+            color: var(--color-text-muted);
+            font-weight: 600;
+            margin-bottom: 4px;
+          }
+
+          .agenda-event {
+            font-weight: 700;
+            color: var(--color-text-primary);
+            margin-bottom: 4px;
+            font-size: 0.95rem;
+          }
+
+          .agenda-meta {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.8rem;
+            color: var(--color-text-muted);
+          }
+
+          .empty-agenda {
+            text-align: center;
+            padding: 32px;
+            color: var(--color-text-muted);
+            background: var(--color-bg-primary);
+            border-radius: var(--radius-lg);
+            border: 1px dashed var(--color-bg-secondary);
+          }
         }
       `}</style>
     </div >

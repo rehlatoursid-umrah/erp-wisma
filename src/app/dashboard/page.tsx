@@ -429,11 +429,11 @@ export default function DashboardPage() {
                     ) : (
                       dashboardData.recentPaidInvoices?.map((inv: any, idx) => (
                         <tr key={idx}>
-                          <td><code>{inv.invoiceNo}</code></td>
-                          <td>{inv.customerName}</td>
-                          <td style={{ textTransform: 'capitalize' }}>{inv.bookingType}</td>
-                          <td>{inv.currency} {inv.totalAmount?.toLocaleString()}</td>
-                          <td>
+                          <td data-label="Invoice"><code>{inv.invoiceNo}</code></td>
+                          <td data-label="Customer" className="customer-cell">{inv.customerName}</td>
+                          <td data-label="Type" style={{ textTransform: 'capitalize' }}>{inv.bookingType}</td>
+                          <td data-label="Amount" className="amount-cell">{inv.currency} {inv.totalAmount?.toLocaleString()}</td>
+                          <td data-label="Status">
                             <span className="badge badge-success">
                               ✓ Paid
                             </span>
@@ -560,15 +560,14 @@ export default function DashboardPage() {
 
         .dashboard-tabs {
           display: flex;
-          gap: var(--spacing-sm);
+          gap: var(--spacing-md);
           margin-bottom: var(--spacing-xl);
           overflow-x: auto;
           scrollbar-width: none;
           -ms-overflow-style: none; /* IE and Edge */
-          padding: var(--spacing-xs);
-          background: var(--color-bg-card);
-          border-radius: var(--radius-xl);
-          box-shadow: var(--shadow-sm);
+          padding: 0;
+          background: transparent;
+          border-bottom: 1px solid var(--color-bg-secondary);
         }
 
         .dashboard-tabs::-webkit-scrollbar {
@@ -578,53 +577,29 @@ export default function DashboardPage() {
         .tab {
           display: inline-flex;
           align-items: center;
-          gap: 8px;
-          padding: var(--spacing-sm) var(--spacing-xl);
+          gap: 6px;
+          padding: var(--spacing-xs) 0 var(--spacing-sm);
           background: transparent;
           border: none;
-          border-radius: var(--radius-lg);
+          border-bottom: 2px solid transparent;
           cursor: pointer;
-          font-size: 1rem;
+          font-size: 0.9375rem;
           font-weight: 500;
-          color: var(--color-text-secondary);
+          color: var(--color-text-muted);
           transition: all var(--transition-base);
-          position: relative;
-          overflow: hidden;
           white-space: nowrap;
           flex-shrink: 0;
-        }
-
-        .tab::before {
-          content: '';
-          position: absolute;
-          inset: 0;
-          background: var(--color-primary);
-          opacity: 0;
-          transform: scale(0.8);
-          transition: all var(--transition-base);
-          border-radius: inherit;
-          z-index: -1;
+          border-radius: 0;
         }
 
         .tab:hover {
-          color: var(--color-primary);
-          transform: translateY(-2px);
-        }
-
-        .tab:hover::before {
-          opacity: 0.1;
-          transform: scale(1);
+          color: var(--color-text-primary);
         }
 
         .tab.active {
-          background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%);
-          color: white;
-          box-shadow: var(--shadow-md);
-          transform: translateY(-2px);
-        }
-
-        .tab.active::before {
-          opacity: 0;
+          color: var(--color-primary);
+          border-bottom-color: var(--color-primary);
+          font-weight: 600;
         }
 
         .overview-grid {
@@ -943,6 +918,78 @@ export default function DashboardPage() {
           border-radius: var(--radius-sm);
         }
 
+        @media (max-width: 768px) {
+          .table-responsive {
+            background: transparent;
+            padding: 0;
+            border: none;
+          }
+          
+          .invoices-table {
+            min-width: 100%;
+            display: block;
+            margin-top: 0;
+          }
+
+          .invoices-table thead {
+            display: none;
+          }
+
+          .invoices-table tbody {
+            display: flex;
+            flex-direction: column;
+            gap: var(--spacing-md);
+          }
+
+          .invoices-table tr {
+            display: flex;
+            flex-direction: column;
+            background: var(--color-bg-primary);
+            border: 1px solid var(--color-bg-secondary);
+            border-radius: var(--radius-lg);
+            padding: var(--spacing-md);
+          }
+
+          .invoices-table tbody tr:hover {
+            background: var(--color-bg-primary);
+            border-color: var(--color-primary-light);
+            transform: translateY(-2px);
+          }
+
+          .invoices-table td {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: var(--spacing-xs) 0;
+            border-bottom: 1px dashed rgba(0,0,0,0.05);
+            font-size: 0.9rem;
+          }
+          
+          .invoices-table td:last-child {
+            border-bottom: none;
+            padding-bottom: 0;
+            padding-top: var(--spacing-sm);
+          }
+
+          .invoices-table td::before {
+            content: attr(data-label);
+            font-size: 0.75rem;
+            color: var(--color-text-muted);
+            text-transform: uppercase;
+            font-weight: 600;
+          }
+
+          .customer-cell {
+            font-weight: 600;
+            color: var(--color-text-primary);
+          }
+          
+          .amount-cell {
+            font-weight: 600;
+            color: var(--color-primary);
+          }
+        }
+
         .tab-content {
           animation: slideUp 0.4s cubic-bezier(0.4, 0, 0.2, 1);
         }
@@ -986,19 +1033,6 @@ export default function DashboardPage() {
           }
           .mini-calendars {
             grid-template-columns: repeat(2, 1fr);
-          }
-        }
-
-        @media (max-width: 768px) {
-          .stats-row {
-            grid-template-columns: 1fr;
-          }
-          .mini-calendars {
-            grid-template-columns: 1fr;
-          }
-          .tab {
-            padding: var(--spacing-sm) var(--spacing-md);
-            font-size: 0.875rem;
           }
         }
       `}</style>

@@ -110,39 +110,73 @@ export default function LiveCalendar({
         <button className="today-btn" onClick={goToToday}>Hari Ini</button>
       </div>
 
-      <div className="calendar-grid">
-        {daysOfWeek.map(day => (
-          <div key={day} className="calendar-header-cell">{day}</div>
-        ))}
+      <>
+        {/* Desktop Grid */}
+        <div className="calendar-grid desktop-only">
+          {daysOfWeek.map(day => (
+            <div key={day} className="calendar-header-cell">{day}</div>
+          ))}
 
-        {calendarDays.map((day, idx) => (
-          <div
-            key={idx}
-            className={`calendar-day ${!day.isCurrentMonth ? 'other-month' : ''} ${day.isToday ? 'today' : ''} ${day.bookings.length > 0 ? 'has-booking' : ''}`}
-            onClick={() => onDateClick?.(day.date)}
-          >
-            <span className="day-number">{day.date.getDate()}</span>
-            {day.bookings.length > 0 && (
-              <div className="booking-indicators">
-                {day.bookings.slice(0, 3).map((booking, bIdx) => (
-                  <div
-                    key={bIdx}
-                    className={`booking-dot ${booking.type}`}
-                    title={booking.title}
-                    onClick={(e) => {
-                      e.stopPropagation()
-                      onBookingClick?.(booking)
-                    }}
-                  />
-                ))}
-                {day.bookings.length > 3 && (
-                  <span className="more-bookings">+{day.bookings.length - 3}</span>
-                )}
-              </div>
+          {calendarDays.map((day, idx) => (
+            <div
+              key={idx}
+              className={`calendar-day ${!day.isCurrentMonth ? 'other-month' : ''} ${day.isToday ? 'today' : ''} ${day.bookings.length > 0 ? 'has-booking' : ''}`}
+              onClick={() => onDateClick?.(day.date)}
+            >
+              <span className="day-number">{day.date.getDate()}</span>
+              {day.bookings.length > 0 && (
+                <div className="booking-indicators">
+                  {day.bookings.slice(0, 3).map((booking, bIdx) => (
+                    <div
+                      key={bIdx}
+                      className={`booking-dot ${booking.type}`}
+                      title={booking.title}
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        onBookingClick?.(booking)
+                      }}
+                    />
+                  ))}
+                  {day.bookings.length > 3 && (
+                    <span className="more-bookings">+{day.bookings.length - 3}</span>
+                  )}
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+
+        {/* Mobile Agenda View */}
+        <div className="agenda-view-mobile mobile-only">
+          <h4 className="agenda-title">Agenda Bulan Ini</h4>
+          <div className="agenda-list">
+            {bookings
+              .filter(b => b.date.startsWith(`${currentDate.getFullYear()}-${String(currentDate.getMonth() + 1).padStart(2, '0')}`))
+              .sort((a, b) => a.date.localeCompare(b.date))
+              .map((booking, idx) => {
+                const legendLabel = legendItems.find(l => l.type === booking.type)?.label || booking.type;
+                return (
+                  <div 
+                    key={idx} 
+                    className={`agenda-live-item status-${booking.type}`}
+                    onClick={() => onBookingClick?.(booking)}
+                  >
+                    <div className="agenda-live-header">
+                      <strong>{booking.title}</strong>
+                      <span className={`status-badge ${booking.type}`}>{legendLabel}</span>
+                    </div>
+                    <div className="agenda-live-date">
+                      {booking.date}
+                    </div>
+                  </div>
+                );
+              })}
+            {bookings.filter(b => b.date.startsWith(`${currentDate.getFullYear()}-${String(currentDate.getMonth() + 1).padStart(2, '0')}`)).length === 0 && (
+              <div className="empty-agenda">Belum ada agenda bulan ini.</div>
             )}
           </div>
-        ))}
-      </div>
+        </div>
+      </>
 
       {showLegend && (
         <div className="calendar-legend">
@@ -366,7 +400,14 @@ export default function LiveCalendar({
           to { opacity: 1; transform: translateY(0); }
         }
 
+        @media (min-width: 769px) {
+          .mobile-only { display: none !important; }
+        }
+
         @media (max-width: 768px) {
+          .desktop-only { display: none !important; }
+          .calendar-legend { display: none; }
+
           .calendar-day {
             min-height: 60px;
           }
@@ -376,6 +417,76 @@ export default function LiveCalendar({
           .calendar-nav h3 {
             font-size: 1.125rem;
             min-width: 150px;
+          }
+
+          .agenda-title {
+            font-size: 1.1rem;
+            margin-bottom: 16px;
+            color: var(--color-text-secondary);
+            padding-top: var(--spacing-sm);
+          }
+
+          .agenda-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+          }
+
+          .agenda-live-item {
+            background: var(--color-bg-primary);
+            border: 1px solid var(--color-bg-secondary);
+            border-radius: var(--radius-lg);
+            padding: 16px;
+            cursor: pointer;
+            transition: all 0.2s;
+            border-left: 4px solid #ccc;
+          }
+
+          .agenda-live-item:active {
+            transform: scale(0.98);
+          }
+
+          .agenda-live-item.status-booked { border-left-color: var(--color-error); }
+          .agenda-live-item.status-inquiry { border-left-color: var(--color-warning); }
+          .agenda-live-item.status-rental { border-left-color: var(--color-info); }
+
+          .agenda-live-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+          }
+
+          .agenda-live-header strong {
+            font-size: 1rem;
+            color: var(--color-text-primary);
+          }
+
+          .status-badge {
+            font-size: 0.75rem;
+            font-weight: 700;
+            padding: 4px 8px;
+            border-radius: 99px;
+            text-transform: capitalize;
+          }
+
+          .status-badge.booked { background: var(--color-error-light); color: var(--color-error); }
+          .status-badge.inquiry { background: var(--color-warning-light); color: var(--color-warning); }
+          .status-badge.rental { background: var(--color-info-light); color: var(--color-info); }
+
+          .agenda-live-date {
+            font-size: 0.85rem;
+            color: var(--color-text-muted);
+            font-weight: 500;
+          }
+
+          .empty-agenda {
+            text-align: center;
+            padding: 32px;
+            color: var(--color-text-muted);
+            background: var(--color-bg-primary);
+            border-radius: var(--radius-lg);
+            border: 1px dashed var(--color-bg-secondary);
           }
         }
       `}</style>

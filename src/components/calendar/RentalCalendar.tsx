@@ -85,48 +85,85 @@ export default function RentalCalendar({ items, onRentItem }: RentalCalendarProp
         </div>
       </div>
 
-      <div className="calendar-scroll">
-        <table className="rental-table">
-          <thead>
-            <tr>
-              <th className="item-header">Item</th>
-              {days.map((day, idx) => (
-                <th key={idx} className={`day-header ${idx === 0 ? 'today' : ''}`}>
-                  <span className="day-name">{daysOfWeek[day.getDay()]}</span>
-                  <span className="day-date">{day.getDate()}</span>
-                </th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {filteredItems.map(item => (
-              <tr key={item.id}>
-                <td className="item-info">
-                  <strong>{item.name}</strong>
-                  <span className="item-stock">Stok: {item.available}/{item.total}</span>
-                  <span className="item-price">EGP {item.price}/hari</span>
-                </td>
-                {days.map((day, idx) => {
-                  const rented = getRentedQuantity(item, day)
-                  const available = item.total - rented
-                  return (
-                    <td
-                      key={idx}
-                      className={`day-cell ${available === 0 ? 'fully-rented' : rented > 0 ? 'partially-rented' : 'available'} ${idx === 0 ? 'today' : ''}`}
-                      onClick={() => available > 0 && onRentItem?.(item.id, day)}
-                      title={`${available} tersedia`}
-                    >
-                      <span className="availability" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                        {available === 0 ? <X size={16} /> : available}
-                      </span>
-                    </td>
-                  )
-                })}
+      <>
+        {/* Desktop Grid */}
+        <div className="calendar-scroll desktop-only">
+          <table className="rental-table">
+            <thead>
+              <tr>
+                <th className="item-header">Item</th>
+                {days.map((day, idx) => (
+                  <th key={idx} className={`day-header ${idx === 0 ? 'today' : ''}`}>
+                    <span className="day-name">{daysOfWeek[day.getDay()]}</span>
+                    <span className="day-date">{day.getDate()}</span>
+                  </th>
+                ))}
               </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+            </thead>
+            <tbody>
+              {filteredItems.map(item => (
+                <tr key={item.id}>
+                  <td className="item-info">
+                    <strong>{item.name}</strong>
+                    <span className="item-stock">Stok: {item.available}/{item.total}</span>
+                    <span className="item-price">EGP {item.price}/hari</span>
+                  </td>
+                  {days.map((day, idx) => {
+                    const rented = getRentedQuantity(item, day)
+                    const available = item.total - rented
+                    return (
+                      <td
+                        key={idx}
+                        className={`day-cell ${available === 0 ? 'fully-rented' : rented > 0 ? 'partially-rented' : 'available'} ${idx === 0 ? 'today' : ''}`}
+                        onClick={() => available > 0 && onRentItem?.(item.id, day)}
+                        title={`${available} tersedia`}
+                      >
+                        <span className="availability" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                          {available === 0 ? <X size={16} /> : available}
+                        </span>
+                      </td>
+                    )
+                  })}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+
+        {/* Mobile Agenda View (Today's Status) */}
+        <div className="agenda-view-mobile mobile-only">
+          <h4 className="agenda-title">Status Penyewaan Hari Ini</h4>
+          <div className="agenda-list">
+            {filteredItems.map(item => {
+              const rented = getRentedQuantity(item, new Date());
+              const available = item.total - rented;
+              
+              let statusClass = 'available';
+              if (available === 0) statusClass = 'fully-rented';
+              else if (rented > 0) statusClass = 'partially-rented';
+
+              return (
+                <div 
+                  key={item.id} 
+                  className={`agenda-rental-item status-${statusClass}`}
+                  onClick={() => available > 0 && onRentItem?.(item.id, new Date())}
+                >
+                  <div className="agenda-rental-header">
+                    <strong>{item.name}</strong>
+                    <span className={`status-badge ${statusClass}`}>
+                      {available === 0 ? 'Habis' : `${available} Ready`}
+                    </span>
+                  </div>
+                  <div className="agenda-rental-details">
+                    <span className="stock-info">Stok: {item.total}</span>
+                    <span className="price-info">EGP {item.price}/hari</span>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      </>
 
       <div className="legend">
         <span className="legend-item"><span className="dot available"></span> Tersedia</span>
@@ -301,6 +338,79 @@ export default function RentalCalendar({ items, onRentItem }: RentalCalendarProp
         .dot.available { background: var(--color-success); }
         .dot.partial { background: var(--color-warning); }
         .dot.rented { background: var(--color-error); }
+
+        @media (min-width: 769px) {
+          .mobile-only { display: none !important; }
+        }
+
+        @media (max-width: 768px) {
+          .desktop-only { display: none !important; }
+          .legend { display: none; }
+
+          .agenda-title {
+            font-size: 1.1rem;
+            margin-bottom: 16px;
+            color: var(--color-text-secondary);
+            padding-top: var(--spacing-sm);
+          }
+
+          .agenda-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+          }
+
+          .agenda-rental-item {
+            background: var(--color-bg-primary);
+            border: 1px solid var(--color-bg-secondary);
+            border-radius: var(--radius-lg);
+            padding: 16px;
+            cursor: pointer;
+            transition: all 0.2s;
+            border-left: 4px solid #ccc;
+          }
+
+          .agenda-rental-item:active {
+            transform: scale(0.98);
+          }
+
+          .agenda-rental-item.status-available { border-left-color: var(--color-success); }
+          .agenda-rental-item.status-partially-rented { border-left-color: var(--color-warning); }
+          .agenda-rental-item.status-fully-rented { border-left-color: var(--color-error); opacity: 0.7; cursor: not-allowed; }
+
+          .agenda-rental-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+          }
+
+          .agenda-rental-header strong {
+            font-size: 1rem;
+            color: var(--color-text-primary);
+          }
+
+          .status-badge {
+            font-size: 0.75rem;
+            font-weight: 700;
+            padding: 4px 8px;
+            border-radius: 99px;
+          }
+
+          .status-badge.available { background: var(--color-success-light); color: var(--color-success); }
+          .status-badge.partially-rented { background: var(--color-warning-light); color: var(--color-warning); }
+          .status-badge.fully-rented { background: var(--color-error-light); color: var(--color-error); }
+
+          .agenda-rental-details {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.85rem;
+            color: var(--color-text-muted);
+            font-weight: 500;
+          }
+
+          .price-info { color: var(--color-primary); font-weight: 600; }
+        }
       `}</style>
     </div>
   )
