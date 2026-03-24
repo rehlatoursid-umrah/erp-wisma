@@ -253,11 +253,23 @@ export default function Header({ onMenuClick, balances }: HeaderProps & {
 
           .user-profile {
             margin-left: 0;
-            gap: 0;
+            gap: var(--spacing-xs);
           }
 
           .user-info {
-            display: none; /* Hide heavy text on very small screens, keep avatar */
+            display: flex; /* Restore it */
+            flex-direction: column;
+            gap: 0;
+          }
+
+          .user-name {
+            font-size: 0.75rem !important; /* Micro typography */
+            line-height: 1;
+          }
+
+          .user-role {
+            font-size: 0.65rem !important;
+            line-height: 1;
           }
         }
       `}</style>

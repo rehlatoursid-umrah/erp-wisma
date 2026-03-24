@@ -637,9 +637,16 @@ export default function DashboardPage() {
 
         .stats-row {
           display: grid;
-          grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+          grid-template-columns: repeat(4, 1fr);
           gap: var(--spacing-lg);
           width: 100%;
+        }
+
+        @media (max-width: 768px) {
+          .stats-row {
+             grid-template-columns: repeat(2, 1fr);
+             gap: var(--spacing-sm);
+          }
         }
 
         .stat-card {
@@ -683,6 +690,19 @@ export default function DashboardPage() {
           line-height: 1;
         }
 
+        @media (max-width: 768px) {
+          .stat-value {
+             font-size: 1.25rem;
+          }
+          .stat-icon {
+             font-size: 1.75rem;
+          }
+          .stat-card {
+             gap: var(--spacing-sm);
+             padding: var(--spacing-md);
+          }
+        }
+
         .stat-label {
           font-size: 0.9375rem;
           color: var(--color-text-muted);
@@ -693,6 +713,22 @@ export default function DashboardPage() {
           grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
           gap: var(--spacing-lg);
           width: 100%;
+        }
+
+        @media (max-width: 768px) {
+          .mini-calendars {
+             grid-template-columns: repeat(2, 1fr);
+             gap: var(--spacing-sm);
+          }
+          
+          .mini-calendar-card {
+             padding: var(--spacing-sm);
+          }
+
+          .mini-rooms {
+             grid-template-columns: repeat(2, 1fr);
+             gap: 4px;
+          }
         }
 
         .mini-calendar-card {

@@ -682,6 +682,25 @@ h6 {
 }
 
 @media (max-width: 768px) {
+  html {
+    font-size: 14px;
+  }
+
+  :root {
+    --spacing-md: 0.75rem;
+    --spacing-lg: 1rem;
+    --spacing-xl: 1.25rem;
+    --radius-xl: 0.75rem;
+    --radius-2xl: 1rem;
+  }
+
+  h1 { font-size: 1.75rem; }
+  h2 { font-size: 1.5rem; }
+  h3 { font-size: 1.25rem; }
+  h4 { font-size: 1.1rem; }
+  h5 { font-size: 0.9rem; }
+  h6 { font-size: 0.8rem; }
+
   .card, .stat-card, .mini-calendar-card {
     padding: var(--spacing-md);
   }
@@ -709,10 +728,12 @@ h6 {
   }
 
   .room-grid {
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(2, 1fr); /* 2 columns for density */
+    gap: var(--spacing-sm);
   }
 
   .service-grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--spacing-sm);
   }
 }
