@@ -8,8 +8,10 @@ export const AuditoriumBookings: CollectionConfig = {
         group: 'Operations',
     },
     access: {
-        read: () => true,
-        create: () => true,
+        read: ({ req: { user } }) => !!user,
+        create: ({ req: { user } }) => !!user,
+        update: ({ req: { user } }) => !!user,
+        delete: ({ req: { user } }) => !!user,
     },
     fields: [
         {

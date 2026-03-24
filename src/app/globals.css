@@ -437,10 +437,11 @@ h6 {
 .main-content {
   margin-left: 280px;
   min-height: 100vh;
-  padding: var(--spacing-lg) var(--spacing-2xl);
+  padding: var(--spacing-lg) var(--spacing-xl);
   width: calc(100vw - 280px);
-  max-width: calc(100vw - 280px);
+  max-width: 100%;
   box-sizing: border-box;
+  transition: all var(--transition-base);
 }
 
 /* Header */
@@ -675,6 +676,8 @@ h6 {
 
   .main-content {
     margin-left: 72px;
+    width: calc(100vw - 72px);
+    padding: var(--spacing-lg) var(--spacing-lg);
   }
 }
 
@@ -687,6 +690,7 @@ h6 {
 
   .sidebar.open {
     transform: translateX(0);
+    box-shadow: 4px 0 15px rgba(0, 0, 0, 0.2);
   }
 
   .sidebar-logo h2,
@@ -697,6 +701,8 @@ h6 {
 
   .main-content {
     margin-left: 0;
+    width: 100vw;
+    padding: var(--spacing-md) var(--spacing-md);
   }
 
   .room-grid {

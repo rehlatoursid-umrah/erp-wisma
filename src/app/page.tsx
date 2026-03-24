@@ -114,7 +114,7 @@ export default function LoginPage() {
           align-items: center;
           justify-content: center;
           background: linear-gradient(135deg, var(--color-bg-primary) 0%, var(--color-bg-secondary) 100%);
-          padding: var(--spacing-lg);
+          padding: 1rem;
         }
 
         .login-container {
@@ -123,7 +123,15 @@ export default function LoginPage() {
           background: var(--color-bg-card);
           border-radius: var(--radius-2xl);
           box-shadow: var(--shadow-xl);
-          padding: var(--spacing-2xl);
+          padding: 2rem;
+          transition: all var(--transition-base);
+        }
+
+        @media (max-width: 480px) {
+          .login-container {
+             padding: 1.5rem;
+             border-radius: var(--radius-xl);
+          }
         }
 
         .login-header {

@@ -123,8 +123,18 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
           display: none;
           position: fixed;
           inset: 0;
-          background: rgba(0, 0, 0, 0.5);
+          background: rgba(0, 0, 0, 0.4);
+          backdrop-filter: blur(4px);
           z-index: 99;
+          opacity: 0;
+          transition: opacity var(--transition-base);
+        }
+
+        @media (max-width: 768px) {
+          .sidebar-overlay.open {
+            display: block;
+            opacity: 1;
+          }
         }
 
         .logo-icon {

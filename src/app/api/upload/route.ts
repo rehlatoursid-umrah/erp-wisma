@@ -4,6 +4,13 @@ import { NextResponse } from 'next/server'
 
 export async function POST(req: Request) {
     const payload = await getPayload({ config })
+    
+    // Security Fix: Ensure user is authenticated before allowing upload
+    const headers = new Headers(req.headers)
+    const { user } = await payload.auth({ headers })
+    if (!user) {
+        return NextResponse.json({ error: 'Unauthorized: You must be logged in to upload files.' }, { status: 401 })
+    }
 
     try {
         const formData = await req.formData()
