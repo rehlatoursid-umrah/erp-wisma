@@ -682,6 +682,9 @@ h6 {
 }
 
 @media (max-width: 768px) {
+  .card, .stat-card, .mini-calendar-card {
+    padding: var(--spacing-md);
+  }
   .sidebar {
     transform: translateX(-100%);
     width: 280px;

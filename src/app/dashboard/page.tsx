@@ -408,40 +408,42 @@ export default function DashboardPage() {
                 <h3><Receipt className="inline-icon" size={24} /> Recent Paid Invoices</h3>
                 <span className="badge badge-success">Verified Payment</span>
               </div>
-              <table className="invoices-table">
-                <thead>
-                  <tr>
-                    <th>Invoice</th>
-                    <th>Customer</th>
-                    <th>Type</th>
-                    <th>Amount</th>
-                    <th>Status</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {dashboardData.recentPaidInvoices && dashboardData.recentPaidInvoices.length === 0 ? (
+              <div className="table-responsive">
+                <table className="invoices-table">
+                  <thead>
                     <tr>
-                      <td colSpan={5} style={{ textAlign: 'center', color: '#888', padding: '20px' }}>
-                        Belum ada invoice lunas
-                      </td>
+                      <th>Invoice</th>
+                      <th>Customer</th>
+                      <th>Type</th>
+                      <th>Amount</th>
+                      <th>Status</th>
                     </tr>
-                  ) : (
-                    dashboardData.recentPaidInvoices?.map((inv: any, idx) => (
-                      <tr key={idx}>
-                        <td><code>{inv.invoiceNo}</code></td>
-                        <td>{inv.customerName}</td>
-                        <td style={{ textTransform: 'capitalize' }}>{inv.bookingType}</td>
-                        <td>{inv.currency} {inv.totalAmount?.toLocaleString()}</td>
-                        <td>
-                          <span className="badge badge-success">
-                            ✓ Paid
-                          </span>
+                  </thead>
+                  <tbody>
+                    {dashboardData.recentPaidInvoices && dashboardData.recentPaidInvoices.length === 0 ? (
+                      <tr>
+                        <td colSpan={5} style={{ textAlign: 'center', color: '#888', padding: '20px' }}>
+                          Belum ada invoice lunas
                         </td>
                       </tr>
-                    ))
-                  )}
-                </tbody>
-              </table>
+                    ) : (
+                      dashboardData.recentPaidInvoices?.map((inv: any, idx) => (
+                        <tr key={idx}>
+                          <td><code>{inv.invoiceNo}</code></td>
+                          <td>{inv.customerName}</td>
+                          <td style={{ textTransform: 'capitalize' }}>{inv.bookingType}</td>
+                          <td>{inv.currency} {inv.totalAmount?.toLocaleString()}</td>
+                          <td>
+                            <span className="badge badge-success">
+                              ✓ Paid
+                            </span>
+                          </td>
+                        </tr>
+                      ))
+                    )}
+                  </tbody>
+                </table>
+              </div>
             </div>
 
             {/* Logbook */}
@@ -560,11 +562,17 @@ export default function DashboardPage() {
           display: flex;
           gap: var(--spacing-sm);
           margin-bottom: var(--spacing-xl);
-          flex-wrap: wrap;
+          overflow-x: auto;
+          scrollbar-width: none;
+          -ms-overflow-style: none; /* IE and Edge */
           padding: var(--spacing-xs);
           background: var(--color-bg-card);
           border-radius: var(--radius-xl);
           box-shadow: var(--shadow-sm);
+        }
+
+        .dashboard-tabs::-webkit-scrollbar {
+          display: none;
         }
 
         .tab {
@@ -582,6 +590,8 @@ export default function DashboardPage() {
           transition: all var(--transition-base);
           position: relative;
           overflow: hidden;
+          white-space: nowrap;
+          flex-shrink: 0;
         }
 
         .tab::before {
@@ -852,13 +862,23 @@ export default function DashboardPage() {
           font-size: 1.25rem;
         }
 
+        /* Table Responsive Styles */
+        .table-responsive {
+          width: 100%;
+          overflow-x: auto;
+          -webkit-overflow-scrolling: touch;
+        }
+        
         .invoices-table {
           width: 100%;
+          min-width: 600px; /* Trigger scroll on screens smaller than 600px */
           border-collapse: collapse;
+          margin-top: var(--spacing-md);
         }
 
-        .invoices-table th, .invoices-table td {
-          padding: var(--spacing-md) var(--spacing-lg);
+        .invoices-table th,
+        .invoices-table td {
+          padding: var(--spacing-sm) var(--spacing-md);
           text-align: left;
           border-bottom: 1px solid rgba(139, 69, 19, 0.1);
         }

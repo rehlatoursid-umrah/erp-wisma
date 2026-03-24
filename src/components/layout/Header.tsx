@@ -228,14 +228,36 @@ export default function Header({ onMenuClick, balances }: HeaderProps & {
         }
 
         @media (max-width: 768px) {
+          .header {
+             padding: var(--spacing-sm) var(--spacing-md);
+             gap: var(--spacing-sm);
+          }
+
+          .header-left {
+             gap: var(--spacing-md);
+          }
+
           .menu-btn {
             display: flex;
             align-items: center;
             justify-content: center;
+            flex-shrink: 0;
           }
 
           .header-ticker {
-            display: none; /* Hide ticker on very small screens or make it scrollable */
+            overflow-x: auto;
+            flex: 1;
+            padding-bottom: 0px; 
+            /* Make ticker horizontally scrollable natively instead of hiding */
+          }
+
+          .user-profile {
+            margin-left: 0;
+            gap: 0;
+          }
+
+          .user-info {
+            display: none; /* Hide heavy text on very small screens, keep avatar */
           }
         }
       `}</style>
