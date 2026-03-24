@@ -13,11 +13,29 @@ const outfit = Outfit({
 })
 
 export const metadata: Metadata = {
-    title: 'Operational System Wisma Nusantara Cairo',
-    description: 'Sistem operasional terpadu untuk Wisma Nusantara Cairo',
+    title: 'Wisma Nusantara ERP',
+    description: 'Sistem operasional terpadu Wisma Nusantara',
+    manifest: '/manifest.json',
+    appleWebApp: {
+        capable: true,
+        statusBarStyle: 'default',
+        title: 'Wisma Nusantara',
+    },
+    formatDetection: {
+        telephone: false,
+    },
     icons: {
         icon: '/favicon.ico',
+        apple: '/icons/icon-192x192.png',
     },
+}
+
+export const viewport = {
+    themeColor: '#8b4513',
+    width: 'device-width',
+    initialScale: 1,
+    maximumScale: 1,
+    userScalable: false,
 }
 
 export default function RootLayout({
