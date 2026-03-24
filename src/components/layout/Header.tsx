@@ -231,6 +231,11 @@ export default function Header({ onMenuClick, balances }: HeaderProps & {
           .header {
              padding: var(--spacing-sm) var(--spacing-md);
              gap: var(--spacing-sm);
+             position: sticky;
+             top: 0;
+             z-index: 50;
+             border-radius: 0; /* Flat edge on top for sticky */
+             margin-bottom: var(--spacing-md);
           }
 
           .header-left {
