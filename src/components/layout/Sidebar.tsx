@@ -17,7 +17,8 @@ import {
     Settings,
     LogOut,
     Building2,
-    Lock
+    Lock,
+    X
 } from 'lucide-react'
 
 interface SidebarProps {
@@ -75,13 +76,18 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
             />
 
             <aside className={`sidebar ${isOpen ? 'open' : ''}`}>
-                <div className="sidebar-logo">
-                    <div className="logo-icon-image">
-                        <Image src="/media/header.png" alt="Logo" width={40} height={40} className="sidebar-logo-img" />
+                <div className="sidebar-header">
+                    <div className="sidebar-logo">
+                        <div className="logo-icon-image">
+                            <Image src="/media/header.png" alt="Logo" width={40} height={40} className="sidebar-logo-img" />
+                        </div>
+                        <div className="sidebar-brand-text">
+                            <h2>Operational System<br />Wisma Nusantara Cairo</h2>
+                        </div>
                     </div>
-                    <div>
-                        <h2 style={{ fontSize: '1rem', lineHeight: '1.2' }}>Operational System<br />Wisma Nusantara Cairo</h2>
-                    </div>
+                    <button className="mobile-close-btn" onClick={onClose} aria-label="Tutup menu">
+                        <X size={24} color="var(--color-text-primary)" />
+                    </button>
                 </div>
 
                 <nav className="sidebar-nav">
@@ -118,74 +124,7 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
                 </div>
             </aside>
 
-            <style jsx>{`
-        .sidebar-overlay {
-          display: none;
-          position: fixed;
-          inset: 0;
-          background: rgba(0, 0, 0, 0.4);
-          backdrop-filter: blur(4px);
-          z-index: 99;
-          opacity: 0;
-          transition: opacity var(--transition-base);
-        }
 
-        @media (max-width: 768px) {
-          .sidebar-overlay.open {
-            display: block;
-            opacity: 1;
-          }
-        }
-
-        .logo-icon {
-          width: 48px;
-          height: 48px;
-          background: var(--color-primary);
-          border-radius: var(--radius-md);
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          font-size: 1.5rem;
-        }
-
-        .logo-subtitle {
-          font-size: 0.75rem;
-          color: var(--color-text-muted);
-          margin-top: 2px;
-        }
-
-        .nav-icon {
-          font-size: 1.25rem;
-          width: 24px;
-          text-align: center;
-        }
-
-        .nav-lock {
-          margin-left: auto;
-          font-size: 0.75rem;
-        }
-
-        .sidebar-footer {
-          margin-top: auto;
-          padding-top: var(--spacing-lg);
-          border-top: 1px solid rgba(254, 252, 249, 0.1);
-        }
-
-        .logout-btn {
-          width: 100%;
-          background: none;
-          border: none;
-          cursor: pointer;
-          font-size: inherit;
-          font-family: inherit;
-        }
-
-        @media (max-width: 768px) {
-          .sidebar-overlay.open {
-            display: block;
-          }
-        }
-      `}</style>
         </>
     )
 }

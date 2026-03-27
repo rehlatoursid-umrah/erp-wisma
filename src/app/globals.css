@@ -359,6 +359,24 @@ h6 {
 }
 
 /* Sidebar */
+/* Sidebar Overlay */
+.sidebar-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(4px);
+  z-index: 99;
+  opacity: 0;
+  transition: opacity 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.sidebar-overlay.open {
+  display: block;
+  opacity: 1;
+}
+
+/* Sidebar */
 .sidebar {
   width: 280px;
   height: 100vh;
@@ -370,26 +388,60 @@ h6 {
   display: flex;
   flex-direction: column;
   z-index: 100;
+  border-right: 1px solid rgba(255, 255, 255, 0.03);
+}
+
+.sidebar-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  border-bottom: 1px solid rgba(254, 252, 249, 0.1);
+  padding-bottom: var(--spacing-lg);
+  margin-bottom: var(--spacing-lg);
+}
+
+.mobile-close-btn {
+  display: none;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: var(--spacing-xs);
+  border-radius: var(--radius-md);
+  transition: background-color var(--transition-fast);
+}
+
+.mobile-close-btn:hover {
+  background-color: rgba(254, 252, 249, 0.1);
 }
 
 .sidebar-logo {
   display: flex;
   align-items: center;
   gap: var(--spacing-md);
-  padding-bottom: var(--spacing-lg);
-  border-bottom: 1px solid rgba(254, 252, 249, 0.1);
-  margin-bottom: var(--spacing-lg);
 }
 
-.sidebar-logo img {
+.logo-icon-image {
   width: 48px;
   height: 48px;
   border-radius: var(--radius-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  background: var(--color-bg-primary); /* For contrast if img has transparency */
 }
 
-.sidebar-logo h2 {
+.logo-icon-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.sidebar-brand-text h2 {
+  font-size: 0.95rem;
+  line-height: 1.3;
   color: var(--color-text-light);
-  font-size: 1.25rem;
+  font-weight: 600;
 }
 
 .sidebar-nav {
@@ -403,21 +455,51 @@ h6 {
   display: flex;
   align-items: center;
   gap: var(--spacing-md);
-  padding: var(--spacing-sm) var(--spacing-md);
-  border-radius: var(--radius-md);
+  padding: 0.625rem var(--spacing-md);
+  border-radius: var(--radius-full);
   color: var(--color-text-muted);
   text-decoration: none;
   transition: all var(--transition-fast);
+  min-height: 44px; /* Better touch target */
+  border: 1px solid transparent;
 }
 
-.nav-item:hover,
-.nav-item.active {
-  background: rgba(254, 252, 249, 0.1);
+.nav-item:hover {
+  background: rgba(254, 252, 249, 0.05);
   color: var(--color-text-light);
 }
 
 .nav-item.active {
-  background: var(--color-primary);
+  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%);
+  color: var(--color-text-light);
+  box-shadow: var(--shadow-sm);
+  border-color: rgba(255, 255, 255, 0.1);
+  font-weight: 500;
+}
+
+.nav-icon {
+  font-size: 1.25rem;
+  width: 24px;
+  display: flex;
+  justify-content: center;
+  text-align: center;
+}
+
+.nav-lock {
+  margin-left: auto;
+  font-size: 0.75rem;
+  display: flex;
+  align-items: center;
+}
+
+.logout-btn {
+  width: 100%;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: inherit;
+  font-family: inherit;
+  text-align: left;
 }
 
 .nav-divider {
@@ -707,13 +789,27 @@ h6 {
   }
   .sidebar {
     transform: translateX(-100%);
-    width: 280px;
-    padding: var(--spacing-lg);
+    width: 310px; /* Lebar optimal untuk touch target */
+    padding: max(env(safe-area-inset-top), 24px) var(--spacing-lg) var(--spacing-lg) var(--spacing-lg);
+    background: rgba(22, 19, 15, 0.90); /* Lebar optimal untuk gelap solid glass */
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+    border-right: 1px solid rgba(255, 255, 255, 0.08);
+    border-top-right-radius: 32px;
+    border-bottom-right-radius: 32px;
+    transition: transform 0.4s cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 0.4s ease-out;
+    height: 100vh; /* Pastikan selalu setinggi layar */
   }
 
   .sidebar.open {
     transform: translateX(0);
-    box-shadow: 4px 0 15px rgba(0, 0, 0, 0.2);
+    box-shadow: 12px 0 32px rgba(0, 0, 0, 0.6); /* Shadow super deep seperti layer depan */
+  }
+
+  .mobile-close-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
   }
 
   .sidebar-logo h2,
