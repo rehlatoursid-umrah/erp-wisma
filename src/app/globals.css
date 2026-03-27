@@ -398,6 +398,7 @@ h6 {
   border-bottom: 1px solid rgba(254, 252, 249, 0.1);
   padding-bottom: var(--spacing-lg);
   margin-bottom: var(--spacing-lg);
+  flex-shrink: 0;
 }
 
 .mobile-close-btn {
@@ -428,13 +429,12 @@ h6 {
   align-items: center;
   justify-content: center;
   overflow: hidden;
-  background: var(--color-bg-primary); /* For contrast if img has transparency */
 }
 
 .logo-icon-image img {
   width: 100%;
   height: 100%;
-  object-fit: cover;
+  object-fit: contain;
 }
 
 .sidebar-brand-text h2 {
@@ -449,6 +449,15 @@ h6 {
   display: flex;
   flex-direction: column;
   gap: var(--spacing-xs);
+  overflow-y: auto;
+  /* Hide scrollbar for cleaner look */
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  padding-right: var(--spacing-xs);
+}
+
+.sidebar-nav::-webkit-scrollbar {
+  display: none;
 }
 
 .nav-item {
@@ -672,6 +681,13 @@ h6 {
   gap: var(--spacing-md);
   padding: var(--spacing-lg);
   border-top: 1px solid rgba(139, 69, 19, 0.1);
+}
+
+.sidebar-footer {
+  margin-top: auto;
+  padding-top: var(--spacing-lg);
+  border-top: 1px solid rgba(254, 252, 249, 0.1);
+  flex-shrink: 0;
 }
 
 /* Service Selector */

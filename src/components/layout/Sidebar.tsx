@@ -86,7 +86,7 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
                         </div>
                     </div>
                     <button className="mobile-close-btn" onClick={onClose} aria-label="Tutup menu">
-                        <X size={24} color="var(--color-text-primary)" />
+                        <X size={24} color="var(--color-text-light)" />
                     </button>
                 </div>
 
