@@ -37,11 +37,11 @@
   --color-dirty: #F59E0B;
   --color-maintenance: #6366F1;
 
-  /* Shadow System Refinement - Flatter, longer spread for native feel */
-  --shadow-sm: 0 2px 8px -2px rgba(0, 0, 0, 0.4);
-  --shadow-md: 0 4px 16px -4px rgba(0, 0, 0, 0.5);
-  --shadow-lg: 0 8px 24px -6px rgba(0, 0, 0, 0.6);
-  --shadow-xl: 0 12px 32px -8px rgba(0, 0, 0, 0.7);
+  /* Shadows - Minimalist */
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.04);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.06), 0 2px 4px -1px rgba(0, 0, 0, 0.04);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.08), 0 4px 6px -2px rgba(0, 0, 0, 0.04);
+  --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.08), 0 10px 10px -5px rgba(0, 0, 0, 0.03);
 
   /* Border Radius - Enterprise (Sharper Geometry) */
   --radius-sm: 0.25rem;
@@ -157,18 +157,11 @@ h6 {
 
 .card, .stat-card, .mini-calendar-card {
   background: var(--color-bg-card);
-  border-radius: var(--radius-xl);
+  border-radius: var(--radius-lg);
   padding: var(--spacing-xl);
   box-shadow: var(--shadow-sm);
-  border: 1px solid rgba(255, 255, 255, 0.03);
-  transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.2s;
-  -webkit-tap-highlight-color: transparent;
-}
-
-@media (max-width: 768px) {
-  .card:active {
-    transform: scale(0.98);
-  }
+  border: 1px solid var(--color-bg-secondary);
+  transition: all var(--transition-base);
 }
 
 .card-hover {
@@ -192,14 +185,8 @@ h6 {
   border-radius: var(--radius-md);
   border: none;
   cursor: pointer;
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: all var(--transition-fast);
   text-decoration: none;
-  letter-spacing: 0.3px;
-  -webkit-tap-highlight-color: transparent;
-}
-
-.btn:active {
-  transform: scale(0.95);
 }
 
 .btn-primary {
@@ -222,23 +209,6 @@ h6 {
 .btn-secondary:hover {
   background: var(--color-primary);
   color: var(--color-text-light);
-}
-
-/* Hide scrollbars for native app feel */
-::-webkit-scrollbar {
-  display: none;
-}
-* {
-  -ms-overflow-style: none;
-  scrollbar-width: none;
-}
-
-body {
-  padding-bottom: 70px; /* Space for BottomNav */
-}
-
-.main-content {
-  padding-bottom: 80px; /* Ensure content isn't hidden behind BottomNav */
 }
 
 .btn-large {
