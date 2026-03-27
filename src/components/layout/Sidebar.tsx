@@ -2,6 +2,7 @@
 
 import Link from 'next/link'
 import Image from 'next/image'
+import { useEffect } from 'react'
 import { usePathname, useRouter } from 'next/navigation'
 import {
     Home,
@@ -57,6 +58,19 @@ const navItems = [
 export default function Sidebar({ isOpen, onClose }: SidebarProps) {
     const pathname = usePathname()
     const router = useRouter()
+
+    // Prevent body scrolling when sidebar is open
+    useEffect(() => {
+        if (isOpen) {
+            document.body.style.overflow = 'hidden'
+        } else {
+            document.body.style.overflow = ''
+        }
+        
+        return () => {
+            document.body.style.overflow = ''
+        }
+    }, [isOpen])
 
     const handleLogout = async () => {
         try {
