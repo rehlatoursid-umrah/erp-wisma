@@ -68,19 +68,47 @@ export default function WeeklyOverview({ refreshTrigger = 0 }: WeeklyOverviewPro
         <span className="date-range">{dateRange}</span>
       </div>
 
-      {/* Mobile User Profile Card */}
-      <div className="mobile-user-card">
-        <div className="mobile-user-avatar">
-          {user?.avatar ? (
-            <img src={user.avatar.url || user.avatar} alt={user?.name} />
-          ) : (
-            <span>{user?.name ? user.name.charAt(0).toUpperCase() : '?'}</span>
-          )}
+      {/* Mobile User Profile Card (New Design) */}
+      <div className="mobile-profile-header">
+        <div className="profile-top-section">
+          {/* Avatar overlays the bottom edge */}
+          <div className="profile-avatar-wrapper">
+            <div className="mobile-user-avatar">
+              {user?.avatar ? (
+                <img src={user.avatar.url || user.avatar} alt={user?.name} />
+              ) : (
+                <span>{user?.name ? user.name.charAt(0).toUpperCase() : '?'}</span>
+              )}
+            </div>
+          </div>
+          
+          {/* Stats inside the primary colored area */}
+          <div className="profile-top-stats">
+            <div className="top-stat">
+              <strong>{stats.hotel}</strong>
+              <span>Hotel</span>
+            </div>
+            <div className="top-stat">
+              <strong>{stats.auditorium}</strong>
+              <span>Event</span>
+            </div>
+            <div className="top-stat">
+              <strong>{stats.visa}</strong>
+              <span>Visa</span>
+            </div>
+            <div className="top-stat">
+              <strong>{stats.rental}</strong>
+              <span>Rental</span>
+            </div>
+          </div>
         </div>
-        <div className="mobile-user-info">
-          <h3>{user?.name || 'Loading...'}</h3>
-          <p className="role">{user?.role || 'User'}</p>
-          <p className="email">{user?.email || ''}</p>
+        
+        <div className="profile-bottom-section">
+          <div className="mobile-user-info">
+            <h3>{user?.name || 'Loading...'}</h3>
+            <p className="role">{user?.role || 'User'}</p>
+            <p className="email">{user?.email || ''}</p>
+          </div>
         </div>
       </div>
 
@@ -224,39 +252,53 @@ export default function WeeklyOverview({ refreshTrigger = 0 }: WeeklyOverviewPro
           to { opacity: 1; transform: translateY(0); }
         }
 
-        .mobile-user-card {
+        .mobile-profile-header {
           display: none;
         }
 
         @media (max-width: 768px) {
           .stats-grid {
-            display: none !important; /* Hide stats grid per user request */
+            display: none !important; /* Hide old desktop stats grid */
           }
           
-          .mobile-user-card {
+          .mobile-profile-header {
+            display: flex;
+            flex-direction: column;
+            background: var(--color-bg-card);
+            border-radius: var(--radius-2xl);
+            box-shadow: var(--shadow-md);
+            margin-bottom: var(--spacing-xl);
+            border: 1px solid rgba(0,0,0,0.05);
+            overflow: hidden;
+          }
+
+          .profile-top-section {
+            background: var(--color-primary); /* Area warna utama */
+            padding: var(--spacing-lg);
+            padding-bottom: 30px; /* Ruang untuk efek overlap */
             display: flex;
             align-items: center;
-            gap: var(--spacing-md);
-            background: var(--color-bg-card);
-            padding: var(--spacing-lg);
-            border-radius: var(--radius-xl);
-            box-shadow: var(--shadow-sm);
-            margin-bottom: var(--spacing-md);
-            border: 1px solid var(--color-bg-secondary);
+            justify-content: space-between;
+            position: relative;
+          }
+
+          .profile-avatar-wrapper {
+            position: absolute;
+            bottom: -35px; /* Overlap ke area putih */
+            left: var(--spacing-lg);
           }
 
           .mobile-user-avatar {
-            width: 60px;
-            height: 60px;
+            width: 80px;
+            height: 80px;
             border-radius: var(--radius-full);
-            background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%);
+            background: var(--color-bg-card);
+            padding: 4px; /* Bingkai putih dari background bawah */
+            box-shadow: var(--shadow-sm);
+            flex-shrink: 0;
             display: flex;
             align-items: center;
             justify-content: center;
-            color: white;
-            font-size: 1.5rem;
-            font-weight: 600;
-            flex-shrink: 0;
             overflow: hidden;
           }
 
@@ -264,26 +306,74 @@ export default function WeeklyOverview({ refreshTrigger = 0 }: WeeklyOverviewPro
             width: 100%;
             height: 100%;
             object-fit: cover;
+            border-radius: var(--radius-full);
+          }
+
+          .mobile-user-avatar span {
+             width: 100%;
+             height: 100%;
+             background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%);
+             border-radius: var(--radius-full);
+             color: white;
+             display: flex;
+             align-items: center;
+             justify-content: center;
+             font-size: 1.75rem;
+             font-weight: 600;
+          }
+
+          .profile-top-stats {
+            display: flex;
+            gap: var(--spacing-md);
+            margin-left: auto; /* Dorong ke pojok kanan */
+            margin-bottom: 20px; /* Angkat sedikit agar sejajar avatar sebelum overlap */
+          }
+
+          .top-stat {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            color: var(--color-text-light); /* Teks terang di atas primary */
+          }
+
+          .top-stat strong {
+            font-size: 1.25rem;
+            line-height: 1;
+            font-weight: 700;
+          }
+
+          .top-stat span {
+            font-size: 0.7rem;
+            opacity: 0.9;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-top: 2px;
+          }
+
+          .profile-bottom-section {
+            padding: var(--spacing-md) var(--spacing-lg);
+            padding-top: 45px; /* Kompensasi untuk avatar yang overlap */
           }
 
           .mobile-user-info {
             display: flex;
             flex-direction: column;
-            gap: 4px;
+            gap: 2px;
           }
 
           .mobile-user-info h3 {
             margin: 0;
-            font-size: 1.1rem;
+            font-size: 1.25rem;
             line-height: 1.2;
             color: var(--color-text-primary);
+            font-weight: 700;
           }
 
           .mobile-user-info .role {
             margin: 0;
-            font-size: 0.85rem;
+            font-size: 0.9rem;
             color: var(--color-primary);
-            font-weight: 500;
+            font-weight: 600;
             text-transform: capitalize;
           }
 
