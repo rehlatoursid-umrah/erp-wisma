@@ -76,28 +76,30 @@ export default function Header({ onMenuClick, balances }: HeaderProps & {
           <Menu size={24} />
         </button>
         <div className="header-ticker">
-          {/* USD Balance */}
-          <div className="ticker-item">
-            <Globe size={16} />
-            <span>USD: <strong>{displayBalances?.USD?.toLocaleString() || '0'}</strong></span>
-          </div>
-          {/* EGP Balance */}
-          <div className="ticker-item">
-            <Banknote size={16} />
-            <span>EGP: <strong>{displayBalances?.EGP?.toLocaleString() || '0'}</strong></span>
-          </div>
-          {/* IDR Balance */}
-          <div className="ticker-item">
-            <Coins size={16} />
-            <span>IDR: <strong>{displayBalances?.IDR?.toLocaleString() || '0'}</strong></span>
-          </div>
+          <div className="ticker-wrapper">
+            {/* USD Balance */}
+            <div className="ticker-item">
+              <Globe size={16} />
+              <span>USD: <strong>{displayBalances?.USD?.toLocaleString() || '0'}</strong></span>
+            </div>
+            {/* EGP Balance */}
+            <div className="ticker-item">
+              <Banknote size={16} />
+              <span>EGP: <strong>{displayBalances?.EGP?.toLocaleString() || '0'}</strong></span>
+            </div>
+            {/* IDR Balance */}
+            <div className="ticker-item">
+              <Coins size={16} />
+              <span>IDR: <strong>{displayBalances?.IDR?.toLocaleString() || '0'}</strong></span>
+            </div>
 
-          <div className="ticker-divider">|</div>
+            <div className="ticker-divider">|</div>
 
-          {/* Clock */}
-          <div className="ticker-item clock">
-            <Clock size={16} />
-            <span style={{ minWidth: '80px', display: 'inline-block' }}>{time}</span>
+            {/* Clock */}
+            <div className="ticker-item clock">
+              <Clock size={16} />
+              <span style={{ minWidth: '80px', display: 'inline-block' }}>{time}</span>
+            </div>
           </div>
         </div>
       </div>
@@ -149,15 +151,21 @@ export default function Header({ onMenuClick, balances }: HeaderProps & {
 
         .header-ticker {
           display: flex;
-          gap: var(--spacing-lg);
           align-items: center;
           overflow-x: auto; /* Allow horizontal scroll if needed */
           padding-bottom: 4px; /* Space for scrollbar */
           scrollbar-width: none; /* Hide scrollbar Firefox */
+          flex: 1;
         }
 
         .header-ticker::-webkit-scrollbar {
           display: none; /* Hide scrollbar Chrome/Safari */
+        }
+        
+        .ticker-wrapper {
+          display: flex;
+          align-items: center;
+          gap: var(--spacing-lg);
         }
 
         .ticker-item {
@@ -231,6 +239,13 @@ export default function Header({ onMenuClick, balances }: HeaderProps & {
           .header {
              padding: var(--spacing-sm) var(--spacing-md);
              gap: var(--spacing-sm);
+             position: sticky;
+             top: 0;
+             z-index: 50;
+             margin: -var(--spacing-md) -var(--spacing-md) var(--spacing-lg) -var(--spacing-md);
+             border-radius: 0 0 var(--radius-xl) var(--radius-xl);
+             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+             padding-top: max(env(safe-area-inset-top), var(--spacing-sm)); /* Safe area offset */
           }
 
           .header-left {
@@ -245,31 +260,27 @@ export default function Header({ onMenuClick, balances }: HeaderProps & {
           }
 
           .header-ticker {
-            overflow-x: auto;
+            overflow: hidden;
+            position: relative;
             flex: 1;
             padding-bottom: 0px; 
-            /* Make ticker horizontally scrollable natively instead of hiding */
+            mask-image: linear-gradient(to right, transparent, black 5%, black 95%, transparent);
+            -webkit-mask-image: linear-gradient(to right, transparent, black 5%, black 95%, transparent);
+          }
+          
+          .ticker-wrapper {
+            animation: marquee 12s linear infinite;
+            width: max-content;
+            padding-left: 100%; /* Start off-screen */
+          }
+          
+          @keyframes marquee {
+            0% { transform: translateX(0); }
+            100% { transform: translateX(-100%); }
           }
 
           .user-profile {
-            margin-left: 0;
-            gap: var(--spacing-xs);
-          }
-
-          .user-info {
-            display: flex; /* Restore it */
-            flex-direction: column;
-            gap: 0;
-          }
-
-          .user-name {
-            font-size: 0.75rem !important; /* Micro typography */
-            line-height: 1;
-          }
-
-          .user-role {
-            font-size: 0.65rem !important;
-            line-height: 1;
+            display: none !important; /* Hide completely on mobile */
           }
         }
       `}</style>

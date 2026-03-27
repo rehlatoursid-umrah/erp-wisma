@@ -28,6 +28,7 @@ export default function WeeklyOverview({ refreshTrigger = 0 }: WeeklyOverviewPro
     rental: 0
   })
   const [dateRange, setDateRange] = useState<string>('')
+  const [user, setUser] = useState<{ name: string; role: string; email: string; avatar?: any } | null>(null)
 
   const fetchStats = async () => {
     try {
@@ -44,6 +45,13 @@ export default function WeeklyOverview({ refreshTrigger = 0 }: WeeklyOverviewPro
           setDateRange(`${start.toLocaleDateString('id-ID', options)} - ${end.toLocaleDateString('id-ID', options)}`)
         }
       }
+
+      // Fetch user data for mobile profile card
+      const userRes = await fetch('/api/users/me')
+      if (userRes.ok) {
+        const userData = await userRes.json()
+        if (userData?.user) setUser(userData.user)
+      }
     } catch (error) {
       console.error('Failed to fetch weekly stats:', error)
     }
@@ -58,6 +66,22 @@ export default function WeeklyOverview({ refreshTrigger = 0 }: WeeklyOverviewPro
       <div className="section-header">
         <h2><CalendarDays className="inline-icon" size={24} /> Overview Minggu Ini</h2>
         <span className="date-range">{dateRange}</span>
+      </div>
+
+      {/* Mobile User Profile Card */}
+      <div className="mobile-user-card">
+        <div className="mobile-user-avatar">
+          {user?.avatar ? (
+            <img src={user.avatar.url || user.avatar} alt={user?.name} />
+          ) : (
+            <span>{user?.name ? user.name.charAt(0).toUpperCase() : '?'}</span>
+          )}
+        </div>
+        <div className="mobile-user-info">
+          <h3>{user?.name || 'Loading...'}</h3>
+          <p className="role">{user?.role || 'User'}</p>
+          <p className="email">{user?.email || ''}</p>
+        </div>
       </div>
 
       <div className="stats-grid">
@@ -198,6 +222,76 @@ export default function WeeklyOverview({ refreshTrigger = 0 }: WeeklyOverviewPro
         @keyframes fadeIn {
           from { opacity: 0; transform: translateY(10px); }
           to { opacity: 1; transform: translateY(0); }
+        }
+
+        .mobile-user-card {
+          display: none;
+        }
+
+        @media (max-width: 768px) {
+          .stats-grid {
+            display: none !important; /* Hide stats grid per user request */
+          }
+          
+          .mobile-user-card {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-md);
+            background: var(--color-bg-card);
+            padding: var(--spacing-lg);
+            border-radius: var(--radius-xl);
+            box-shadow: var(--shadow-sm);
+            margin-bottom: var(--spacing-md);
+            border: 1px solid var(--color-bg-secondary);
+          }
+
+          .mobile-user-avatar {
+            width: 60px;
+            height: 60px;
+            border-radius: var(--radius-full);
+            background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.5rem;
+            font-weight: 600;
+            flex-shrink: 0;
+            overflow: hidden;
+          }
+
+          .mobile-user-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+          }
+
+          .mobile-user-info {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+          }
+
+          .mobile-user-info h3 {
+            margin: 0;
+            font-size: 1.1rem;
+            line-height: 1.2;
+            color: var(--color-text-primary);
+          }
+
+          .mobile-user-info .role {
+            margin: 0;
+            font-size: 0.85rem;
+            color: var(--color-primary);
+            font-weight: 500;
+            text-transform: capitalize;
+          }
+
+          .mobile-user-info .email {
+            margin: 0;
+            font-size: 0.8rem;
+            color: var(--color-text-muted);
+          }
         }
       `}</style>
     </div >
