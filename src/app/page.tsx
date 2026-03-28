@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
+import { Smartphone } from 'lucide-react'
 
 export default function LoginPage() {
   const [email, setEmail] = useState('')
@@ -94,6 +95,14 @@ export default function LoginPage() {
           </svg>
           Masuk dengan Google
         </button>
+
+        <div className="install-prompt">
+          <p>Gunakan aplikasi lebih nyaman di HP?</p>
+          <Link href="/install" className="install-link">
+            <Smartphone size={18} />
+            <span>Instal Aplikasi ERP</span>
+          </Link>
+        </div>
 
         <p className="login-footer">
           Butuh bantuan? Hubungi <a href="#">Administrator</a>
@@ -203,6 +212,38 @@ export default function LoginPage() {
 
         .login-footer a:hover {
           text-decoration: underline;
+        }
+
+        .install-prompt {
+          margin-top: var(--spacing-xl);
+          padding-top: var(--spacing-lg);
+          border-top: 1px dashed rgba(139, 69, 19, 0.2);
+          text-align: center;
+        }
+
+        .install-prompt p {
+          font-size: 0.875rem;
+          color: var(--color-text-muted);
+          margin-bottom: var(--spacing-sm);
+        }
+
+        .install-link {
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          gap: var(--spacing-xs);
+          color: var(--color-primary);
+          font-weight: 600;
+          text-decoration: none;
+          padding: 0.5rem 1rem;
+          border-radius: var(--radius-full);
+          background: rgba(139, 69, 19, 0.05);
+          transition: all var(--transition-fast);
+        }
+
+        .install-link:hover {
+          background: rgba(139, 69, 19, 0.1);
+          transform: translateY(-1px);
         }
 
         .loading-overlay {
