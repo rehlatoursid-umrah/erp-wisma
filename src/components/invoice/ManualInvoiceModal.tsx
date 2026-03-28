@@ -727,18 +727,20 @@ export default function ManualInvoiceModal({ isOpen, onClose, onSuccess, initial
 
                 @media (max-width: 768px) {
                    .manual-invoice-modal {
-                       width: 100%;
-                       max-height: 100dvh;
-                       height: 100dvh;
-                       border-radius: 0;
+                       width: 95%;
+                       max-height: 90vh; /* Restored popup feel */
+                       height: auto;
+                       margin: auto;
+                       border-radius: 16px; /* Restored popup corners */
                        display: flex;
                        flex-direction: column;
-                       overflow: hidden;
+                       overflow: hidden; /* Contains the scrollable body & absolute footer */
+                       position: relative; /* For the absolute footer */
                    }
                    .modal-body {
                        flex: 1;
                        overflow-y: auto;
-                       padding-bottom: 160px; /* Space for the new sticky footer */
+                       padding-bottom: 200px; /* Extra space to ensure we can scroll past sticky footer */
                        -webkit-overflow-scrolling: touch;
                    }
                    .form-grid {
@@ -821,7 +823,7 @@ export default function ManualInvoiceModal({ isOpen, onClose, onSuccess, initial
                        grid-template-columns: 1fr;
                    }
 
-                   /* Floating Sticky Footer */
+                   /* Floating Sticky Footer Inside Popup */
                    .final-actions {
                        position: absolute;
                        bottom: 0; left: 0; right: 0;
@@ -835,7 +837,8 @@ export default function ManualInvoiceModal({ isOpen, onClose, onSuccess, initial
                        border-top: 1px solid #e2e8f0;
                        margin-top: 0;
                        gap: 12px;
-                       border-radius: 0;
+                       border-radius: 0 0 16px 16px; /* Matches the popup bottom corners */
+                       z-index: 50; /* Ensure it stays above scrolling body content */
                    }
                    .final-actions .checkbox-label {
                        align-self: flex-start; margin-bottom: 4px;
