@@ -45,13 +45,14 @@ export async function GET(request: NextRequest) {
         discount,
         currency,
         items,
-        officer
+        officer,
+        salesPersonName
     } = invoice
 
     const isPaid = paymentStatus === 'paid'
 
-    let salesPerson = ''
-    if (officer && typeof officer === 'object') {
+    let salesPerson = salesPersonName || ''
+    if (!salesPerson && officer && typeof officer === 'object') {
         salesPerson = officer.name || (officer.email ? officer.email.split('@')[0] : '')
     }
 

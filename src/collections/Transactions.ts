@@ -114,6 +114,13 @@ export const Transactions: CollectionConfig = {
             },
         },
         {
+            name: 'salesPersonName',
+            type: 'text',
+            admin: {
+                description: 'Nama sales person (sebagai text cadangan jika officer tidak diling)',
+            },
+        },
+        {
             name: 'invoicePdf',
             type: 'upload',
             relationTo: 'media',

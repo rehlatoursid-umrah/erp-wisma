@@ -42,7 +42,7 @@ export async function POST(req: Request) {
 
             // New Fields
             invoiceDate: body.invoiceDate || new Date().toISOString(),
-            salesperson: body.salesperson,
+            salesPersonName: body.salesperson,
             notes: body.notes,
 
             // Financials
@@ -250,6 +250,7 @@ export async function PUT(req: Request) {
             discount,
             currency,
             notes,
+            salesperson,
             invoiceDate
         } = body
 
@@ -283,6 +284,7 @@ export async function PUT(req: Request) {
                 discount,
                 currency,
                 notes,
+                salesPersonName: salesperson,
                 invoiceDate: invoiceDate || currentInvoice.invoiceDate
             },
             overrideAccess: true
