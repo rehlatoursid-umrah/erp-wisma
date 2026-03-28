@@ -622,6 +622,40 @@ export default function DashboardPage() {
              grid-template-columns: repeat(2, 1fr);
              gap: var(--spacing-sm);
           }
+
+          /* Phase 3: Breathing Room & iOS Segmented Pill Tabs */
+          .dashboard-controls {
+            margin-top: calc(var(--spacing-xl) + 4px); /* Provide space from sticky header */
+            margin-bottom: var(--spacing-lg) !important;
+          }
+
+          .dashboard-tabs {
+            background: var(--color-bg-secondary);
+            border-radius: 50px;
+            padding: 4px;
+            border-bottom: none;
+            gap: 2px;
+            margin-bottom: 0;
+            /* Optional: soften right-edge scrolling fade */
+            mask-image: linear-gradient(to right, black 90%, transparent);
+            -webkit-mask-image: linear-gradient(to right, black 90%, transparent);
+          }
+
+          .tab {
+            padding: 8px 16px;
+            border-bottom: none;
+            border-radius: 50px;
+            font-size: 0.85rem;
+            color: var(--color-text-secondary);
+            font-weight: 600;
+          }
+
+          .tab.active {
+            background: var(--color-bg-card); /* White/solid active pill */
+            color: var(--color-primary);
+            border-bottom-color: transparent;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.06); /* iOS lift effect */
+          }
         }
 
         .stat-card {
