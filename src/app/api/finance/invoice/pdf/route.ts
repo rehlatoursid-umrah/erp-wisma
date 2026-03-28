@@ -140,9 +140,15 @@ export async function GET(request: NextRequest) {
         
         .invoice-footer { text-align: center; padding: 30px; background: #f9fafb; border-top: 1px solid #e5e7eb; color: #6b7280; font-size: 0.85rem;}
         
-        #printBtn {
-            background: white;
-            border: 1px solid #d1d5db;
+        .action-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin: 20px auto;
+            max-width: 800px;
+        }
+        .btn {
+            border: none;
             border-radius: 8px;
             cursor: pointer;
             font-size: 1rem;
@@ -153,29 +159,43 @@ export async function GET(request: NextRequest) {
             gap: 8px;
             transition: all 0.2s ease;
             padding: 12px 24px;
-            color: #374151;
-            margin: 20px auto;
         }
-        #printBtn:hover { background: #f9fafb; }
+        .btn-primary {
+            background: white;
+            color: #374151;
+            border: 1px solid #d1d5db;
+        }
+        .btn-primary:hover { background: #f9fafb; }
+        .btn-success {
+            background: #25D366;
+            color: white;
+            box-shadow: 0 4px 10px rgba(37, 211, 102, 0.3);
+        }
+        .btn-success:hover { background: #128C7E; transform: translateY(-2px); }
+        .btn:disabled { opacity: 0.7; cursor: not-allowed; transform: none; }
         
         /* Force background colors on print */
         * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; color-adjust: exact !important; }
         
         @media print { 
-            #printBtn { display: none !important; } 
+            .no-print { display: none !important; } 
             body { background: white; padding: 0; } 
             .container { box-shadow: none; border: none; } 
             .totals-table .grand-total td { color: white !important; }
         }
     </style>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 </head>
 <body>
-    <button id="printBtn">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>
-        Download PDF Invoice
-    </button>
+    <div class="action-buttons no-print">
+        <button id="printBtn" class="btn btn-primary">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>
+            Print Invoice
+        </button>
+        <button id="waBtn" class="btn btn-success" data-id="${invoiceId}">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+            Kirim WhatsApp
+        </button>
+    </div>
 
     <div class="container" id="invoice">
         <div class="invoice-header">
@@ -271,36 +291,36 @@ export async function GET(request: NextRequest) {
     </div>
 
     <script>
-        document.getElementById('printBtn').addEventListener('click', async () => {
-            const btn = document.getElementById('printBtn');
+        document.getElementById('printBtn').addEventListener('click', () => {
+            window.print();
+        });
+
+        document.getElementById('waBtn').addEventListener('click', async (e) => {
+            const btn = e.currentTarget;
             const originalText = btn.innerHTML;
-            btn.innerHTML = 'Sedang memproses PDF...';
-            btn.style.opacity = '0.7';
+            const invoiceId = btn.getAttribute('data-id');
+            
+            btn.innerHTML = 'Mengirim...';
             btn.disabled = true;
 
             try {
-                const container = document.getElementById('invoice');
-                const canvas = await html2canvas(container, { scale: 2, useCORS: true, allowTaint: true, backgroundColor: '#ffffff', logging: false });
-                
-                const imgData = canvas.toDataURL('image/jpeg', 0.95);
-                const pdf = new jspdf.jsPDF({
-                    orientation: 'portrait',
-                    unit: 'mm',
-                    format: 'a4'
+                const res = await fetch('/api/finance/invoice/send-wa', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ id: invoiceId })
                 });
-
-                const pdfWidth = pdf.internal.pageSize.getWidth();
-                const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
-
-                pdf.addImage(imgData, 'JPEG', 0, 0, pdfWidth, pdfHeight);
-                pdf.save('${invoiceNo}.pdf');
+                
+                if (res.ok) {
+                    alert('✅ Invoice berhasil dikirim ke WhatsApp Customer!');
+                } else {
+                    const err = await res.json();
+                    alert('❌ Gagal mengirim: ' + (err.error || 'Unknown error'));
+                }
             } catch (err) {
                 console.error(err);
-                alert('Gagal membuat PDF. Coba gunakan fitur Print browser.');
-                window.print();
+                alert('Oops, terjadi kesalahan jaringan saat mengirim WA.');
             } finally {
                 btn.innerHTML = originalText;
-                btn.style.opacity = '1';
                 btn.disabled = false;
             }
         });
