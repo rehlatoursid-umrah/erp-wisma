@@ -97,112 +97,80 @@ export async function GET(request: NextRequest) {
     <title>Invoice - ${invoiceNo}</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f5f5f5; padding: 20px; color: #111827; }
-        .container { max-width: 800px; margin: 0 auto; background: white; box-shadow: 0 4px 20px rgba(0,0,0,0.1); position: relative; }
-        .invoice-header { display: flex; justify-content: space-between; align-items: flex-start; padding: 40px; border-bottom: 3px solid #111827; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f8fafc; color: #0f172a; -webkit-font-smoothing: antialiased; }
+        
+        .invoice-wrapper { width: 100%; overflow-x: auto; display: flex; flex-direction: column; align-items: center; padding: 20px 10px; }
+        
+        .container { width: 800px; min-width: 800px; background: white; box-shadow: 0 10px 25px rgba(0,0,0,0.05); }
+        
+        .invoice-header { display: flex; justify-content: space-between; align-items: flex-start; padding: 40px 40px 30px; border-bottom: 2px solid #0f172a; }
         .company-info { display: flex; align-items: flex-start; gap: 20px; }
-        .company-info img { width: 80px; height: auto; object-fit: contain; margin-top: 5px; }
-        .company-info h1 { font-size: 1.3rem; margin: 0 0 10px 0; line-height: 1.2; color: #111827; }
-        .company-info .contact-details { font-size: 0.85rem; color: #4b5563; line-height: 1.6; }
+        .company-info img { width: 75px; height: auto; object-fit: contain; margin-top: 5px; }
+        .company-info h1 { font-size: 1.4rem; font-weight: 800; margin: 0 0 8px 0; line-height: 1.2; color: #0f172a; }
+        .company-info .contact-details { font-size: 0.85rem; color: #475569; line-height: 1.6; }
         .company-info .contact-row { display: flex; align-items: center; gap: 6px; margin-bottom: 4px; }
         
         .invoice-title { text-align: right; }
-        .invoice-title h2 { font-size: 2rem; color: #111827; text-transform: uppercase; letter-spacing: 2px; }
-        .status-badge { display: inline-block; padding: 6px 16px; border-radius: 6px; font-weight: 700; font-size: 1rem; margin-top: 10px; text-transform: uppercase; border: 2px solid; }
-        .status-badge.paid { color: #16a34a; border-color: #16a34a; background: #f0fdf4; }
-        .status-badge.unpaid { color: #eab308; border-color: #eab308; background: #fefce8; }
+        .invoice-title h2 { font-size: 2.2rem; color: #0f172a; font-weight: 900; letter-spacing: 2px; }
+        .invoice-number { font-family: monospace; font-size: 0.95rem; color: #64748b; margin-top: 6px; }
+        .status-badge { display: inline-block; padding: 6px 16px; border-radius: 4px; font-weight: 800; font-size: 0.9rem; margin-top: 12px; text-transform: uppercase; border: 2px solid; background: transparent; }
+        .status-badge.paid { color: #16a34a; border-color: #16a34a; }
+        .status-badge.unpaid { color: #eab308; border-color: #eab308; }
         
-        .invoice-number { font-family: monospace; font-size: 1rem; color: #6b7280; margin-top: 8px; }
-        .invoice-body { padding: 40px; }
-        .invoice-details { display: flex; justify-content: space-between; margin-bottom: 40px; }
-        .bill-to h3, .invoice-info h3 { font-size: 0.8rem; color: #999; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; }
-        .bill-to p, .invoice-info p { line-height: 1.8; }
+        .invoice-body { padding: 30px 0; }
+        .invoice-details { display: flex; justify-content: space-between; align-items: flex-start; padding: 0 40px 30px; }
+        .bill-to h3 { font-size: 1.1rem; color: #0f172a; font-weight: 800; text-transform: none; margin-bottom: 12px; }
+        .bill-to p { line-height: 1.8; font-size: 0.95rem; color: #1e293b; }
         .invoice-info { text-align: right; }
+        .invoice-info h3 { font-size: 0.8rem; color: #94a3b8; text-transform: uppercase; font-weight: 800; letter-spacing: 1px; margin-bottom: 12px; }
+        .invoice-info p { font-size: 0.95rem; color: #0f172a; }
         
         .items-table { width: 100%; border-collapse: collapse; margin-bottom: 30px; }
-        .items-table th { background: #f3f4f6; padding: 15px; text-align: left; font-weight: 600; color: #111827; border-bottom: 2px solid #111827; }
+        .items-table th { background: #f8fafc; padding: 12px 15px; text-align: left; font-weight: 800; color: #0f172a; border-top: 2px solid #0f172a; border-bottom: 2px solid #0f172a; font-size: 0.9rem; }
+        .items-table th:first-child { padding-left: 40px; }
+        .items-table th:last-child { padding-right: 40px; text-align: right; }
         .items-table th.center { text-align: center; }
-        .items-table th:last-child { text-align: right; }
-        .items-table td { padding: 15px; border-bottom: 1px solid #eee; }
-        .items-table td:last-child { text-align: right; font-weight: 600; }
-        .items-table .item-name { font-weight: 600; }
+        .items-table td { padding: 15px; border-bottom: 1px solid #f1f5f9; font-size: 0.95rem; color: #0f172a; vertical-align: top; }
+        .items-table td:first-child { padding-left: 40px; }
+        .items-table td:last-child { padding-right: 40px; text-align: right; font-weight: 800; }
+        .items-table td.center { text-align: center; }
+        .items-table .item-name { font-weight: 800; color: #0f172a; }
         
-        .totals { display: flex; justify-content: flex-end; }
-        .totals-table { width: 350px; }
-        .totals-table tr td { padding: 10px 15px; }
-        .totals-table tr td:first-child { color: #666; }
-        .totals-table tr td:last-child { text-align: right; font-weight: 600; }
-        .totals-table .grand-total { background: #111827; color: white; }
-        .totals-table .grand-total td { font-size: 1.2rem; padding: 15px; color: white !important;} /* forced white */
+        .totals { display: flex; justify-content: flex-end; padding: 0 40px; margin-bottom: 40px; }
+        .totals-table { width: 350px; border-collapse: separate; border-spacing: 2px; }
+        .totals-table tr td { padding: 12px 15px; font-size: 0.95rem; }
+        .totals-table tr td:first-child { color: #64748b; }
+        .totals-table tr td:last-child { text-align: right; font-weight: 800; color: #0f172a; }
+        .totals-table .grand-total td { background: #0f172a; color: white !important; font-size: 1.1rem; }
+        .totals-table .grand-total td:first-child { font-weight: 500; }
+        .totals-table .grand-total td:last-child { font-weight: 800; }
         
-        .payment-info { background: #f9fafb; padding: 25px; border-radius: 8px; margin-top: 30px; border-left: 4px solid #111827; }
-        .payment-info h3 { font-size: 1rem; color: #111827; margin-bottom: 15px; display: flex; align-items: center; gap: 8px; }
+        .payment-info { background: #f8fafc; padding: 25px 30px; border-radius: 8px; margin: 0 40px 40px; border-left: 4px solid #0f172a; }
+        .payment-info h3 { font-size: 1rem; color: #0f172a; font-weight: 800; margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
+        .payment-info p { color: #475569; font-size: 0.95rem; line-height: 1.6; }
         
-        .invoice-footer { text-align: center; padding: 30px; background: #f9fafb; border-top: 1px solid #e5e7eb; color: #6b7280; font-size: 0.85rem;}
+        .invoice-footer { text-align: center; padding: 30px; background: #f8fafc; color: #64748b; font-size: 0.85rem; border-top: 1px solid #e2e8f0; }
         
         .action-buttons {
-            display: flex;
-            justify-content: center;
-            gap: 15px;
-            margin: 20px auto;
-            max-width: 800px;
+            display: flex; justify-content: flex-start; gap: 15px; margin: 0 auto 20px; width: 800px; padding: 0;
         }
         .btn {
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            font-size: 1rem;
-            font-weight: 600;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-            transition: all 0.2s ease;
-            padding: 12px 24px;
+            border: 1px solid #e2e8f0; border-radius: 8px; cursor: pointer; font-size: 0.9rem; font-weight: 700;
+            display: flex; align-items: center; justify-content: center; gap: 8px; padding: 12px 20px; transition: all 0.2s;
         }
-        .btn-primary {
-            background: white;
-            color: #374151;
-            border: 1px solid #d1d5db;
-        }
-        .btn-primary:hover { background: #f9fafb; }
-        .btn-success {
-            background: #25D366;
-            color: white;
-            box-shadow: 0 4px 10px rgba(37, 211, 102, 0.3);
-        }
-        .btn-success:hover { background: #128C7E; transform: translateY(-2px); }
-        .btn:disabled { opacity: 0.7; cursor: not-allowed; transform: none; }
+        .btn-primary { background: white; color: #0f172a; }
+        .btn-primary:hover { background: #f1f5f9; }
+        .btn-success { background: #22c55e; color: white; border-color: #22c55e; box-shadow: 0 4px 10px rgba(34, 197, 94, 0.2); }
+        .btn-success:hover { background: #16a34a; }
         
-        /* Force background colors on print */
         * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; color-adjust: exact !important; }
         
-        /* Mobile Responsive Overrides */
-        @media (max-width: 768px) {
-            body { padding: 10px; }
-            .container { box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
-            .invoice-header { flex-direction: column; padding: 25px 20px; gap: 25px; align-items: stretch; border-bottom: 2px solid #111827; }
-            .company-info { flex-direction: column; align-items: flex-start; gap: 15px; }
-            .company-info img { width: 70px; }
-            .company-info h1 { font-size: 1.15rem; }
-            .invoice-title { text-align: left; }
-            .invoice-title h2 { font-size: 1.6rem; }
-            .invoice-body { padding: 20px; }
-            .invoice-details { flex-direction: column; gap: 20px; margin-bottom: 30px; }
-            .invoice-info { text-align: left; }
-            .items-table { font-size: 0.85rem; display: block; overflow-x: auto; white-space: nowrap; -webkit-overflow-scrolling: touch; }
-            .items-table th, .items-table td { padding: 12px 10px; }
-            .totals { justify-content: stretch; }
-            .totals-table { width: 100%; }
-            .payment-info { padding: 16px; margin-top: 25px; font-size: 0.85rem; }
-            .action-buttons { flex-direction: row; flex-wrap: wrap; gap: 10px; padding: 0 10px; }
-            .btn { flex: 1; min-width: 140px; padding: 10px 16px; font-size: 0.9rem; }
-        }
-
         @media print { 
             .no-print { display: none !important; } 
             body { background: white; padding: 0; } 
-            .container { box-shadow: none; border: none; } 
+            .invoice-wrapper { overflow: visible; display: block; padding: 0; }
+            .container { box-shadow: none; border: none; width: 100%; min-width: auto; } 
+            .action-buttons { display: none; }
             .totals-table .grand-total td { color: white !important; }
         }
     </style>
@@ -210,59 +178,60 @@ export async function GET(request: NextRequest) {
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 </head>
 <body>
-    <div class="action-buttons no-print">
-        <button id="printBtn" class="btn btn-primary">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>
-            Print Invoice
-        </button>
-        <button id="waBtn" class="btn btn-success" data-id="${invoiceId}">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
-            Kirim WhatsApp
-        </button>
-    </div>
-
-    <div class="container" id="invoice">
-        <div class="invoice-header">
-            <div class="company-info">
-                <img src="${logoSrc}" alt="Logo">
-                <div class="contact-details">
-                    <h1 style="font-size: 1.3rem; margin: 0 0 10px 0; line-height: 1.2; color: #111827;">Operational System<br/>Wisma Nusantara Cairo</h1>
-                    <div style="margin-bottom: 6px;">Indonesian Hostel in Cairo<br>Cairo, Egypt</div>
-                    <div class="contact-row">
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"/></svg>
-                        <span>WhatsApp +62 851-8991-6769</span>
-                    </div>
-                    <div class="contact-row">
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
-                        <span>Phone 01554646871</span>
-                    </div>
-                    <div class="contact-row">
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
-                        <span>admin@wismanusantaracairo.com</span>
-                    </div>
-                </div>
-            </div>
-            <div class="invoice-title">
-                <h2>Invoice</h2>
-                <div class="invoice-number">${invoiceNo}</div>
-                <div class="status-badge ${isPaid ? 'paid' : 'unpaid'}">
-                    ${isPaid ? 'PAID / LUNAS' : (paymentStatus === 'pending' ? 'PENDING' : paymentStatus.toUpperCase())}
-                </div>
-            </div>
+    <div class="invoice-wrapper">
+        <div class="action-buttons no-print">
+            <button id="printBtn" class="btn btn-primary">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>
+                Print Invoice
+            </button>
+            <button id="waBtn" class="btn btn-success" data-id="${invoiceId}">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+                Kirim WhatsApp
+            </button>
         </div>
-        
-        <div class="invoice-body">
-            <div class="invoice-details">
-                <div class="bill-to">
-                    <p><strong>${customerName}</strong><br>
-                    ${customerWA && customerWA !== '-' ? `WhatsApp: ${customerWA}<br>` : ''}
-                    Tipe: ${bookingType.replace('_', ' ').toUpperCase()}</p>
+
+        <div class="container" id="invoice">
+            <div class="invoice-header">
+                <div class="company-info">
+                    <img src="${logoSrc}" alt="Logo">
+                    <div class="contact-details">
+                        <h1>Operational System<br/>Wisma Nusantara Cairo</h1>
+                        <div style="margin-bottom: 6px;">Indonesian Hostel in Cairo<br>Cairo, Egypt</div>
+                        <div class="contact-row">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"/></svg>
+                            <span>WhatsApp +62 851-8991-6769</span>
+                        </div>
+                        <div class="contact-row">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+                            <span>Phone 01554646871</span>
+                        </div>
+                        <div class="contact-row">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
+                            <span>admin@wismanusantaracairo.com</span>
+                        </div>
+                    </div>
                 </div>
-                <div class="invoice-info">
-                    <h3>Info Invoice</h3>
-                    <p>Tanggal Invoice: ${invoiceDate}</p>
+                <div class="invoice-title">
+                    <h2>INVOICE</h2>
+                    <div class="invoice-number">${invoiceNo}</div>
+                    <div class="status-badge ${isPaid ? 'paid' : 'unpaid'}">
+                        ${isPaid ? 'PAID / LUNAS' : (paymentStatus === 'pending' ? 'PENDING' : paymentStatus.toUpperCase())}
+                    </div>
                 </div>
             </div>
+            
+            <div class="invoice-body">
+                <div class="invoice-details">
+                    <div class="bill-to">
+                        <h3>${customerName}</h3>
+                        <p>${customerWA && customerWA !== '-' ? `WhatsApp: ${customerWA}<br>` : ''}
+                        Tipe: ${bookingType.replace('_', ' ').toUpperCase()}</p>
+                    </div>
+                    <div class="invoice-info">
+                        <h3>INFO INVOICE</h3>
+                        <p>Tanggal Invoice: ${invoiceDate}</p>
+                    </div>
+                </div>
             
             <table class="items-table">
                 <thead>
@@ -302,7 +271,7 @@ export async function GET(request: NextRequest) {
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>
                     Informasi Pembayaran
                 </h3>
-                <p style="color: #4b5563; font-size: 0.9rem;">
+                <p>
                     ${isPaid ? `Pembayaran telah lunas secara ${paymentMethod ? paymentMethod.toUpperCase() : 'CASH'} kepada resepsionis.` : 'Pembayaran HANYA dapat dilakukan secara CASH (TUNAI) kepada resepsionis atau Transfer resmi Wisma Nusantara Cairo.'}
                 </p>
             </div>
@@ -313,6 +282,7 @@ export async function GET(request: NextRequest) {
             Invoice digenerate pada ${new Date().toLocaleString('id-ID')}
         </div>
     </div>
+</div>
 
     <script>
         document.getElementById('printBtn').addEventListener('click', () => {
