@@ -108,12 +108,13 @@ export async function GET() {
             EGP: 0,
             USD: 0,
             IDR: 0,
+            EUR: 0,
         }
 
         // Add Income
         allPaidInvoices.docs.forEach((inv: any) => {
             const amount = inv.totalAmount || 0
-            const currency = inv.currency as 'EGP' | 'USD' | 'IDR'
+            const currency = inv.currency as 'EGP' | 'USD' | 'IDR' | 'EUR'
             if (balances.hasOwnProperty(currency)) {
                 balances[currency] += amount
             }
