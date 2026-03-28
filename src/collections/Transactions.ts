@@ -75,6 +75,7 @@ export const Transactions: CollectionConfig = {
             options: [
                 { label: 'USD', value: 'USD' },
                 { label: 'EGP', value: 'EGP' },
+                { label: 'EUR', value: 'EUR' },
             ],
             defaultValue: 'EGP',
         },

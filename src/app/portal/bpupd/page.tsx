@@ -13,7 +13,7 @@ type Transaction = {
   date: string
   category: string
   amount: number
-  currency: 'USD' | 'EGP' | 'IDR'
+  currency: 'USD' | 'EGP' | 'IDR' | 'EUR'
   type: 'in' | 'out'
   description: string
   status: 'pending' | 'approved' | 'paid'

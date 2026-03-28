@@ -142,13 +142,14 @@ export default function DashboardPage() {
       EGP: number
       USD: number
       IDR: number
+      EUR: number
     }
   }>({
     hotel: 0,
     aula: 0,
     visa: 0,
     rental: 0,
-    balances: { EGP: 0, USD: 0, IDR: 0 }
+    balances: { EGP: 0, USD: 0, IDR: 0, EUR: 0 }
   })
 
   const [dashboardData, setDashboardData] = useState<{

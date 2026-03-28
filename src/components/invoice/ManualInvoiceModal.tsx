@@ -368,6 +368,7 @@ export default function ManualInvoiceModal({ isOpen, onClose, onSuccess, initial
                             >
                                 <option value="EGP">EGP</option>
                                 <option value="USD">USD</option>
+                                <option value="EUR">EUR</option>
                                 <option value="IDR">IDR</option>
                             </select>
                         </div>

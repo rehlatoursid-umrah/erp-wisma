@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Menu, Banknote, Coins, Clock, Globe } from 'lucide-react'
+import { Menu, Banknote, Coins, Clock, Globe, Euro } from 'lucide-react'
 
 interface HeaderProps {
   onMenuClick: () => void
@@ -12,11 +12,12 @@ export default function Header({ onMenuClick, balances }: HeaderProps & {
     EGP: number
     USD: number
     IDR: number
+    EUR: number
   }
 }) {
   const [user, setUser] = useState<{ name: string; role: string; avatar?: any } | null>(null)
   const [time, setTime] = useState<string>('')
-  const [internalBalances, setInternalBalances] = useState<{ EGP: number, USD: number, IDR: number } | null>(null)
+  const [internalBalances, setInternalBalances] = useState<{ EGP: number, USD: number, IDR: number, EUR: number } | null>(null)
 
   // Fetch current user
   useEffect(() => {
@@ -81,6 +82,11 @@ export default function Header({ onMenuClick, balances }: HeaderProps & {
             <div className="ticker-item">
               <Globe size={16} />
               <span>USD: <strong>{displayBalances?.USD?.toLocaleString() || '0'}</strong></span>
+            </div>
+            {/* EUR Balance */}
+            <div className="ticker-item">
+              <Euro size={16} />
+              <span>EUR: <strong>{displayBalances?.EUR?.toLocaleString() || '0'}</strong></span>
             </div>
             {/* EGP Balance */}
             <div className="ticker-item">

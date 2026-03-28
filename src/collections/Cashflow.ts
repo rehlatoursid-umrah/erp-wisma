@@ -70,6 +70,7 @@ export const Cashflow: CollectionConfig = {
                 { label: 'EGP', value: 'EGP' },
                 { label: 'USD', value: 'USD' },
                 { label: 'IDR', value: 'IDR' },
+                { label: 'EUR', value: 'EUR' },
             ],
             defaultValue: 'EGP',
         },
