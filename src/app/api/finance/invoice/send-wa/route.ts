@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import axios from 'axios'
 import { getPayload } from 'payload'
 import configPromise from '@payload-config'
 
@@ -69,28 +70,31 @@ export async function POST(request: NextRequest) {
                 : `Mohon segera selesaikan pembayaran. Aplikasi dan Invoice digital ini membuktikan keabsahan transaksi Anda.`
             );
 
-        const response = await fetch(`${baseUrl}/messages`, {
-            method: 'POST',
+        console.log(`🚀 Sending Invoice WA to: ${baseUrl}/send/message`)
+
+        const response = await axios.post(`${baseUrl}/send/message`, {
+            phone: formattedPhone,
+            message: messageText,
+            is_forwarded: false,
+        }, {
+            auth: {
+                username: whatsappUsername,
+                password: whatsappPassword,
+            },
             headers: {
                 'Content-Type': 'application/json',
-                'Authorization': 'Basic ' + Buffer.from(`${whatsappUsername}:${whatsappPassword}`).toString('base64'),
+                'User-Agent': 'Mozilla/5.0',
             },
-            body: JSON.stringify({
-                to: formattedPhone,
-                type: 'text',
-                text: {
-                    body: messageText
-                }
-            })
+            timeout: 45000,
+            validateStatus: () => true,
         })
 
-        if (!response.ok) {
-            const errorText = await response.text()
-            console.error('WhatsApp API Error:', errorText)
-            return NextResponse.json({ error: 'Failed to send WhatsApp message' }, { status: 500 })
+        if (response.status >= 200 && response.status < 300) {
+            return NextResponse.json({ success: true, message: 'Invoice Whatsapp sent successfully' })
+        } else {
+            console.error('WhatsApp API Error:', response.data)
+            return NextResponse.json({ error: 'Failed to send WhatsApp message', details: response.data }, { status: 502 })
         }
-
-        return NextResponse.json({ success: true, message: 'Invoice Whatsapp sent successfully' })
 
     } catch (error: any) {
         console.error('Send invoice WA error:', error)
