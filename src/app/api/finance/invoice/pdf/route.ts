@@ -44,10 +44,16 @@ export async function GET(request: NextRequest) {
         subtotal,
         discount,
         currency,
-        items
+        items,
+        officer
     } = invoice
 
     const isPaid = paymentStatus === 'paid'
+
+    let salesPerson = ''
+    if (officer && typeof officer === 'object') {
+        salesPerson = officer.name || (officer.email ? officer.email.split('@')[0] : '')
+    }
 
     const invoiceDate = rawDate ? new Date(rawDate).toLocaleDateString('id-ID', {
         year: 'numeric',
@@ -219,6 +225,7 @@ export async function GET(request: NextRequest) {
                     <div class="invoice-info">
                         <h3>INFO INVOICE</h3>
                         <p>Tanggal Invoice: ${invoiceDate}</p>
+                        ${salesPerson ? `<p style="margin-top: 4px;">Sales Person: ${salesPerson}</p>` : ''}
                     </div>
                 </div>
             
