@@ -349,7 +349,7 @@ export default function ManualInvoiceModal({ isOpen, onClose, onSuccess, initial
                         </div>
                     </div>
 
-                    <div className="form-grid" style={{ gridTemplateColumns: '1fr 1fr', marginBottom: '15px' }}>
+                    <div className="form-grid two-cols" style={{ marginBottom: '15px' }}>
                         <div className="form-group">
                             <label>Invoice Date</label>
                             <input
@@ -593,6 +593,9 @@ export default function ManualInvoiceModal({ isOpen, onClose, onSuccess, initial
                     gap: 15px;
                     margin-bottom: 25px;
                 }
+                .form-grid.two-cols {
+                    grid-template-columns: 1fr 1fr;
+                }
                 .form-group label {
                     display: block; font-size: 0.85rem; color: #64748b; margin-bottom: 5px;
                 }
@@ -720,6 +723,132 @@ export default function ManualInvoiceModal({ isOpen, onClose, onSuccess, initial
                         background-color: #f1f5f9 !important;
                         -webkit-print-color-adjust: exact;
                     }
+                }
+
+                @media (max-width: 768px) {
+                   .manual-invoice-modal {
+                       width: 100%;
+                       max-height: 100dvh;
+                       height: 100dvh;
+                       border-radius: 0;
+                       display: flex;
+                       flex-direction: column;
+                       overflow: hidden;
+                   }
+                   .modal-body {
+                       flex: 1;
+                       overflow-y: auto;
+                       padding-bottom: 160px; /* Space for the new sticky footer */
+                       -webkit-overflow-scrolling: touch;
+                   }
+                   .form-grid {
+                       grid-template-columns: 1fr;
+                   }
+                   .form-grid.two-cols {
+                       grid-template-columns: 1fr 1fr;
+                   }
+                   .form-input, .table-input, .form-textarea, .tiny-input, .tiny-select {
+                       padding: 12px;
+                       font-size: 16px; /* prevent iOS zoom */
+                   }
+
+                   /* Convert Items Table into Stacked Native Cards */
+                   .items-table thead {
+                       display: none;
+                   }
+                   .items-table tbody tr {
+                       display: grid;
+                       grid-template-columns: 1fr 1fr;
+                       gap: 12px;
+                       background: #f8fafc;
+                       padding: 16px;
+                       border-radius: 12px;
+                       margin-bottom: 16px;
+                       border: 1px solid #e2e8f0;
+                       position: relative;
+                   }
+                   .items-table td {
+                       padding: 0;
+                       border: none;
+                   }
+                   /* Item Details Input */
+                   .items-table td:nth-child(1) { grid-column: 1 / -1; }
+                   /* Qty Input */
+                   .items-table td:nth-child(2) { grid-column: 1; }
+                   .items-table td:nth-child(2)::before {
+                       content: "Qty";
+                       display: block; font-size: 0.75rem; color: #64748b; margin-bottom: 4px; font-weight: 500;
+                   }
+                   /* Price Input */
+                   .items-table td:nth-child(3) { grid-column: 2; }
+                   .items-table td:nth-child(3)::before {
+                       content: "Price";
+                       display: block; font-size: 0.75rem; color: #64748b; margin-bottom: 4px; font-weight: 500;
+                   }
+                   /* Amount Total */
+                   .items-table td:nth-child(4) { grid-column: 1 / -1; }
+                   .items-table td:nth-child(4)::before {
+                       content: "Amount";
+                       display: block; font-size: 0.75rem; color: #64748b; margin-bottom: 4px; font-weight: 500;
+                   }
+                   .amount-display {
+                       background: #eff6ff;
+                       color: #1e3a8a;
+                       font-size: 1.1rem;
+                       font-weight: 700;
+                       padding: 12px;
+                       border-radius: 8px;
+                   }
+                   /* Delete Trash Button Floating */
+                   .items-table td:nth-child(5) { 
+                       position: absolute;
+                       top: -10px; right: -10px;
+                   }
+                   .delete-row-btn {
+                       background: #fee2e2;
+                       color: #ef4444;
+                       width: 32px; height: 32px;
+                       border-radius: 50%;
+                       display: flex; align-items: center; justify-content: center;
+                       box-shadow: 0 4px 10px rgba(239, 68, 68, 0.2);
+                   }
+
+                   .add-item-btn {
+                       padding: 14px; font-weight: 600; font-size: 1rem;
+                   }
+
+                   .footer-grid {
+                       grid-template-columns: 1fr;
+                   }
+
+                   /* Floating Sticky Footer */
+                   .final-actions {
+                       position: absolute;
+                       bottom: 0; left: 0; right: 0;
+                       background: rgba(255, 255, 255, 0.98);
+                       backdrop-filter: blur(10px);
+                       flex-direction: column;
+                       align-items: stretch;
+                       padding: 16px;
+                       padding-bottom: max(16px, env(safe-area-inset-bottom));
+                       box-shadow: 0 -4px 20px rgba(0,0,0,0.1);
+                       border-top: 1px solid #e2e8f0;
+                       margin-top: 0;
+                       gap: 12px;
+                       border-radius: 0;
+                   }
+                   .final-actions .checkbox-label {
+                       align-self: flex-start; margin-bottom: 4px;
+                   }
+                   .final-actions select {
+                       width: 100% !important; margin-left: 0 !important;
+                   }
+                   .final-actions .buttons {
+                       display: flex; width: 100%; gap: 10px;
+                   }
+                   .final-actions .action-btn {
+                       flex: 1; padding: 14px; font-size: 1rem;
+                   }
                 }
             `}</style>
         </div >,
