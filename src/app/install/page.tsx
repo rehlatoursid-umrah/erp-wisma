@@ -8,25 +8,12 @@ export const metadata: Metadata = {
 
 export default function InstallPage() {
     return (
-        <main className="min-h-screen bg-bg-primary">
+        <main style={{ minHeight: '100vh', background: 'linear-gradient(135deg, var(--color-bg-primary) 0%, var(--color-bg-secondary) 100%)' }}>
             <InstallGuide />
             
-            <div className="install-footer">
+            <div style={{ textAlign: 'center', padding: '2rem', color: 'var(--color-text-muted)', fontSize: '0.8125rem' }}>
                 <p>&copy; {new Date().getFullYear()} Wisma Nusantara Cairo. All Rights Reserved.</p>
             </div>
-
-            <style jsx>{`
-                .install-footer {
-                    text-align: center;
-                    padding: 2rem;
-                    color: var(--color-text-muted);
-                    font-size: 0.8125rem;
-                }
-                
-                main {
-                    background: linear-gradient(135deg, var(--color-bg-primary) 0%, var(--color-bg-secondary) 100%);
-                }
-            `}</style>
         </main>
     )
 }
