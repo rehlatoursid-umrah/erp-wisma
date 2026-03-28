@@ -9,11 +9,17 @@ export async function GET(req: Request) {
 
         // Use Payload 3 native auth utility
         const reqHeaders = await headers()
-        const { user } = await payload.auth({ headers: reqHeaders })
+        const { user: authUser } = await payload.auth({ headers: reqHeaders })
 
-        if (!user) {
+        if (!authUser) {
             return NextResponse.json({ user: null }, { status: 401 })
         }
+
+        const user = await payload.findByID({
+            collection: 'users',
+            id: authUser.id,
+            depth: 1,
+        })
 
         return NextResponse.json({ user })
     } catch (e) {
