@@ -14,47 +14,20 @@ export async function PATCH(req: Request) {
         }
 
         const contentType = req.headers.get('content-type') || ''
-
-        // Handle avatar upload via FormData
-        if (contentType.includes('multipart/form-data')) {
-            const formData = await req.formData()
-            const file = formData.get('avatar') as File | null
-
-            if (file) {
-                const arrayBuffer = await file.arrayBuffer()
-                const buffer = Buffer.from(arrayBuffer)
-
-                // Upload to media collection
-                const media = await payload.create({
-                    collection: 'media',
-                    data: { alt: `Avatar - ${user.name || user.email}` },
-                    file: {
-                        data: buffer,
-                        name: file.name,
-                        mimetype: file.type,
-                        size: file.size,
-                    },
-                })
-
-                // Update user's avatar field
-                const updated = await payload.update({
-                    collection: 'users',
-                    id: user.id,
-                    data: { avatar: media.id },
-                    depth: 1,
-                })
-
-                return NextResponse.json({ user: updated })
-            }
+        
+        // Ensure request is application/json
+        if (!contentType.includes('application/json')) {
+            return NextResponse.json({ error: 'Unsupported media type' }, { status: 415 })
         }
 
-        // Handle JSON profile update (name, phoneWA)
+        // Handle JSON profile update (name, phoneWA, avatar)
         const body = await req.json()
-        const { name, phoneWA } = body
+        const { name, phoneWA, avatar } = body
 
         const updateData: Record<string, unknown> = {}
         if (name !== undefined) updateData.name = name
         if (phoneWA !== undefined) updateData.phoneWA = phoneWA
+        if (avatar !== undefined) updateData.avatar = avatar
 
         if (Object.keys(updateData).length === 0) {
             return NextResponse.json({ error: 'No fields to update' }, { status: 400 })

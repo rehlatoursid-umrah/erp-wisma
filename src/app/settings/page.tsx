@@ -81,11 +81,26 @@ export default function SettingsPage() {
     setAvatarUploading(true)
     try {
       const formData = new FormData()
-      formData.append('avatar', file)
+      formData.append('file', file)
+      formData.append('alt', `Avatar Upload`)
 
+      // 1. Upload file using Payload native media endpoint
+      const mediaRes = await fetch('/api/media', {
+        method: 'POST',
+        body: formData,
+      })
+
+      if (!mediaRes.ok) throw new Error('Failed to upload file to media collection')
+      
+      const mediaData = await mediaRes.json()
+
+      // 2. Link uploaded media ID to the user profile
       const res = await fetch('/api/users/profile', {
         method: 'PATCH',
-        body: formData,
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ avatar: mediaData.doc.id }),
       })
 
       if (res.ok) {
@@ -97,6 +112,7 @@ export default function SettingsPage() {
       }
     } catch (err) {
       console.error('Avatar upload error:', err)
+      alert('Gagal mengunggah foto. Pastikan koneksi dan ukuran file sesuai.')
     } finally {
       setAvatarUploading(false)
     }
