@@ -6,6 +6,7 @@ import Header from '@/components/layout/Header'
 import PortalPinGuard from '@/components/auth/PortalPinGuard'
 import jsPDF from 'jspdf'
 import autoTable from 'jspdf-autotable'
+import { Plane, ClipboardList, Wallet, BarChart3, ChevronLeft, ChevronRight, Folder, FileText, CheckCircle2, Circle, Clock, Check, Plus, Upload, Printer } from 'lucide-react'
 
 // Mock Data Types
 type Transaction = {
@@ -555,16 +556,32 @@ export default function BPUPDPortal() {
           <Header onMenuClick={() => setSidebarOpen(true)} />
 
           <div className="portal-header">
-            <h1>✈️ Portal BPUPD</h1>
-            <p>Travel & Sales Management</p>
+            <div className="header-title-row">
+                <div className="icon-wrapper bg-blue-100 text-blue-600">
+                    <Plane size={28} />
+                </div>
+                <div>
+                   <h1>Portal BPUPD</h1>
+                   <p>Travel & Sales Management</p>
+                </div>
+            </div>
           </div>
 
-          <div className="tabs">
-            <button className={`tab ${activeTab === 'kanban' ? 'active' : ''}`} onClick={() => setActiveTab('kanban')}>📋 Visa Kanban</button>
-            <button className={`tab ${activeTab === 'proker' ? 'active' : ''}`} onClick={() => setActiveTab('proker')}>📝 Proker Bulanan</button>
-            <button className={`tab ${activeTab === 'dana_ops' ? 'active' : ''}`} onClick={() => setActiveTab('dana_ops')}>💰 Dana Operasional</button>
-            <button className={`tab ${activeTab === 'pendapatan_unit' ? 'active' : ''}`} onClick={() => setActiveTab('pendapatan_unit')}>📊 Monitor Pendapatan Unit</button>
-
+          <div className="tabs-container">
+            <div className="tabs">
+              <button className={`tab ${activeTab === 'kanban' ? 'active' : ''}`} onClick={() => setActiveTab('kanban')}>
+                  <ClipboardList size={18} /> Visa Kanban
+              </button>
+              <button className={`tab ${activeTab === 'proker' ? 'active' : ''}`} onClick={() => setActiveTab('proker')}>
+                  <CheckCircle2 size={18} /> Proker Bulanan
+              </button>
+              <button className={`tab ${activeTab === 'dana_ops' ? 'active' : ''}`} onClick={() => setActiveTab('dana_ops')}>
+                  <Wallet size={18} /> Dana Operasional
+              </button>
+              <button className={`tab ${activeTab === 'pendapatan_unit' ? 'active' : ''}`} onClick={() => setActiveTab('pendapatan_unit')}>
+                  <BarChart3 size={18} /> Monitor Pendapatan
+              </button>
+            </div>
           </div>
 
           {activeTab === 'kanban' && (
@@ -586,61 +603,66 @@ export default function BPUPDPortal() {
                   <h3>📝 Program Kerja Bulanan - Februari 2026</h3>
                 </div>
 
-                <form onSubmit={handleTaskSubmit} className="task-form">
-                  <input
-                    type="text"
-                    placeholder="Tambah kegiatan baru..."
-                    value={taskForm.title}
-                    onChange={e => setTaskForm({ ...taskForm, title: e.target.value })}
-                    required
-                    className="task-input"
-                  />
-                  <select
-                    value={taskForm.category}
-                    onChange={e => setTaskForm({ ...taskForm, category: e.target.value as any })}
-                    className="task-select"
-                  >
-                    <option value="housekeeping">Housekeeping</option>
-                    <option value="maintenance">Maintenance</option>
-                    <option value="inventory">Inventory</option>
-                    <option value="admin">Admin</option>
-                  </select>
-                  <select
-                    value={taskForm.priority}
-                    onChange={e => setTaskForm({ ...taskForm, priority: e.target.value as any })}
-                    className="task-select"
-                  >
-                    <option value="normal">Normal</option>
-                    <option value="high">High</option>
-                    <option value="low">Low</option>
-                  </select>
-                  <button type="submit" className="btn btn-primary btn-sm">Tambah</button>
+                <form onSubmit={handleTaskSubmit} className="mobile-task-form">
+                  <div className="task-input-row">
+                    <input
+                      type="text"
+                      placeholder="Tambah kegiatan baru..."
+                      value={taskForm.title}
+                      onChange={e => setTaskForm({ ...taskForm, title: e.target.value })}
+                      required
+                      className="task-input"
+                    />
+                    <button type="submit" className="task-submit-btn">
+                       <Plus size={20} />
+                    </button>
+                  </div>
+                  <div className="task-filters-row">
+                    <select
+                      value={taskForm.category}
+                      onChange={e => setTaskForm({ ...taskForm, category: e.target.value as any })}
+                      className="task-select pill-select"
+                    >
+                      <option value="housekeeping">Housekeeping</option>
+                      <option value="maintenance">Maintenance</option>
+                      <option value="inventory">Inventory</option>
+                      <option value="admin">Admin</option>
+                    </select>
+                    <select
+                      value={taskForm.priority}
+                      onChange={e => setTaskForm({ ...taskForm, priority: e.target.value as any })}
+                      className="task-select pill-select"
+                    >
+                      <option value="normal">Normal</option>
+                      <option value="high">High priority</option>
+                      <option value="low">Low priority</option>
+                    </select>
+                  </div>
                 </form>
 
                 <div className="todo-list">
                   {tasks.length === 0 ? (
-                    <p className="no-tasks">Belum ada program kerja.</p>
+                    <div className="empty-state">
+                        <CheckCircle2 size={48} className="text-gray-300 mb-2" />
+                        <p>Belum ada program kerja.</p>
+                    </div>
                   ) : (
                     tasks.map(task => (
-                      <div key={task.id} className={`todo-item ${task.status}`}>
-                        <input
-                          type="checkbox"
-                          checked={task.status === 'done'}
-                          onChange={() => toggleTaskStatus(task)}
-                        />
+                      <div key={task.id} className={`todo-item modern-card ${task.status}`}>
+                        <div className="todo-checkbox" onClick={() => toggleTaskStatus(task)}>
+                            {task.status === 'done' ? <CheckCircle2 size={24} className="text-emerald-500" /> : <Circle size={24} className="text-gray-300" />}
+                        </div>
                         <div className="todo-content">
                           <span className={`todo-title ${task.status === 'done' ? 'completed' : ''}`}>
                             {task.title}
                           </span>
-                          <div className="todo-meta">
-                            <span className="badge">{task.category}</span>
-                            <span className={`priority-dot ${task.priority}`}></span>
-                            <span className="priority-text">{task.priority}</span>
+                          <div className="todo-meta-tags">
+                            <span className="micro-tag text-xs font-medium px-2 py-0.5 rounded-full bg-slate-100 text-slate-600">{task.category}</span>
+                            <span className={`micro-tag text-xs font-medium px-2 py-0.5 rounded-full ${task.priority === 'high' ? 'bg-red-100 text-red-600' : task.priority === 'normal' ? 'bg-amber-100 text-amber-700' : 'bg-emerald-100 text-emerald-700'}`}>
+                                {task.priority}
+                            </span>
                           </div>
                         </div>
-                        <span className={`badge badge-${task.status === 'done' ? 'success' : 'warning'}`}>
-                          {task.status === 'done' ? 'Selesai' : 'Pending'}
-                        </span>
                       </div>
                     ))
                   )}
@@ -877,7 +899,7 @@ export default function BPUPDPortal() {
               <div className="card mb-4" style={{ borderLeft: '4px solid #3b82f6' }}>
                 <h3>📊 Monitor Pendapatan Unit Usaha</h3>
                 <p>Halaman ini hanya untuk monitoring. Data masuk otomatis dari sistem Invoice & Booking (Hotel, Visa, Aula, Rental).</p>
-                <div className="stats-row mt-4">
+                <div className="revenue-grid mt-4">
                   {['hotel', 'visa_arrival', 'auditorium', 'rental', 'cancellation'].map(category => {
                     const relevant = invoices.filter(t => t.category === category)
                     const totals: Record<string, number> = {}
@@ -889,31 +911,35 @@ export default function BPUPDPortal() {
 
                     // Label Mapping
                     const labelMap: Record<string, string> = {
-                      'hotel': 'Total Hotel',
-                      'visa_arrival': 'Total Visa',
-                      'auditorium': 'Total Auditorium',
-                      'rental': 'Total Rental',
-                      'cancellation': 'Total Pembatalan'
+                      'hotel': 'Hotel',
+                      'visa_arrival': 'Visa',
+                      'auditorium': 'Auditorium',
+                      'rental': 'Rental',
+                      'cancellation': 'Pembatalan'
                     }
 
                     return (
-                      <div className="stat-item" key={category}>
-                        <span className="label">{labelMap[category] || category}</span>
-                        <div className="value-group">
+                      <div className="revenue-card" key={category}>
+                        <div className="revenue-header">
+                            <span className="revenue-label">{labelMap[category] || category}</span>
+                        </div>
+                        <div className="revenue-values">
                           {Object.entries(totals).filter(([_, val]) => val > 0).map(([curr, val]) => (
-                            <div key={curr} className={`value text-${curr === 'EGP' ? 'secondary' : 'primary'}`}>
-                              {val.toLocaleString()} {curr}
+                            <div key={curr} className="revenue-amount">
+                              <span className="revenue-number">{val.toLocaleString()}</span>
+                              <span className={`revenue-currency badge-${curr.toLowerCase()}`}>{curr}</span>
                             </div>
                           ))}
-                          {!hasData && <div className="value text-gray-400">0</div>}
+                          {!hasData && <div className="revenue-amount"><span className="revenue-number text-gray-400">0</span></div>}
                         </div>
                       </div>
                     )
                   })}
 
                   {/* Grand Total Keseluruhan */}
-                  <div className="stat-item grand-total" style={{ borderLeft: '4px solid #10b981', paddingLeft: '16px' }}>
-                    <span className="label" style={{ fontWeight: 800, color: '#111827' }}>Total Keseluruhan</span>
+                  <div className="revenue-card grand-total-card col-span-full">
+                    <span className="revenue-label text-slate-500">Total Keseluruhan Usaha</span>
+
                     <div className="value-group">
                       {(() => {
                         const grandTotals: Record<string, number> = {}
@@ -923,14 +949,15 @@ export default function BPUPDPortal() {
                         })
                         const hasGrandData = Object.keys(grandTotals).length > 0
                         return (
-                          <>
+                          <div className="revenue-values" style={{ rowGap: '8px', paddingTop: '8px' }}>
                             {Object.entries(grandTotals).filter(([_, val]) => val > 0).map(([curr, val]) => (
-                              <div key={curr} className={`value text-xl font-bold text-${curr === 'EGP' ? 'secondary' : 'primary'}`}>
-                                {val.toLocaleString()} {curr}
+                              <div key={curr} className="revenue-amount items-center">
+                                <span className="revenue-number" style={{ fontSize: '1.4rem', fontWeight: 800, color: '#0f172a' }}>{val.toLocaleString()}</span>
+                                <span className={`revenue-currency badge-${curr.toLowerCase()}`}>{curr}</span>
                               </div>
                             ))}
-                            {!hasGrandData && <div className="value text-gray-400">0</div>}
-                          </>
+                            {!hasGrandData && <div className="revenue-amount"><span className="revenue-number text-gray-400">0</span></div>}
+                          </div>
                         )
                       })()}
                     </div>
@@ -1047,153 +1074,95 @@ export default function BPUPDPortal() {
         </main>
 
         <style jsx global>{`
-        /* Reuse existing styles plus new form styles */
-        .task-form { display: flex; gap: 0.5rem; margin-bottom: 1.5rem; }
-        .task-input { flex: 2; padding: 0.5rem; border: 1px solid #d1d5db; border-radius: 0.5rem; }
-        .task-select { flex: 1; padding: 0.5rem; border: 1px solid #d1d5db; border-radius: 0.5rem; }
+        /* Global & Foundation */
+        :root {
+            --color-bg-primary: #f8fafc;
+            --color-primary: #1d4ed8;
+            --color-primary-light: #eff6ff;
+            --color-success: #10b981;
+            --color-success-light: #d1fae5;
+            --color-warning: #f59e0b;
+        }
+        
+        body { background-color: var(--color-bg-primary); }
+        .dashboard-layout { display: flex; min-height: 100vh; background: var(--color-bg-primary); font-family: 'Inter', system-ui, sans-serif; }
+        .main-content { flex: 1; overflow-y: auto; overflow-x: hidden; padding-bottom: 80px; }
+        
+        /* Modern Portal Header */
+        .portal-header { padding: 1.5rem; background: white; border-bottom: 1px solid #f1f5f9; }
+        .header-title-row { display: flex; align-items: center; gap: 1rem; }
+        .icon-wrapper { padding: 0.75rem; border-radius: 1rem; display: flex; align-items: center; justify-content: center; }
+        .portal-header h1 { font-size: 1.5rem; font-weight: 800; color: #0f172a; line-height: 1.2; margin: 0; }
+        .portal-header p { font-size: 0.875rem; color: #64748b; margin: 0; font-weight: 500; }
+
+        /* Sleek Segmented Navigation Tabs */
+        .tabs-container { margin: 1.5rem 0 1.5rem 1.5rem; overflow-x: auto; scrollbar-width: none; -webkit-overflow-scrolling: touch; }
+        .tabs-container::-webkit-scrollbar { display: none; }
+        .tabs { display: inline-flex; gap: 0.75rem; padding-right: 1.5rem; }
+        .tab { 
+            display: flex; align-items: center; gap: 0.5rem; padding: 0.75rem 1.25rem; 
+            border: 1px solid #e2e8f0; border-radius: 999px; background: white; 
+            color: #64748b; font-weight: 600; font-size: 0.9rem; white-space: nowrap; transition: all 0.2s; 
+        }
+        .tab.active { background: var(--color-primary); color: white; border-color: var(--color-primary); box-shadow: 0 4px 12px rgba(29, 78, 216, 0.2); }
+
+        /* Revenue Metrics Grid (SaaS Cards) */
+        .finance-section { padding: 0 1.5rem; }
+        .revenue-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem; margin-top: 1.5rem; }
+        .revenue-card { 
+            background: white; padding: 1.25rem; border-radius: 1.25rem; 
+            box-shadow: 0 4px 20px rgba(0,0,0,0.03); display: flex; flex-direction: column; gap: 0.75rem;
+            border: 1px solid #f1f5f9;
+        }
+        .revenue-header { display: flex; justify-content: space-between; align-items: center; }
+        .revenue-label { font-size: 0.85rem; font-weight: 600; color: #64748b; }
+        .revenue-values { display: flex; flex-direction: column; gap: 0.4rem; }
+        .revenue-amount { display: flex; flex-wrap: wrap; align-items: baseline; gap: 0.4rem; row-gap: 0.2rem; }
+        .revenue-number { font-size: 1.2rem; font-weight: 800; color: #0f172a; line-height: 1; }
+        
+        .badge-usd { background: #dcfce7; color: #166534; font-size: 0.7rem; padding: 2px 6px; border-radius: 6px; font-weight: 700; height: fit-content; }
+        .badge-eur { background: #dbeafe; color: #1e40af; font-size: 0.7rem; padding: 2px 6px; border-radius: 6px; font-weight: 700; height: fit-content; }
+        .badge-egp { background: #fef3c7; color: #92400e; font-size: 0.7rem; padding: 2px 6px; border-radius: 6px; font-weight: 700; height: fit-content; }
+        .badge-idr { background: #f3e8ff; color: #6b21a8; font-size: 0.7rem; padding: 2px 6px; border-radius: 6px; font-weight: 700; height: fit-content; }
+        
+        .grand-total-card { grid-column: 1 / -1; background: linear-gradient(to right bottom, #ffffff, #f8fafc); border-left: 4px solid var(--color-success); border-top: none; border-right: none; border-bottom: none; }
+
+        /* Task Management (Proker) */
+        .proker-container { padding: 0 1.5rem; }
+        .mobile-task-form { 
+            background: white; padding: 1rem; border-radius: 1.25rem; 
+            box-shadow: 0 4px 20px rgba(0,0,0,0.04); margin-bottom: 1.5rem; border: 1px solid #f1f5f9;
+        }
+        .task-input-row { display: flex; gap: 0.75rem; margin-bottom: 0.75rem; }
+        .task-input { flex: 1; padding: 0.875rem 1rem; border: 1px solid #e2e8f0; border-radius: 1rem; font-size: 0.95rem; outline: none; transition: border-color 0.2s; background: #f8fafc; }
+        .task-input:focus { border-color: var(--color-primary); background: white; }
+        .task-submit-btn { width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; background: var(--color-primary); color: white; border: none; border-radius: 1rem; cursor: pointer; box-shadow: 0 4px 12px rgba(29, 78, 216, 0.25); }
+        .task-filters-row { display: flex; gap: 0.5rem; overflow-x: auto; scrollbar-width: none; }
+        .task-filters-row::-webkit-scrollbar { display: none; }
+        .pill-select { padding: 0.5rem 1rem; border: 1px solid #e2e8f0; border-radius: 999px; background: white; font-size: 0.8rem; font-weight: 600; color: #475569; appearance: none; cursor: pointer; }
+        
         .todo-list { display: flex; flex-direction: column; gap: 0.75rem; }
-        .no-tasks { text-align: center; color: #9ca3af; padding: 2rem; font-style: italic; }
-        .todo-item { display: flex; align-items: center; gap: 1rem; padding: 1rem; background: #f9fafb; border-radius: 0.5rem; border-left: 4px solid transparent; transition: all 0.2s; }
-        .todo-item.done { border-left-color: var(--color-success); background: #f0fdf4; }
-        .todo-item.pending { border-left-color: var(--color-warning); }
-        .todo-content { flex: 1; display: flex; flex-direction: column; gap: 0.25rem; }
-        .todo-title { font-weight: 500; }
-        .todo-title.completed { text-decoration: line-through; color: #9ca3af; }
-        .todo-meta { display: flex; align-items: center; gap: 0.5rem; font-size: 0.75rem; color: #6b7280; }
-        .priority-dot { width: 8px; height: 8px; border-radius: 50%; }
-        .priority-dot.high { background: #dc2626; }
-        .priority-dot.normal { background: #f59e0b; }
-        .priority-dot.low { background: #10b981; }
+        .modern-card { background: white; padding: 1rem; border-radius: 1.25rem; display: flex; align-items: flex-start; gap: 1rem; border: 1px solid #f1f5f9; box-shadow: 0 2px 10px rgba(0,0,0,0.02); transition: opacity 0.3s; }
+        .modern-card.done { opacity: 0.6; background: #fafafa; }
+        .todo-checkbox { margin-top: 2px; cursor: pointer; }
+        .todo-content { flex: 1; display: flex; flex-direction: column; gap: 0.4rem; }
+        .todo-title { font-weight: 600; color: #0f172a; font-size: 0.95rem; line-height: 1.4; }
+        .todo-title.completed { text-decoration: line-through; color: #94a3b8; }
+        .todo-meta-tags { display: flex; gap: 0.4rem; flex-wrap: wrap; }
+        .empty-state { padding: 3rem 1rem; text-align: center; color: #94a3b8; font-weight: 500; display: flex; flex-direction: column; items-center; justify-content: center; align-items: center; }
 
-        .dashboard-layout { display: flex; min-height: 100vh; background: var(--color-bg-primary); }
-        .portal-header { margin-bottom: 2rem; }
-        .tabs { display: flex; gap: 1rem; margin-bottom: 2rem; }
-        .tab { padding: 0.5rem 1rem; border: none; background: transparent; cursor: pointer; font-weight: 500; }
-        .tab.active { color: var(--color-primary); border-bottom: 2px solid var(--color-primary); }
-        
-        .finance-tabs { display: flex; gap: 1rem; margin-bottom: 2rem; border-bottom: 1px solid #e5e7eb; padding-bottom: 0.5rem; }
-        .sub-tab { padding: 0.5rem 1rem; border: none; background: #f3f4f6; border-radius: 0.5rem; cursor: pointer; font-weight: 500; }
-        .sub-tab.active { background: var(--color-primary); color: white; }
+        /* Generic Cards & Tables */
+        .card { background: white; padding: 1.5rem; border-radius: 1.25rem; box-shadow: 0 4px 20px rgba(0,0,0,0.03); border: 1px solid #f1f5f9; }
+        .card h3 { margin: 0 0 1rem 0; font-size: 1.1rem; font-weight: 700; color: #0f172a; }
+        .table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+        .table th, .table td { padding: 0.75rem 0.5rem; text-align: left; border-bottom: 1px solid #f1f5f9; }
+        .table th { font-weight: 600; color: #64748b; background: #f8fafc; }
 
-        .finance-form { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-top: 1rem; }
-        .form-group { display: flex; flex-direction: column; gap: 0.5rem; }
-        .form-group.full { grid-column: span 2; }
-        .form-group label { font-size: 0.875rem; color: #4b5563; }
-        .form-group input, .form-group select { padding: 0.75rem; border: 1px solid #d1d5db; border-radius: 0.5rem; }
-        
-        .btn { padding: 0.75rem 1.5rem; border-radius: 0.5rem; border: none; cursor: pointer; font-weight: 600; }
-        .btn-primary { background: var(--color-primary); color: white; }
-        .btn-success { background: var(--color-success); color: white; }
-        .btn-danger { background: #dc2626; color: white; }
-        .btn-outline { border: 1px solid #d1d5db; background: white; }
-        
-        .stats-row { display: flex; gap: 2rem; margin-bottom: 1.5rem; padding: 1rem; background: #f9fafb; border-radius: 0.5rem; }
-        .stat-item { display: flex; flex-direction: column; }
-        .stat-item .label { font-size: 0.875rem; color: #6b7280; }
-        .stat-item .value { font-size: 1.25rem; font-weight: 700; }
-
-        /* Folder UI Refined */
-        .year-selector { display: flex; align-items: center; gap: 0.5rem; }
-        
-        /* Grid Layouts */
-        .folders-grid, .files-grid { 
-            display: grid; 
-            grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); 
-            gap: 1.5rem; 
-            padding: 1.5rem; 
+        @media (min-width: 768px) {
+            .revenue-grid { grid-template-columns: repeat(3, 1fr); gap: 1.5rem; }
+            .tabs-container { margin: 2rem 0 2rem 2rem; }
+            .finance-section, .proker-container { padding: 0 2rem; }
         }
-
-        /* Folder Item (Month) */
-        .folder-item { 
-            display: flex; 
-            flex-direction: column; 
-            align-items: center; 
-            text-align: center; 
-            padding: 1.5rem; 
-            border: 1px solid transparent; 
-            border-radius: 0.75rem; 
-            cursor: pointer; 
-            transition: all 0.2s; 
-            background: #fff;
-        }
-        .folder-item:hover { 
-            background: #eff6ff; 
-            border-color: #dbeafe; 
-            transform: translateY(-2px);
-        }
-        .folder-icon { font-size: 3rem; margin-bottom: 0.5rem; }
-        .folder-name { font-weight: 500; color: #374151; font-size: 0.95rem; }
-
-        /* File Item (Report) */
-        .file-item {
-            display: flex; 
-            flex-direction: column; 
-            align-items: center; 
-            text-align: center; 
-            padding: 1rem; 
-            border: 1px solid #e5e7eb; 
-            border-radius: 0.75rem; 
-            cursor: pointer; 
-            transition: all 0.2s; 
-            background: white;
-            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
-        }
-        .file-item:hover {
-            border-color: var(--color-primary);
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-            transform: translateY(-2px);
-        }
-        .file-icon-large { font-size: 2.5rem; margin-bottom: 0.5rem; color: #ef4444; /* PDF Color */ }
-        .file-details { display: flex; flex-direction: column; gap: 0.25rem; }
-        .file-name-large { font-weight: 600; font-size: 0.9rem; color: #1f2937; line-height: 1.3; }
-        .file-meta { font-size: 0.75rem; color: #9ca3af; }
-
-        /* Back Button Special Style */
-        .back-item {
-            border: 2px dashed #e5e7eb;
-            background: #f9fafb;
-        }
-        .back-item:hover {
-            border-color: #9ca3af;
-            background: #f3f4f6;
-        }
-
-        /* Breadcrumb */
-        .breadcrumb { padding: 0 1.5rem; margin-top: -0.5rem; }
-        
-        @keyframes slideDown {
-            from { opacity: 0; transform: translateY(-5px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        .card { background: white; padding: 1.5rem; border-radius: 1rem; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
-        .card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; }
-        .mt-4 { margin-top: 1.5rem; }
-        .text-success { color: var(--color-success); }
-        .text-danger { color: #dc2626; }
-        .text-primary { color: var(--color-primary); }
-        
-        .table { width: 100%; border-collapse: collapse; }
-        .table th, .table td { padding: 0.75rem; text-align: left; border-bottom: 1px solid #e5e7eb; }
-        .badge { padding: 0.25rem 0.5rem; border-radius: 999px; font-size: 0.75rem; background: #e5e7eb; }
-        .input-disabled { background: #f3f4f6; color: #6b7280; cursor: not-allowed; }
-
-        .kanban-unavailable { 
-            display: flex; 
-            align-items: center; 
-            justify-content: center; 
-            height: 200px; 
-            background: #f9fafb; 
-            border: 2px dashed #e5e7eb; 
-            border-radius: 1rem;
-            color: #9ca3af;
-        }
-
-        /* New Styles for Financial Forms */
-        .mb-4 { margin-bottom: 1rem; }
-        .grid { display: grid; }
-        .grid-cols-2 { grid-template-columns: repeat(2, 1fr); }
-        .gap-2 { gap: 0.5rem; }
         
         .btn-select {
             padding: 0.75rem;
