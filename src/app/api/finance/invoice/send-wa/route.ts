@@ -5,10 +5,14 @@ import configPromise from '@payload-config'
 
 export async function POST(request: NextRequest) {
     try {
-        const { id } = await request.json()
+        const { id, pdfBase64 } = await request.json()
 
         if (!id) {
             return NextResponse.json({ error: 'Invoice ID is required' }, { status: 400 })
+        }
+
+        if (!pdfBase64) {
+            return NextResponse.json({ error: 'PDF data is missing from the client request' }, { status: 400 })
         }
 
         const payload = await getPayload({ config: configPromise })
@@ -53,44 +57,48 @@ export async function POST(request: NextRequest) {
         const invoiceType = invoice.bookingType?.replace('_', ' ').toUpperCase() || 'Layanan Umum'
 
         const messageText = 
-            `*INVOICE WISMA NUSANTARA CAIRO*\n` +
-            `----------------------------------------\n` +
-            `No. Invoice: ${invoice.invoiceNo}\n` +
+            `📄 *INVOICE WISMA NUSANTARA CAIRO*\n` +
+            `━━━━━━━━━━━━━━━━━━━━━━\n` +
+            `No. Invoice: *${invoice.invoiceNo}*\n` +
             `Tanggal: ${invoiceDate}\n\n` +
             `Yth. Bapak/Ibu *${invoice.customerName}*,\n\n` +
             `Terima kasih telah menggunakan layanan kami. Berikut adalah rincian tagihan Anda untuk ${invoiceType}:\n\n` +
             `${itemsText}\n\n` +
             `*Subtotal:* ${invoice.currency} ${invoice.subtotal?.toLocaleString() || 0}\n` +
             (invoice.discount ? `*Diskon:* -${invoice.currency} ${invoice.discount.toLocaleString()}\n` : '') +
-            `*Total Tagihan: ${invoice.currency} ${invoice.totalAmount?.toLocaleString() || 0}*\n` +
-            `*Status: ${isPaid ? 'LUNAS ✅' : 'PENDING ⏳'}*\n\n` +
-            `----------------------------------------\n` +
+            `💰 *Total Tagihan: ${invoice.currency} ${invoice.totalAmount?.toLocaleString() || 0}*\n\n` +
+            `📌 *Status: ${isPaid ? 'LUNAS ✅' : 'BELUM LUNAS ⏳'}*\n\n` +
+            `━━━━━━━━━━━━━━━━━━━━━━\n` +
             (isPaid 
                 ? `Terima kasih atas pembayaran Anda via ${invoice.paymentMethod?.toUpperCase() || 'CASH'}.` 
-                : `Mohon segera selesaikan pembayaran. Aplikasi dan Invoice digital ini membuktikan keabsahan transaksi Anda.`
+                : `Mohon segera selesaikan pembayaran. Pembayaran HANYA dapat dilakukan secara CASH kepada resepsionis atau Transfer Resmi Wisma Nusantara Cairo.`
             );
 
-        console.log(`🚀 Sending Invoice WA to: ${baseUrl}/send/message`)
+        console.log(`🚀 Sending Invoice WA with PDF to: ${baseUrl}/send/file`)
 
-        const response = await axios.post(`${baseUrl}/send/message`, {
-            phone: formattedPhone,
-            message: messageText,
-            is_forwarded: false,
-        }, {
+        const pdfBuffer = Buffer.from(pdfBase64, 'base64')
+        const invoiceFilename = `Invoice_${invoice.invoiceNo}.pdf`
+
+        const formData = new FormData()
+        formData.append('phone', formattedPhone)
+        formData.append('caption', messageText)
+        formData.append('file', new Blob([new Uint8Array(pdfBuffer)], { type: 'application/pdf' }), invoiceFilename)
+
+        const response = await axios.post(`${baseUrl}/send/file`, formData, {
             auth: {
                 username: whatsappUsername,
                 password: whatsappPassword,
             },
             headers: {
-                'Content-Type': 'application/json',
-                'User-Agent': 'Mozilla/5.0',
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36',
+                'Accept': 'application/json, text/plain, */*',
             },
-            timeout: 45000,
+            timeout: 60000,
             validateStatus: () => true,
         })
 
         if (response.status >= 200 && response.status < 300) {
-            return NextResponse.json({ success: true, message: 'Invoice Whatsapp sent successfully' })
+            return NextResponse.json({ success: true, message: 'Invoice Whatsapp with PDF sent successfully' })
         } else {
             console.error('WhatsApp API Error:', response.data)
             return NextResponse.json({ error: 'Failed to send WhatsApp message', details: response.data }, { status: 502 })

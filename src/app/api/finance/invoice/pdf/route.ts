@@ -184,6 +184,8 @@ export async function GET(request: NextRequest) {
             .totals-table .grand-total td { color: white !important; }
         }
     </style>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 </head>
 <body>
     <div class="action-buttons no-print">
@@ -300,27 +302,63 @@ export async function GET(request: NextRequest) {
             const originalText = btn.innerHTML;
             const invoiceId = btn.getAttribute('data-id');
             
-            btn.innerHTML = 'Mengirim...';
+            btn.innerHTML = '⏳ Menyiapkan PDF...';
+            btn.style.opacity = '0.7';
             btn.disabled = true;
 
             try {
+                // Generate PDF first
+                const buttons = document.querySelectorAll('.no-print');
+                buttons.forEach(b => b.style.display = 'none');
+                
+                const container = document.getElementById('invoice');
+                const canvas = await html2canvas(container, { scale: 2, useCORS: true, allowTaint: true, backgroundColor: '#ffffff', logging: false });
+                
+                buttons.forEach(b => b.style.display = '');
+
+                const imgData = canvas.toDataURL('image/jpeg', 0.95);
+                const pdfWidth = Math.min(210, (canvas.width * 25.4) / 96); // Basic mm calculation
+                const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
+                
+                const { jsPDF } = window.jspdf;
+                const doc = new jsPDF({
+                    orientation: 'portrait',
+                    unit: 'mm',
+                    format: [pdfWidth, pdfHeight]
+                });
+
+                doc.addImage(imgData, 'JPEG', 0, 0, pdfWidth, pdfHeight);
+                const pdfBase64 = doc.output('datauristring').split(',')[1];
+
+                btn.innerHTML = '📤 Mengirim ke WA...';
+
                 const res = await fetch('/api/finance/invoice/send-wa', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ id: invoiceId })
+                    body: JSON.stringify({ id: invoiceId, pdfBase64: pdfBase64 })
                 });
                 
                 if (res.ok) {
-                    alert('✅ Invoice berhasil dikirim ke WhatsApp Customer!');
+                    btn.innerHTML = '✅ Terkirim!';
+                    btn.style.background = '#16a34a';
+                    setTimeout(() => {
+                        btn.innerHTML = originalText;
+                        btn.style.background = '#25D366';
+                        btn.style.opacity = '1';
+                        btn.disabled = false;
+                    }, 3000);
                 } else {
                     const err = await res.json();
                     alert('❌ Gagal mengirim: ' + (err.error || 'Unknown error'));
+                    btn.innerHTML = originalText;
+                    btn.style.opacity = '1';
+                    btn.disabled = false;
                 }
             } catch (err) {
                 console.error(err);
-                alert('Oops, terjadi kesalahan jaringan saat mengirim WA.');
-            } finally {
+                alert('Oops, terjadi kesalahan sistem saat memproses PDF/WA.');
                 btn.innerHTML = originalText;
+                btn.style.opacity = '1';
                 btn.disabled = false;
             }
         });
