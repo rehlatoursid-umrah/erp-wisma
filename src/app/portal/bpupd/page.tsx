@@ -691,10 +691,10 @@ export default function BPUPDPortal() {
             <div className="finance-dashboard">
               <div className="finance-tabs">
                 <button className={`sub-tab ${financeTab === 'income' ? 'active' : ''}`} onClick={() => setFinanceTab('income')}>
-                   <Download size={18} /> Pemasukan (Bendahara)
+                   <Download size={15} /> Pemasukan
                 </button>
                 <button className={`sub-tab ${financeTab === 'expense' ? 'active' : ''}`} onClick={() => setFinanceTab('expense')}>
-                   <Upload size={18} /> Belanja / Pengeluaran
+                   <Upload size={15} /> Pengeluaran
                 </button>
               </div>
 
@@ -853,6 +853,7 @@ export default function BPUPDPortal() {
                               const price = Number(expenseForm.unitPrice)
                               setExpenseForm({ ...expenseForm, quantity: e.target.value, amount: (qty * price).toString() })
                             }}
+                            placeholder="1"
                             className="task-input"
                           />
                         </div>
@@ -866,6 +867,7 @@ export default function BPUPDPortal() {
                               const qty = Number(expenseForm.quantity)
                               setExpenseForm({ ...expenseForm, unitPrice: e.target.value, amount: (qty * price).toString() })
                             }}
+                            placeholder="0"
                             className="task-input"
                           />
                         </div>
@@ -1397,6 +1399,7 @@ export default function BPUPDPortal() {
            ============================================= */
         
         /* Sub-Tab Pill Switcher */
+        .finance-dashboard { padding-bottom: 2rem; }
         .finance-tabs { 
             display: flex; 
             padding: 0 var(--spacing-lg); 
@@ -1405,12 +1408,12 @@ export default function BPUPDPortal() {
         }
         .sub-tab { 
             flex: 1;
-            display: flex; align-items: center; justify-content: center; gap: 0.5rem;
-            padding: 0.85rem 1rem; border-radius: var(--radius-lg); 
+            display: flex; align-items: center; justify-content: center; gap: 0.4rem;
+            padding: 0.75rem 0.5rem; border-radius: var(--radius-lg); 
             border: 1.5px solid var(--color-bg-secondary); background: var(--color-bg-card);
-            color: var(--color-text-secondary); font-weight: 700; font-size: 0.8rem;
+            color: var(--color-text-secondary); font-weight: 700; font-size: 0.82rem;
             transition: all var(--transition-fast); cursor: pointer;
-            white-space: nowrap;
+            white-space: nowrap; letter-spacing: -0.01em;
         }
         .sub-tab.active { 
             background: var(--color-bg-dark); color: white; border-color: var(--color-bg-dark);
@@ -1418,44 +1421,89 @@ export default function BPUPDPortal() {
         }
         
         /* Form Card Container */
-        .finance-card-padded { padding: 1.5rem !important; position: relative; overflow: hidden; }
-        .card-top-accent { position: absolute; top: 0; left: 0; right: 0; height: 4px; }
-        .accent-income { background: var(--color-success); }
-        .accent-expense { background: var(--color-error); }
+        .finance-card-padded { 
+            padding: 1.25rem 1.15rem 1.5rem !important; 
+            position: relative; overflow: hidden;
+            border-radius: var(--radius-xl) !important;
+        }
+        .card-top-accent { position: absolute; top: 0; left: 0; right: 0; height: 3px; }
+        .accent-income { background: linear-gradient(90deg, var(--color-success), #86efac); }
+        .accent-expense { background: linear-gradient(90deg, var(--color-error), #fca5a5); }
         
-        .card-header-minimal { margin-bottom: 1.25rem; }
-        .card-header-minimal h3 { font-size: 1.1rem; font-weight: 800; margin-bottom: 0.25rem !important; }
-        .helper-text { font-size: 0.8rem; color: var(--color-text-muted); margin: 0; line-height: 1.4; }
+        .card-header-minimal { margin-bottom: 1rem; }
+        .card-header-minimal h3 { font-size: 1rem; font-weight: 800; margin-bottom: 0.15rem !important; color: var(--color-text-primary); }
+        .helper-text { font-size: 0.78rem; color: var(--color-text-muted); margin: 0; line-height: 1.4; }
         
         /* Form Layout */
-        .form-stack { display: flex; flex-direction: column; gap: 1.25rem; }
-        .standard-label { display: block; font-size: 0.75rem; font-weight: 800; color: var(--color-text-secondary); text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 0.4rem; }
+        .form-stack { display: flex; flex-direction: column; gap: 1rem; }
+        .standard-label { 
+            display: block; font-size: 0.7rem; font-weight: 800; 
+            color: var(--color-text-secondary); text-transform: uppercase; 
+            letter-spacing: 0.05em; margin-bottom: 0.35rem; 
+        }
         .form-group { display: flex; flex-direction: column; }
         .grid { display: grid; }
         .grid-cols-1 { grid-template-columns: 1fr; }
         .grid-cols-2 { grid-template-columns: 1fr 1fr; }
-        .gap-4 { gap: 1rem; }
+        .gap-4 { gap: 0.75rem; }
+        
+        /* All text/number/date inputs */
+        .finance-section .task-input,
+        .finance-section input[type="text"],
+        .finance-section input[type="number"],
+        .finance-section input[type="date"] {
+            width: 100%; box-sizing: border-box;
+            padding: 0.8rem 0.9rem; 
+            border: 1.5px solid var(--color-bg-secondary); 
+            border-radius: var(--radius-lg); 
+            font-size: 0.92rem; font-weight: 500;
+            outline: none; 
+            background: var(--color-bg-card); 
+            color: var(--color-text-primary);
+            transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+            -webkit-appearance: none; appearance: none;
+        }
+        .finance-section .task-input:focus,
+        .finance-section input[type="text"]:focus,
+        .finance-section input[type="number"]:focus,
+        .finance-section input[type="date"]:focus { 
+            border-color: var(--color-primary); 
+            box-shadow: 0 0 0 3px rgba(139, 69, 19, 0.08); 
+            background: white;
+        }
+        .finance-section input::placeholder { color: var(--color-text-muted); font-weight: 400; }
         
         /* Currency Input (EGP prefix) */
         .currency-input-wrapper { 
             display: flex; align-items: center; 
-            background: var(--color-bg-primary); 
+            background: var(--color-bg-card); 
             border: 1.5px solid var(--color-bg-secondary); 
             border-radius: var(--radius-lg); overflow: hidden;
             transition: border-color var(--transition-fast);
         }
-        .currency-input-wrapper:focus-within { border-color: var(--color-primary); }
-        .currency-prefix { padding: 0.875rem 1rem; background: var(--color-bg-secondary); font-weight: 800; color: var(--color-text-muted); font-size: 0.8rem; letter-spacing: 0.02em; }
-        .amount-input { flex: 1; border: none !important; padding: 0.875rem 1rem; outline: none; background: transparent; font-size: 1.35rem; font-weight: 800; font-family: var(--font-heading); color: var(--color-text-primary); }
+        .currency-input-wrapper:focus-within { border-color: var(--color-primary); box-shadow: 0 0 0 3px rgba(139, 69, 19, 0.08); }
+        .currency-prefix { 
+            padding: 0.8rem 0.85rem; 
+            background: var(--color-bg-secondary); 
+            font-weight: 800; color: var(--color-text-muted); 
+            font-size: 0.78rem; letter-spacing: 0.02em; 
+            flex-shrink: 0;
+        }
+        .amount-input { 
+            flex: 1; border: none !important; padding: 0.8rem 0.9rem; outline: none; 
+            background: transparent; font-size: 1.2rem; font-weight: 800; 
+            font-family: var(--font-heading); color: var(--color-text-primary);
+            box-shadow: none !important;
+        }
         
         /* Custom File Upload */
         .custom-file-upload { position: relative; }
         .hidden-file-input { position: absolute; width: 0; height: 0; opacity: 0; pointer-events: none; overflow: hidden; }
         .file-upload-trigger { 
-            display: flex; align-items: center; gap: 0.75rem; 
-            padding: 1.1rem 1.25rem; border: 2px dashed var(--color-bg-secondary); 
+            display: flex; align-items: center; gap: 0.65rem; 
+            padding: 0.95rem 1rem; border: 2px dashed var(--color-bg-secondary); 
             border-radius: var(--radius-lg); cursor: pointer; color: var(--color-text-muted); 
-            font-weight: 600; font-size: 0.85rem; transition: all var(--transition-fast);
+            font-weight: 600; font-size: 0.82rem; transition: all var(--transition-fast);
             background: var(--color-bg-primary);
         }
         .file-upload-trigger:hover, .file-upload-trigger:active { border-color: var(--color-primary); color: var(--color-primary); background: rgba(139, 69, 19, 0.03); }
