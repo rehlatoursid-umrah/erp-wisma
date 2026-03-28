@@ -1250,8 +1250,11 @@ export default function BPUPDPortal() {
         .grand-number { font-size: 1.6rem; color: var(--color-primary); }
         
         .revenue-currency { font-weight: 700; font-size: 0.7rem; padding: 2px 6px; border-radius: 4px; text-transform: uppercase; }
-            padding: 1.5rem;
-        }
+        .badge-usd { background: var(--color-success-light); color: #166534; }
+        .badge-eur { background: var(--color-info-light); color: #1e40af; }
+        .badge-egp { background: var(--color-warning-light); color: #92400e; }
+        .badge-idr { background: #f3e8ff; color: #6b21a8; }
+        .grand-total-card { grid-column: 1 / -1; background: linear-gradient(135deg, #fff 0%, #fff9f5 100%); border-left: 4px solid var(--color-secondary); padding: 1.5rem; }
 
         /* Task Management (Premium Proker) */
         .proker-container { padding: 0 var(--spacing-lg); }
@@ -1265,7 +1268,7 @@ export default function BPUPDPortal() {
         }
         .task-input-row { display: flex; gap: var(--spacing-sm); margin-bottom: var(--spacing-sm); }
         .task-input { 
-            flex: 1; 
+            flex: 1; width: 100%;
             padding: 0.875rem 1rem; 
             border: 1px solid var(--color-bg-secondary); 
             border-radius: var(--radius-lg); 
@@ -1318,7 +1321,7 @@ export default function BPUPDPortal() {
         .todo-title.completed { text-decoration: line-through; color: var(--color-text-muted); }
         .todo-meta-tags { display: flex; gap: 0.4rem; flex-wrap: wrap; }
         .micro-tag { font-size: 0.7rem; font-weight: 700; text-transform: uppercase; padding: 2px 8px; border-radius: var(--radius-full); }
-        .empty-state { padding: 4rem 1rem; text-align: center; color: var(--color-text-muted); display: flex; flex-direction: column; align-items: center; }
+        .empty-state { padding: 3rem 1rem; text-align: center; color: var(--color-text-muted); font-size: 0.9rem; font-weight: 500; }
 
         /* Generic Cards & Tables */
         .card { 
@@ -1366,7 +1369,155 @@ export default function BPUPDPortal() {
             color: var(--color-text-primary);
             font-weight: 700;
         }
+
+        /* =============================================
+           PHASE 10: Dana Operasional - Complete Styles
+           ============================================= */
         
+        /* Sub-Tab Pill Switcher */
+        .finance-tabs { 
+            display: flex; 
+            padding: 0 var(--spacing-lg); 
+            gap: 0.5rem; 
+            margin-bottom: var(--spacing-lg);
+        }
+        .sub-tab { 
+            flex: 1;
+            display: flex; align-items: center; justify-content: center; gap: 0.5rem;
+            padding: 0.85rem 1rem; border-radius: var(--radius-lg); 
+            border: 1.5px solid var(--color-bg-secondary); background: var(--color-bg-card);
+            color: var(--color-text-secondary); font-weight: 700; font-size: 0.8rem;
+            transition: all var(--transition-fast); cursor: pointer;
+            white-space: nowrap;
+        }
+        .sub-tab.active { 
+            background: var(--color-bg-dark); color: white; border-color: var(--color-bg-dark);
+            box-shadow: var(--shadow-md);
+        }
+        
+        /* Form Card Container */
+        .finance-card-padded { padding: 1.5rem !important; position: relative; overflow: hidden; }
+        .card-top-accent { position: absolute; top: 0; left: 0; right: 0; height: 4px; }
+        .accent-income { background: var(--color-success); }
+        .accent-expense { background: var(--color-error); }
+        
+        .card-header-minimal { margin-bottom: 1.25rem; }
+        .card-header-minimal h3 { font-size: 1.1rem; font-weight: 800; margin-bottom: 0.25rem !important; }
+        .helper-text { font-size: 0.8rem; color: var(--color-text-muted); margin: 0; line-height: 1.4; }
+        
+        /* Form Layout */
+        .form-stack { display: flex; flex-direction: column; gap: 1.25rem; }
+        .standard-label { display: block; font-size: 0.75rem; font-weight: 800; color: var(--color-text-secondary); text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 0.4rem; }
+        .form-group { display: flex; flex-direction: column; }
+        .grid { display: grid; }
+        .grid-cols-1 { grid-template-columns: 1fr; }
+        .grid-cols-2 { grid-template-columns: 1fr 1fr; }
+        .gap-4 { gap: 1rem; }
+        
+        /* Currency Input (EGP prefix) */
+        .currency-input-wrapper { 
+            display: flex; align-items: center; 
+            background: var(--color-bg-primary); 
+            border: 1.5px solid var(--color-bg-secondary); 
+            border-radius: var(--radius-lg); overflow: hidden;
+            transition: border-color var(--transition-fast);
+        }
+        .currency-input-wrapper:focus-within { border-color: var(--color-primary); }
+        .currency-prefix { padding: 0.875rem 1rem; background: var(--color-bg-secondary); font-weight: 800; color: var(--color-text-muted); font-size: 0.8rem; letter-spacing: 0.02em; }
+        .amount-input { flex: 1; border: none !important; padding: 0.875rem 1rem; outline: none; background: transparent; font-size: 1.35rem; font-weight: 800; font-family: var(--font-heading); color: var(--color-text-primary); }
+        
+        /* Custom File Upload */
+        .custom-file-upload { position: relative; }
+        .hidden-file-input { position: absolute; width: 0; height: 0; opacity: 0; pointer-events: none; overflow: hidden; }
+        .file-upload-trigger { 
+            display: flex; align-items: center; gap: 0.75rem; 
+            padding: 1.1rem 1.25rem; border: 2px dashed var(--color-bg-secondary); 
+            border-radius: var(--radius-lg); cursor: pointer; color: var(--color-text-muted); 
+            font-weight: 600; font-size: 0.85rem; transition: all var(--transition-fast);
+            background: var(--color-bg-primary);
+        }
+        .file-upload-trigger:hover, .file-upload-trigger:active { border-color: var(--color-primary); color: var(--color-primary); background: rgba(139, 69, 19, 0.03); }
+        
+        /* Action Buttons (Submit) */
+        .action-btn { 
+            display: flex; align-items: center; justify-content: center; gap: 0.5rem;
+            padding: 1rem; border-radius: var(--radius-lg); border: none;
+            color: white; font-weight: 700; font-size: 0.95rem; cursor: pointer;
+            box-shadow: var(--shadow-md); transition: all var(--transition-fast);
+            width: 100%;
+        }
+        .action-btn:active { transform: scale(0.98); }
+        .income-btn { background: linear-gradient(135deg, var(--color-success) 0%, #15803d 100%); }
+        .expense-btn { background: linear-gradient(135deg, var(--color-error) 0%, #b91c1c 100%); }
+        
+        /* Section Header Row */
+        .section-header-row { display: flex; justify-content: space-between; align-items: center; padding: 0 var(--spacing-lg); }
+        .section-header-row h3 { margin: 0 !important; font-size: 1.05rem; font-weight: 800; }
+        
+        /* PDF Mini Button */
+        .pdf-mini-btn { 
+            display: flex; align-items: center; gap: 0.35rem; padding: 0.45rem 0.85rem;
+            border-radius: var(--radius-md); border: 1.5px solid var(--color-bg-secondary);
+            background: var(--color-bg-card); font-weight: 700; font-size: 0.75rem;
+            cursor: pointer; color: var(--color-text-secondary); transition: all var(--transition-fast);
+        }
+        .pdf-mini-btn:active { background: var(--color-bg-secondary); }
+        
+        /* Transaction Timeline Cards */
+        .transaction-list { display: flex; flex-direction: column; gap: 0.75rem; padding: 0 var(--spacing-lg); }
+        .transaction-item { 
+            background: var(--color-bg-card); padding: 1rem 1.15rem; border-radius: var(--radius-xl);
+            border: 1px solid var(--color-bg-secondary); box-shadow: var(--shadow-sm);
+        }
+        .item-main { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.65rem; }
+        .item-info { display: flex; flex-direction: column; gap: 0.1rem; flex: 1; min-width: 0; }
+        .item-title { font-weight: 700; color: var(--color-text-primary); font-size: 0.9rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .item-date { font-size: 0.75rem; color: var(--color-text-muted); }
+        .item-financial { text-align: right; display: flex; flex-direction: column; line-height: 1.1; flex-shrink: 0; margin-left: 0.75rem; }
+        .item-amount { font-size: 1.15rem; font-weight: 800; font-family: var(--font-heading); }
+        .income-item .item-amount { color: var(--color-success); }
+        .expense-item .item-amount { color: var(--color-error); }
+        .item-currency { font-size: 0.65rem; font-weight: 800; color: var(--color-text-muted); text-transform: uppercase; letter-spacing: 0.04em; }
+        
+        .item-footer { display: flex; justify-content: space-between; align-items: center; padding-top: 0.6rem; border-top: 1px solid var(--color-bg-primary); }
+        .item-badge-income { font-size: 0.65rem; font-weight: 800; color: #854d0e; background: var(--color-warning-light); padding: 3px 10px; border-radius: var(--radius-full); }
+        .item-badge-expense { font-size: 0.65rem; font-weight: 800; color: #374151; background: #e5e7eb; padding: 3px 10px; border-radius: var(--radius-full); }
+        .proof-link { display: flex; align-items: center; gap: 0.3rem; font-size: 0.75rem; font-weight: 700; color: var(--color-primary); text-decoration: none; }
+
+        /* Financial Summary Pills */
+        .financial-summary-card { padding: 1.5rem !important; }
+        .financial-summary-card .card-header-minimal { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0; }
+        .financial-summary-card .card-header-minimal h3 { margin: 0 !important; }
+        .summary-pills { display: flex; flex-direction: column; gap: 0.65rem; }
+        .summary-pill { 
+            display: flex; align-items: center; gap: 0.85rem; padding: 0.85rem 1rem;
+            background: var(--color-bg-card); border-radius: var(--radius-lg);
+            border: 1px solid var(--color-bg-secondary);
+        }
+        .summary-pill.highlight { border-color: var(--color-primary); background: rgba(139, 69, 19, 0.03); }
+        .pill-icon { width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; border-radius: var(--radius-md); flex-shrink: 0; }
+        .bg-success-faint { background: var(--color-success-light); }
+        .bg-danger-faint { background: var(--color-error-light); }
+        .bg-primary-faint { background: rgba(139, 69, 19, 0.08); }
+        .pill-content { display: flex; flex-direction: column; }
+        .pill-label { font-size: 0.7rem; font-weight: 700; color: var(--color-text-muted); text-transform: uppercase; letter-spacing: 0.04em; }
+        .pill-value { font-size: 1.15rem; font-weight: 800; font-family: var(--font-heading); }
+
+        /* Utility classes */
+        .mt-4 { margin-top: 1rem; }
+        .mt-6 { margin-top: 1.5rem; }
+        .mt-8 { margin-top: 2rem; }
+        .mb-4 { margin-bottom: 1rem; }
+        .text-success { color: var(--color-success); }
+        .text-danger { color: var(--color-error); }
+        .text-primary { color: var(--color-primary); }
+        .font-bold { font-weight: 700; }
+        .bg-gray-50 { background: var(--color-bg-primary); }
+        .animate-fadeIn { animation: fadeIn 0.3s ease-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+        .badge-warning { background: var(--color-warning-light); color: #854d0e; }
+        .badge-info { background: var(--color-info-light); color: #1e40af; }
+
       `}</style>
       </div >
     </PortalPinGuard>
