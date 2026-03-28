@@ -985,13 +985,25 @@ export default function BPUPDPortal() {
             </div>
           )}
 
-          {/* New Monitor Pendapatan Unit Tab */}
+          {/* Monitor Pendapatan Unit — Premium Overhaul */}
           {activeTab === 'pendapatan_unit' && (
-            <div className="finance-section">
-              <div className="card mb-4" style={{ borderLeft: '4px solid #3b82f6' }}>
-                <h3>📊 Monitor Pendapatan Unit Usaha</h3>
-                <p>Halaman ini hanya untuk monitoring. Data masuk otomatis dari sistem Invoice & Booking (Hotel, Visa, Aula, Rental).</p>
-                <div className="revenue-grid mt-4">
+            <div className="finance-section monitor-section animate-fadeIn">
+              
+              {/* Header Card */}
+              <div className="card monitor-header-card">
+                <div className="card-top-accent accent-monitor"></div>
+                <div className="monitor-header-row">
+                  <div className="monitor-icon-circle">
+                    <BarChart3 size={20} />
+                  </div>
+                  <div>
+                    <h3 className="monitor-title">Monitor Pendapatan</h3>
+                    <p className="helper-text">Data otomatis dari Invoice & Booking.</p>
+                  </div>
+                </div>
+
+                {/* Revenue Grid */}
+                <div className="monitor-grid">
                   {['hotel', 'visa_arrival', 'auditorium', 'rental', 'cancellation'].map(category => {
                     const relevant = invoices.filter(t => t.category === category)
                     const totals: Record<string, number> = {}
@@ -1001,165 +1013,156 @@ export default function BPUPDPortal() {
                     })
                     const hasData = Object.keys(totals).length > 0
 
-                    // Label Mapping
-                    const labelMap: Record<string, string> = {
-                      'hotel': 'Hotel',
-                      'visa_arrival': 'Visa',
-                      'auditorium': 'Auditorium',
-                      'rental': 'Rental',
-                      'cancellation': 'Pembatalan'
+                    const meta: Record<string, { label: string; color: string; bg: string }> = {
+                      'hotel': { label: 'Hotel', color: '#1e40af', bg: '#dbeafe' },
+                      'visa_arrival': { label: 'Visa', color: '#15803d', bg: '#dcfce7' },
+                      'auditorium': { label: 'Auditorium', color: '#92400e', bg: '#fef3c7' },
+                      'rental': { label: 'Rental', color: '#7c3aed', bg: '#ede9fe' },
+                      'cancellation': { label: 'Pembatalan', color: '#dc2626', bg: '#fee2e2' },
                     }
+                    const m = meta[category] || { label: category, color: '#6b7280', bg: '#f3f4f6' }
 
                     return (
-                      <div className="revenue-card" key={category}>
-                        <div className="revenue-header">
-                            <span className="revenue-label">{labelMap[category] || category}</span>
+                      <div className="monitor-metric-card" key={category}>
+                        <div className="metric-icon-pill" style={{ background: m.bg, color: m.color }}>
+                          {category === 'hotel' && <Plane size={16} />}
+                          {category === 'visa_arrival' && <FileText size={16} />}
+                          {category === 'auditorium' && <ClipboardList size={16} />}
+                          {category === 'rental' && <Folder size={16} />}
+                          {category === 'cancellation' && <ArrowUpRight size={16} />}
                         </div>
-                        <div className="revenue-values">
+                        <span className="metric-label">{m.label}</span>
+                        <div className="metric-values">
                           {Object.entries(totals).filter(([_, val]) => val > 0).map(([curr, val]) => (
-                            <div key={curr} className="revenue-amount">
-                              <span className="revenue-number">{val.toLocaleString()}</span>
-                              <span className={`revenue-currency badge-${curr.toLowerCase()}`}>{curr}</span>
+                            <div key={curr} className="metric-amount-row">
+                              <span className="metric-number">{val.toLocaleString()}</span>
+                              <span className={`metric-currency badge-${curr.toLowerCase()}`}>{curr}</span>
                             </div>
                           ))}
-                          {!hasData && <div className="revenue-amount"><span className="revenue-number text-gray-400">0</span></div>}
+                          {!hasData && <span className="metric-number metric-zero">0</span>}
                         </div>
                       </div>
                     )
                   })}
+                </div>
 
-                  {/* Grand Total Keseluruhan */}
-                  <div className="revenue-card grand-total-card col-span-full">
-                    <span className="revenue-label text-slate-500">Total Keseluruhan Usaha</span>
-
-                    <div className="value-group">
-                      {(() => {
-                        const grandTotals: Record<string, number> = {}
-                        invoices.forEach(t => {
-                          const curr = t.currency || 'USD'
-                          grandTotals[curr] = (grandTotals[curr] || 0) + (t.amount || 0)
-                        })
-                        const hasGrandData = Object.keys(grandTotals).length > 0
-                        return (
-                          <div className="revenue-values" style={{ rowGap: '8px', paddingTop: '8px' }}>
-                            {Object.entries(grandTotals).filter(([_, val]) => val > 0).map(([curr, val]) => (
-                              <div key={curr} className="revenue-amount items-center">
-                                <span className="revenue-number grand-number">{val.toLocaleString()}</span>
-                                <span className={`revenue-currency badge-${curr.toLowerCase()}`}>{curr}</span>
-                              </div>
-                            ))}
-                            {!hasGrandData && <div className="revenue-amount"><span className="revenue-number text-gray-400">0</span></div>}
-                          </div>
-                        )
-                      })()}
-                    </div>
+                {/* Grand Total */}
+                <div className="grand-total-row">
+                  <div className="gt-label-row">
+                    <Wallet size={18} />
+                    <span>Total Keseluruhan</span>
+                  </div>
+                  <div className="gt-values">
+                    {(() => {
+                      const grandTotals: Record<string, number> = {}
+                      invoices.forEach(t => {
+                        const curr = t.currency || 'USD'
+                        grandTotals[curr] = (grandTotals[curr] || 0) + (t.amount || 0)
+                      })
+                      const hasGrandData = Object.keys(grandTotals).length > 0
+                      return (
+                        <>
+                          {Object.entries(grandTotals).filter(([_, val]) => val > 0).map(([curr, val]) => (
+                            <div key={curr} className="gt-amount">
+                              <span className="gt-number">{val.toLocaleString()}</span>
+                              <span className={`metric-currency badge-${curr.toLowerCase()}`}>{curr}</span>
+                            </div>
+                          ))}
+                          {!hasGrandData && <span className="gt-number metric-zero">0</span>}
+                        </>
+                      )
+                    })()}
                   </div>
                 </div>
               </div>
 
-              <div className="card mt-4">
-                <div className="card-header">
-                  <h3>📂 Arsip Laporan Bulanan</h3>
-                  <div className="year-selector">
-                    <button onClick={() => setReportYear(prev => prev - 1)} className="btn btn-sm btn-outline">◀</button>
-                    <span className="text-lg font-bold mx-2">{reportYear}</span>
-                    <button onClick={() => setReportYear(prev => prev + 1)} className="btn btn-sm btn-outline">▶</button>
+              {/* Archive Card */}
+              <div className="card mt-6 monitor-archive-card">
+                <div className="card-header-minimal">
+                  <h3><Folder size={18} style={{ display: 'inline', verticalAlign: '-3px', marginRight: '6px' }} />Arsip Laporan</h3>
+                  <div className="year-nav">
+                    <button onClick={() => setReportYear(prev => prev - 1)} className="year-btn"><ChevronLeft size={16} /></button>
+                    <span className="year-label">{reportYear}</span>
+                    <button onClick={() => setReportYear(prev => prev + 1)} className="year-btn"><ChevronRight size={16} /></button>
                   </div>
                 </div>
 
-                {/* Breadcrumb Navigation */}
+                {/* Breadcrumb */}
                 {openMonth !== null && (
-                  <div className="breadcrumb mb-4 flex items-center gap-2 text-sm text-gray-600">
-                    <button onClick={() => setOpenMonth(null)} className="hover:text-blue-600">📁 Tahun {reportYear}</button>
-                    <span>/</span>
-                    <span className="font-semibold text-gray-900">{new Date(reportYear, openMonth, 1).toLocaleString('id-ID', { month: 'long' })}</span>
+                  <div className="archive-breadcrumb">
+                    <button onClick={() => setOpenMonth(null)} className="breadcrumb-btn">
+                      <Folder size={14} /> {reportYear}
+                    </button>
+                    <ChevronRight size={14} />
+                    <span className="breadcrumb-current">{new Date(reportYear, openMonth, 1).toLocaleString('id-ID', { month: 'long' })}</span>
                   </div>
                 )}
 
-                {/* View 1: Month Grid (Root) */}
+                {/* Month Grid */}
                 {openMonth === null && (
-                  <div className="folders-grid">
+                  <div className="archive-month-grid">
                     {Array.from({ length: 12 }).map((_, index) => {
-                      const date = new Date(reportYear, index, 1)
-                      const monthName = date.toLocaleString('id-ID', { month: 'long' })
-
+                      const monthName = new Date(reportYear, index, 1).toLocaleString('id-ID', { month: 'short' })
                       return (
-                        <div
-                          key={index}
-                          className="folder-item"
-                          onClick={() => setOpenMonth(index)}
-                        >
-                          <div className="folder-icon">📂</div>
-                          <div className="folder-name">{monthName}</div>
-                        </div>
+                        <button key={index} className="month-cell" onClick={() => setOpenMonth(index)}>
+                          <Folder size={20} className="month-folder-icon" />
+                          <span className="month-name">{monthName}</span>
+                        </button>
                       )
                     })}
                   </div>
                 )}
 
-                {/* View 2: Files Grid (Inside Month) */}
+                {/* File List Inside Month */}
                 {openMonth !== null && (
-                  <div className="files-grid">
-                    {/* Back Button Item */}
-                    <div className="folder-item back-item" onClick={() => setOpenMonth(null)}>
-                      <div className="folder-icon">🔙</div>
-                      <div className="folder-name">Kembali</div>
-                    </div>
-
-                    {/* Unit Report Files */}
+                  <div className="archive-file-list">
+                    <button className="archive-file-item back-item" onClick={() => setOpenMonth(null)}>
+                      <ChevronLeft size={16} />
+                      <span>Kembali</span>
+                    </button>
                     {['hotel', 'visa_arrival', 'auditorium', 'rental', 'cancellation'].map(cat => (
-                      <div
-                        key={cat}
-                        className="file-item"
-                        onClick={() => generateMonthlyUnitReport(openMonth, cat)}
-                      >
-                        <div className="file-icon-large">📄</div>
-                        <div className="file-details">
-                          <span className="file-name-large">Laporan {cat.charAt(0).toUpperCase() + cat.slice(1)}</span>
-                          <span className="file-meta">PDF • Klik untuk Unduh</span>
+                      <button key={cat} className="archive-file-item" onClick={() => generateMonthlyUnitReport(openMonth, cat)}>
+                        <FileText size={16} className="file-icon-accent" />
+                        <div className="file-detail-col">
+                          <span className="file-title">Laporan {cat === 'visa_arrival' ? 'Visa' : cat.charAt(0).toUpperCase() + cat.slice(1)}</span>
+                          <span className="file-sub">PDF • Tap untuk Unduh</span>
                         </div>
-                      </div>
+                        <Download size={14} className="file-dl-icon" />
+                      </button>
                     ))}
                   </div>
                 )}
               </div>
 
-              <div className="card mt-4">
-                <div className="card-header">
-                  <h3>Riwayat Transaksi Masuk (Read-Only)</h3>
+              {/* Transaction History — Mobile Timeline */}
+              <div className="card mt-6">
+                <div className="card-header-minimal">
+                  <h3>Riwayat Transaksi</h3>
                 </div>
-                <table className="table">
-                  <thead>
-                    <tr>
-                      <th>Tanggal</th>
-                      <th>Unit Usaha</th>
-                      <th>Keterangan</th>
-                      <th>Jumlah</th>
-                      <th>Status</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {invoices.map(t => (
-                      <tr key={t.id}>
-                        <td>{t.date}</td>
-                        <td>
-                          <span className="badge badge-info">
-                            {t.category === 'visa_arrival' ? 'Visa On Arrival' : t.category ? t.category.charAt(0).toUpperCase() + t.category.slice(1) : 'General'}
-                          </span>
-                        </td>
-                        <td>{t.description}</td>
-                        <td className="text-success font-bold">{t.amount} {t.currency}</td>
-                        <td>
-                          <span className="badge badge-success">Auto-Verified</span>
-                        </td>
-                      </tr>
-                    ))}
-                    {invoices.length === 0 && (
-                      <tr><td colSpan={5} style={{ textAlign: 'center', padding: '2rem', color: '#6b7280' }}>Belum ada data pendapatan unit usaha.</td></tr>
-                    )}
-                  </tbody>
-                </table>
+                <div className="transaction-list" style={{ padding: 0 }}>
+                  {invoices.map(t => (
+                    <div key={t.id} className="transaction-item income-item">
+                      <div className="item-main">
+                        <div className="item-info">
+                          <span className="item-title">{t.description || t.customerName || 'Invoice'}</span>
+                          <span className="item-date">{t.date} • {t.category === 'visa_arrival' ? 'Visa' : t.category ? t.category.charAt(0).toUpperCase() + t.category.slice(1) : 'General'}</span>
+                        </div>
+                        <div className="item-financial">
+                          <span className="item-amount">+{(t.amount || 0).toLocaleString()}</span>
+                          <span className="item-currency">{t.currency}</span>
+                        </div>
+                      </div>
+                      <div className="item-footer">
+                        <span className="item-badge-income">Auto-Verified</span>
+                      </div>
+                    </div>
+                  ))}
+                  {invoices.length === 0 && (
+                    <div className="empty-state">Belum ada data pendapatan unit usaha.</div>
+                  )}
+                </div>
               </div>
+
             </div>
           )}
 
@@ -1598,6 +1601,132 @@ export default function BPUPDPortal() {
         @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
         .badge-warning { background: var(--color-warning-light); color: #854d0e; }
         .badge-info { background: var(--color-info-light); color: #1e40af; }
+
+        /* =============================================
+           MONITOR PENDAPATAN — Premium Styles
+           ============================================= */
+        .monitor-section { padding-bottom: 2rem; }
+        
+        /* Header Card */
+        .monitor-header-card { 
+            padding: 1.25rem 1.15rem 1.5rem !important; 
+            position: relative; overflow: hidden; 
+            border-radius: var(--radius-xl) !important;
+        }
+        .accent-monitor { background: linear-gradient(90deg, var(--color-primary), #d4a574); }
+        
+        .monitor-header-row { 
+            display: flex; align-items: center; gap: 0.85rem; 
+            margin-bottom: 1.25rem; 
+        }
+        .monitor-icon-circle { 
+            width: 42px; height: 42px; border-radius: var(--radius-lg); 
+            background: rgba(139, 69, 19, 0.08); color: var(--color-primary);
+            display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+        }
+        .monitor-title { font-size: 1rem; font-weight: 800; margin: 0 !important; }
+        
+        /* Revenue Metric Grid */
+        .monitor-grid { 
+            display: grid; grid-template-columns: 1fr 1fr; gap: 0.6rem; 
+            margin-bottom: 1rem; 
+        }
+        .monitor-metric-card { 
+            padding: 0.9rem; border-radius: var(--radius-lg); 
+            border: 1px solid var(--color-bg-secondary); background: var(--color-bg-card);
+            display: flex; flex-direction: column; gap: 0.35rem;
+        }
+        .metric-icon-pill { 
+            width: 32px; height: 32px; border-radius: var(--radius-md);
+            display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+        }
+        .metric-label { font-size: 0.7rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; color: var(--color-text-muted); }
+        .metric-values { display: flex; flex-direction: column; gap: 0.15rem; }
+        .metric-amount-row { display: flex; align-items: baseline; gap: 0.35rem; }
+        .metric-number { font-size: 1.15rem; font-weight: 800; font-family: var(--font-heading); color: var(--color-text-primary); }
+        .metric-zero { color: #d1d5db; }
+        .metric-currency { 
+            font-size: 0.6rem; font-weight: 800; padding: 2px 6px; 
+            border-radius: var(--radius-full); text-transform: uppercase; letter-spacing: 0.03em; 
+        }
+        .badge-usd { background: #dbeafe; color: #1e40af; }
+        .badge-eur { background: #dcfce7; color: #15803d; }
+        .badge-egp { background: #fef3c7; color: #92400e; }
+        .badge-idr { background: #ede9fe; color: #7c3aed; }
+        
+        /* Grand Total Row */
+        .grand-total-row { 
+            background: linear-gradient(135deg, rgba(139, 69, 19, 0.06), rgba(212, 165, 116, 0.1));
+            border: 1.5px solid rgba(139, 69, 19, 0.15); border-radius: var(--radius-lg);
+            padding: 1rem 1.1rem; display: flex; flex-direction: column; gap: 0.5rem;
+        }
+        .gt-label-row { display: flex; align-items: center; gap: 0.45rem; font-size: 0.72rem; font-weight: 800; color: var(--color-primary); text-transform: uppercase; letter-spacing: 0.05em; }
+        .gt-values { display: flex; flex-wrap: wrap; gap: 0.75rem; }
+        .gt-amount { display: flex; align-items: baseline; gap: 0.35rem; }
+        .gt-number { font-size: 1.4rem; font-weight: 800; font-family: var(--font-heading); color: var(--color-text-primary); }
+        
+        /* Archive Card */
+        .monitor-archive-card { 
+            padding: 1.25rem 1.15rem !important; 
+            border-radius: var(--radius-xl) !important; 
+        }
+        .monitor-archive-card .card-header-minimal { 
+            display: flex; justify-content: space-between; align-items: center; 
+            margin-bottom: 1rem; 
+        }
+        
+        .year-nav { display: flex; align-items: center; gap: 0.3rem; }
+        .year-btn { 
+            width: 30px; height: 30px; border-radius: var(--radius-md); border: 1.5px solid var(--color-bg-secondary);
+            background: var(--color-bg-card); display: flex; align-items: center; justify-content: center;
+            cursor: pointer; color: var(--color-text-secondary); transition: all var(--transition-fast);
+        }
+        .year-btn:active { background: var(--color-bg-secondary); }
+        .year-label { font-size: 0.95rem; font-weight: 800; font-family: var(--font-heading); min-width: 48px; text-align: center; }
+        
+        /* Breadcrumb */
+        .archive-breadcrumb { 
+            display: flex; align-items: center; gap: 0.35rem; 
+            padding: 0.5rem 0.75rem; background: var(--color-bg-primary); border-radius: var(--radius-md);
+            margin-bottom: 0.75rem; font-size: 0.78rem; color: var(--color-text-muted);
+        }
+        .breadcrumb-btn { 
+            display: flex; align-items: center; gap: 0.3rem; 
+            background: none; border: none; cursor: pointer; 
+            color: var(--color-primary); font-weight: 700; font-size: 0.78rem; padding: 0;
+        }
+        .breadcrumb-current { font-weight: 800; color: var(--color-text-primary); }
+        
+        /* Month Grid (3 cols) */
+        .archive-month-grid { 
+            display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.5rem; 
+        }
+        .month-cell { 
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            gap: 0.25rem; padding: 0.75rem 0.5rem; 
+            border-radius: var(--radius-lg); border: 1.5px solid var(--color-bg-secondary);
+            background: var(--color-bg-card); cursor: pointer; 
+            transition: all var(--transition-fast);
+        }
+        .month-cell:active { background: rgba(139, 69, 19, 0.06); border-color: var(--color-primary); transform: scale(0.97); }
+        .month-folder-icon { color: var(--color-primary); }
+        .month-name { font-size: 0.72rem; font-weight: 700; color: var(--color-text-secondary); text-transform: capitalize; }
+        
+        /* File List */
+        .archive-file-list { display: flex; flex-direction: column; gap: 0.4rem; }
+        .archive-file-item { 
+            display: flex; align-items: center; gap: 0.75rem; 
+            padding: 0.85rem 0.9rem; border-radius: var(--radius-lg);
+            border: 1.5px solid var(--color-bg-secondary); background: var(--color-bg-card);
+            cursor: pointer; transition: all var(--transition-fast); width: 100%; text-align: left;
+        }
+        .archive-file-item:active { background: var(--color-bg-primary); border-color: var(--color-primary); }
+        .archive-file-item.back-item { border-style: dashed; color: var(--color-text-muted); font-weight: 700; font-size: 0.82rem; }
+        .file-icon-accent { color: var(--color-primary); flex-shrink: 0; }
+        .file-detail-col { display: flex; flex-direction: column; flex: 1; min-width: 0; }
+        .file-title { font-size: 0.85rem; font-weight: 700; color: var(--color-text-primary); }
+        .file-sub { font-size: 0.7rem; color: var(--color-text-muted); }
+        .file-dl-icon { color: var(--color-text-muted); flex-shrink: 0; }
 
       `}</style>
       </div >
