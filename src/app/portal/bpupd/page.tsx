@@ -557,7 +557,7 @@ export default function BPUPDPortal() {
 
           <div className="portal-header">
             <div className="header-title-row">
-                <div className="icon-wrapper bg-blue-100 text-blue-600">
+                <div className="icon-wrapper bg-primary-faint text-primary">
                     <Plane size={28} />
                 </div>
                 <div>
@@ -952,7 +952,7 @@ export default function BPUPDPortal() {
                           <div className="revenue-values" style={{ rowGap: '8px', paddingTop: '8px' }}>
                             {Object.entries(grandTotals).filter(([_, val]) => val > 0).map(([curr, val]) => (
                               <div key={curr} className="revenue-amount items-center">
-                                <span className="revenue-number" style={{ fontSize: '1.4rem', fontWeight: 800, color: '#0f172a' }}>{val.toLocaleString()}</span>
+                                <span className="revenue-number grand-number">{val.toLocaleString()}</span>
                                 <span className={`revenue-currency badge-${curr.toLowerCase()}`}>{curr}</span>
                               </div>
                             ))}
@@ -1074,127 +1074,240 @@ export default function BPUPDPortal() {
         </main>
 
         <style jsx global>{`
-        /* Global & Foundation */
-        :root {
-            --color-bg-primary: #f8fafc;
-            --color-primary: #1d4ed8;
-            --color-primary-light: #eff6ff;
-            --color-success: #10b981;
-            --color-success-light: #d1fae5;
-            --color-warning: #f59e0b;
+        /* WIN-OS BPUPD Refinement V2 (Brown/Gold Aesthetic) */
+        
+        .dashboard-layout { 
+            display: flex; 
+            min-height: 100vh; 
+            background: var(--color-bg-primary); 
+            font-family: var(--font-sans); 
+            color: var(--color-text-primary);
         }
         
-        body { background-color: var(--color-bg-primary); }
-        .dashboard-layout { display: flex; min-height: 100vh; background: var(--color-bg-primary); font-family: 'Inter', system-ui, sans-serif; }
-        .main-content { flex: 1; overflow-y: auto; overflow-x: hidden; padding-bottom: 80px; }
+        .main-content { 
+            flex: 1; 
+            overflow-y: auto; 
+            overflow-x: hidden; 
+            padding-bottom: 80px; 
+        }
         
+        /* Consistent Typography */
+        h1, h2, h3, h4 { font-family: var(--font-heading); }
+        .revenue-number { font-family: var(--font-heading); }
+
         /* Modern Portal Header */
-        .portal-header { padding: 1.5rem; background: white; border-bottom: 1px solid #f1f5f9; }
-        .header-title-row { display: flex; align-items: center; gap: 1rem; }
-        .icon-wrapper { padding: 0.75rem; border-radius: 1rem; display: flex; align-items: center; justify-content: center; }
-        .portal-header h1 { font-size: 1.5rem; font-weight: 800; color: #0f172a; line-height: 1.2; margin: 0; }
-        .portal-header p { font-size: 0.875rem; color: #64748b; margin: 0; font-weight: 500; }
+        .portal-header { 
+            padding: var(--spacing-lg); 
+            background: var(--color-bg-card); 
+            border-bottom: 1px solid var(--color-bg-secondary); 
+        }
+        .header-title-row { display: flex; align-items: center; gap: var(--spacing-md); }
+        .icon-wrapper { 
+            padding: 0.75rem; 
+            border-radius: var(--radius-lg); 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+        }
+        .bg-primary-faint { background: rgba(139, 69, 19, 0.08); }
+        .text-primary { color: var(--color-primary); }
+        
+        .portal-header h1 { 
+            font-size: 1.5rem; 
+            font-weight: 700; 
+            color: var(--color-text-primary); 
+            line-height: 1.2; 
+            margin: 0; 
+        }
+        .portal-header p { 
+            font-size: 0.875rem; 
+            color: var(--color-text-secondary); 
+            margin: 0; 
+            font-weight: 500; 
+        }
 
-        /* Sleek Segmented Navigation Tabs */
-        .tabs-container { margin: 1.5rem 0 1.5rem 1.5rem; overflow-x: auto; scrollbar-width: none; -webkit-overflow-scrolling: touch; }
+        /* Navigasi Tab (Wisma Brown Aesthetic) */
+        .tabs-container { 
+            margin: var(--spacing-lg) 0 var(--spacing-lg) var(--spacing-lg); 
+            overflow-x: auto; 
+            scrollbar-width: none; 
+            -webkit-overflow-scrolling: touch; 
+        }
         .tabs-container::-webkit-scrollbar { display: none; }
-        .tabs { display: inline-flex; gap: 0.75rem; padding-right: 1.5rem; }
+        .tabs { display: inline-flex; gap: var(--spacing-sm); padding-right: var(--spacing-lg); }
         .tab { 
-            display: flex; align-items: center; gap: 0.5rem; padding: 0.75rem 1.25rem; 
-            border: 1px solid #e2e8f0; border-radius: 999px; background: white; 
-            color: #64748b; font-weight: 600; font-size: 0.9rem; white-space: nowrap; transition: all 0.2s; 
+            display: flex; align-items: center; gap: var(--spacing-xs); 
+            padding: 0.75rem 1.25rem; 
+            border: 1px solid var(--color-bg-secondary); 
+            border-radius: var(--radius-full); 
+            background: var(--color-bg-card); 
+            color: var(--color-text-secondary); 
+            font-weight: 600; 
+            font-size: 0.9rem; 
+            white-space: nowrap; 
+            transition: all var(--transition-fast); 
         }
-        .tab.active { background: var(--color-primary); color: white; border-color: var(--color-primary); box-shadow: 0 4px 12px rgba(29, 78, 216, 0.2); }
+        .tab.active { 
+            background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%); 
+            color: var(--color-text-light); 
+            border-color: var(--color-primary); 
+            box-shadow: var(--shadow-md); 
+        }
 
-        /* Revenue Metrics Grid (SaaS Cards) */
-        .finance-section { padding: 0 1.5rem; }
-        .revenue-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem; margin-top: 1.5rem; }
+        /* Revenue Metrics Grid (Wisma Cards) */
+        .finance-section { padding: 0 var(--spacing-lg); }
+        .revenue-grid { 
+            display: grid; 
+            grid-template-columns: repeat(2, 1fr); 
+            gap: var(--spacing-md); 
+            margin-top: var(--spacing-lg); 
+        }
         .revenue-card { 
-            background: white; padding: 1.25rem; border-radius: 1.25rem; 
-            box-shadow: 0 4px 20px rgba(0,0,0,0.03); display: flex; flex-direction: column; gap: 0.75rem;
-            border: 1px solid #f1f5f9;
+            background: var(--color-bg-card); 
+            padding: 1.25rem; 
+            border-radius: var(--radius-xl); 
+            box-shadow: var(--shadow-sm); 
+            display: flex; 
+            flex-direction: column; 
+            gap: 0.75rem;
+            border: 1px solid var(--color-bg-secondary);
+            transition: transform var(--transition-fast), box-shadow var(--transition-fast);
         }
-        .revenue-header { display: flex; justify-content: space-between; align-items: center; }
-        .revenue-label { font-size: 0.85rem; font-weight: 600; color: #64748b; }
+        .revenue-card:hover { transform: translateY(-2px); box-shadow: var(--shadow-md); }
+        
+        .revenue-label { font-size: 0.85rem; font-weight: 700; color: var(--color-text-secondary); text-transform: uppercase; letter-spacing: 0.02em; }
         .revenue-values { display: flex; flex-direction: column; gap: 0.4rem; }
-        .revenue-amount { display: flex; flex-wrap: wrap; align-items: baseline; gap: 0.4rem; row-gap: 0.2rem; }
-        .revenue-number { font-size: 1.2rem; font-weight: 800; color: #0f172a; line-height: 1; }
+        .revenue-amount { display: flex; flex-wrap: wrap; align-items: baseline; gap: 0.3rem; }
+        .revenue-number { font-size: 1.25rem; font-weight: 800; color: var(--color-text-primary); line-height: 1; }
+        .grand-number { font-size: 1.6rem; color: var(--color-primary); }
         
-        .badge-usd { background: #dcfce7; color: #166534; font-size: 0.7rem; padding: 2px 6px; border-radius: 6px; font-weight: 700; height: fit-content; }
-        .badge-eur { background: #dbeafe; color: #1e40af; font-size: 0.7rem; padding: 2px 6px; border-radius: 6px; font-weight: 700; height: fit-content; }
-        .badge-egp { background: #fef3c7; color: #92400e; font-size: 0.7rem; padding: 2px 6px; border-radius: 6px; font-weight: 700; height: fit-content; }
-        .badge-idr { background: #f3e8ff; color: #6b21a8; font-size: 0.7rem; padding: 2px 6px; border-radius: 6px; font-weight: 700; height: fit-content; }
+        .revenue-currency { font-weight: 700; font-size: 0.7rem; padding: 2px 6px; border-radius: 4px; text-transform: uppercase; }
+        .badge-usd { background: var(--color-success-light); color: #166534; }
+        .badge-eur { background: var(--color-info-light); color: #1e40af; }
+        .badge-egp { background: var(--color-warning-light); color: #92400e; }
+        .badge-idr { background: #f3e8ff; color: #6b21a8; }
         
-        .grand-total-card { grid-column: 1 / -1; background: linear-gradient(to right bottom, #ffffff, #f8fafc); border-left: 4px solid var(--color-success); border-top: none; border-right: none; border-bottom: none; }
-
-        /* Task Management (Proker) */
-        .proker-container { padding: 0 1.5rem; }
-        .mobile-task-form { 
-            background: white; padding: 1rem; border-radius: 1.25rem; 
-            box-shadow: 0 4px 20px rgba(0,0,0,0.04); margin-bottom: 1.5rem; border: 1px solid #f1f5f9;
+        .grand-total-card { 
+            grid-column: 1 / -1; 
+            background: linear-gradient(135deg, #fff 0%, #fff9f5 100%); 
+            border-left: 4px solid var(--color-secondary); 
+            padding: 1.5rem;
         }
-        .task-input-row { display: flex; gap: 0.75rem; margin-bottom: 0.75rem; }
-        .task-input { flex: 1; padding: 0.875rem 1rem; border: 1px solid #e2e8f0; border-radius: 1rem; font-size: 0.95rem; outline: none; transition: border-color 0.2s; background: #f8fafc; }
-        .task-input:focus { border-color: var(--color-primary); background: white; }
-        .task-submit-btn { width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; background: var(--color-primary); color: white; border: none; border-radius: 1rem; cursor: pointer; box-shadow: 0 4px 12px rgba(29, 78, 216, 0.25); }
-        .task-filters-row { display: flex; gap: 0.5rem; overflow-x: auto; scrollbar-width: none; }
+
+        /* Task Management (Premium Proker) */
+        .proker-container { padding: 0 var(--spacing-lg); }
+        .mobile-task-form { 
+            background: var(--color-bg-card); 
+            padding: 1.25rem; 
+            border-radius: var(--radius-xl); 
+            box-shadow: var(--shadow-md); 
+            margin-bottom: 1.5rem; 
+            border: 1px solid var(--color-bg-secondary);
+        }
+        .task-input-row { display: flex; gap: var(--spacing-sm); margin-bottom: var(--spacing-sm); }
+        .task-input { 
+            flex: 1; 
+            padding: 0.875rem 1rem; 
+            border: 1px solid var(--color-bg-secondary); 
+            border-radius: var(--radius-lg); 
+            font-size: 0.95rem; 
+            outline: none; 
+            background: var(--color-bg-primary); 
+            transition: all var(--transition-fast);
+        }
+        .task-input:focus { border-color: var(--color-primary); background: var(--color-bg-card); box-shadow: 0 0 0 3px rgba(139, 69, 19, 0.1); }
+        .task-submit-btn { 
+            width: 48px; height: 48px; 
+            display: flex; align-items: center; justify-content: center; 
+            background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%); 
+            color: var(--color-text-light); 
+            border: none; border-radius: var(--radius-lg); 
+            cursor: pointer; 
+            box-shadow: var(--shadow-md); 
+        }
+        .task-filters-row { display: flex; gap: var(--spacing-xs); overflow-x: auto; scrollbar-width: none; }
         .task-filters-row::-webkit-scrollbar { display: none; }
-        .pill-select { padding: 0.5rem 1rem; border: 1px solid #e2e8f0; border-radius: 999px; background: white; font-size: 0.8rem; font-weight: 600; color: #475569; appearance: none; cursor: pointer; }
+        .pill-select { 
+            padding: 0.5rem 1rem; 
+            border: 1px solid var(--color-bg-secondary); 
+            border-radius: var(--radius-full); 
+            background: var(--color-bg-card); 
+            font-size: 0.8rem; 
+            font-weight: 600; 
+            color: var(--color-text-secondary); 
+            appearance: none; 
+            cursor: pointer; 
+            min-width: 110px;
+        }
         
-        .todo-list { display: flex; flex-direction: column; gap: 0.75rem; }
-        .modern-card { background: white; padding: 1rem; border-radius: 1.25rem; display: flex; align-items: flex-start; gap: 1rem; border: 1px solid #f1f5f9; box-shadow: 0 2px 10px rgba(0,0,0,0.02); transition: opacity 0.3s; }
-        .modern-card.done { opacity: 0.6; background: #fafafa; }
-        .todo-checkbox { margin-top: 2px; cursor: pointer; }
-        .todo-content { flex: 1; display: flex; flex-direction: column; gap: 0.4rem; }
-        .todo-title { font-weight: 600; color: #0f172a; font-size: 0.95rem; line-height: 1.4; }
-        .todo-title.completed { text-decoration: line-through; color: #94a3b8; }
+        .todo-list { display: flex; flex-direction: column; gap: var(--spacing-md); }
+        .modern-card { 
+            background: var(--color-bg-card); 
+            padding: 1.25rem; 
+            border-radius: var(--radius-xl); 
+            display: flex; 
+            align-items: flex-start; 
+            gap: 1rem; 
+            border: 1px solid var(--color-bg-secondary); 
+            box-shadow: var(--shadow-sm); 
+            transition: all var(--transition-fast); 
+        }
+        .modern-card.done { opacity: 0.55; background: var(--color-bg-secondary); }
+        .todo-checkbox { margin-top: 3px; cursor: pointer; }
+        .todo-content { flex: 1; display: flex; flex-direction: column; gap: 0.5rem; }
+        .todo-title { font-weight: 600; color: var(--color-text-primary); font-size: 0.95rem; line-height: 1.4; }
+        .todo-title.completed { text-decoration: line-through; color: var(--color-text-muted); }
         .todo-meta-tags { display: flex; gap: 0.4rem; flex-wrap: wrap; }
-        .empty-state { padding: 3rem 1rem; text-align: center; color: #94a3b8; font-weight: 500; display: flex; flex-direction: column; items-center; justify-content: center; align-items: center; }
+        .micro-tag { font-size: 0.7rem; font-weight: 700; text-transform: uppercase; padding: 2px 8px; border-radius: var(--radius-full); }
+        .empty-state { padding: 4rem 1rem; text-align: center; color: var(--color-text-muted); display: flex; flex-direction: column; align-items: center; }
 
         /* Generic Cards & Tables */
-        .card { background: white; padding: 1.5rem; border-radius: 1.25rem; box-shadow: 0 4px 20px rgba(0,0,0,0.03); border: 1px solid #f1f5f9; }
-        .card h3 { margin: 0 0 1rem 0; font-size: 1.1rem; font-weight: 700; color: #0f172a; }
+        .card { 
+            background: var(--color-bg-card); 
+            padding: 1.5rem; 
+            border-radius: var(--radius-xl); 
+            box-shadow: var(--shadow-sm); 
+            border: 1px solid var(--color-bg-secondary); 
+        }
+        .card h3 { margin: 0 0 1.25rem 0; font-size: 1.15rem; font-weight: 700; color: var(--color-text-primary); }
         .table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
-        .table th, .table td { padding: 0.75rem 0.5rem; text-align: left; border-bottom: 1px solid #f1f5f9; }
-        .table th { font-weight: 600; color: #64748b; background: #f8fafc; }
+        .table th { font-weight: 700; color: var(--color-text-secondary); background: var(--color-bg-secondary); text-transform: uppercase; font-size: 0.75rem; letter-spacing: 0.05em; }
+        .table th, .table td { padding: 1rem 0.75rem; text-align: left; border-bottom: 1px solid var(--color-bg-secondary); }
 
         @media (min-width: 768px) {
-            .revenue-grid { grid-template-columns: repeat(3, 1fr); gap: 1.5rem; }
-            .tabs-container { margin: 2rem 0 2rem 2rem; }
-            .finance-section, .proker-container { padding: 0 2rem; }
+            .revenue-grid { grid-template-columns: repeat(3, 1fr); gap: var(--spacing-lg); }
+            .tabs-container { margin: var(--spacing-xl) 0 var(--spacing-xl) var(--spacing-2xl); }
+            .finance-section, .proker-container { padding: 0 var(--spacing-2xl); }
         }
         
         .btn-select {
             padding: 0.75rem;
-            border: 1px solid #d1d5db;
-            background: white;
-            border-radius: 0.5rem;
+            border: 1px solid var(--color-bg-secondary);
+            background: var(--color-bg-card);
+            border-radius: var(--radius-md);
             cursor: pointer;
             text-align: left;
-            transition: all 0.2s;
+            transition: all var(--transition-fast);
+            color: var(--color-text-primary);
         }
         .btn-select:hover { border-color: var(--color-primary); }
         .btn-select.selected {
-            background: #eff6ff;
+            background: rgba(139, 69, 19, 0.08);
             border-color: var(--color-primary);
             color: var(--color-primary);
-            font-weight: 500;
-            box-shadow: 0 0 0 1px var(--color-primary);
+            font-weight: 700;
         }
 
-        .input-group { display: flex; gap: 0.5rem; }
-        .input-group input { flex: 1; }
         .currency-select { 
             width: 80px; 
             padding: 0.75rem; 
-            border: 1px solid #d1d5db; 
-            border-radius: 0.5rem; 
-            background: #f9fafb;
-            font-weight: 500;
+            border: 1px solid var(--color-bg-secondary); 
+            border-radius: var(--radius-md); 
+            background: var(--color-bg-secondary);
+            color: var(--color-text-primary);
+            font-weight: 700;
         }
         
-        .badge-warning { background: #fef3c7; color: #92400e; }
-        .badge-info { background: #dbeafe; color: #1e40af; }
       `}</style>
       </div >
     </PortalPinGuard>
