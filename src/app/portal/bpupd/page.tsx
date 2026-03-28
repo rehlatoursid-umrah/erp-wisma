@@ -6,7 +6,7 @@ import Header from '@/components/layout/Header'
 import PortalPinGuard from '@/components/auth/PortalPinGuard'
 import jsPDF from 'jspdf'
 import autoTable from 'jspdf-autotable'
-import { Plane, ClipboardList, Wallet, BarChart3, ChevronLeft, ChevronRight, Folder, FileText, CheckCircle2, Circle, Clock, Check, Plus, Upload, Printer } from 'lucide-react'
+import { Plane, ClipboardList, Wallet, BarChart3, ChevronLeft, ChevronRight, Folder, FileText, CheckCircle2, Circle, Clock, Check, Plus, Upload, Printer, Download, Camera, Save, Eye, ArrowDownLeft, ArrowUpRight } from 'lucide-react'
 
 // Mock Data Types
 type Transaction = {
@@ -674,219 +674,287 @@ export default function BPUPDPortal() {
           {activeTab === 'dana_ops' && (
             <div className="finance-dashboard">
               <div className="finance-tabs">
-                <button className={`sub-tab ${financeTab === 'income' ? 'active' : ''}`} onClick={() => setFinanceTab('income')}>📥 Pemasukan (Dari Bendahara)</button>
-                <button className={`sub-tab ${financeTab === 'expense' ? 'active' : ''}`} onClick={() => setFinanceTab('expense')}>📤 Pengeluaran Operasional</button>
+                <button className={`sub-tab ${financeTab === 'income' ? 'active' : ''}`} onClick={() => setFinanceTab('income')}>
+                   <Download size={18} /> Pemasukan (Bendahara)
+                </button>
+                <button className={`sub-tab ${financeTab === 'expense' ? 'active' : ''}`} onClick={() => setFinanceTab('expense')}>
+                   <Upload size={18} /> Belanja / Pengeluaran
+                </button>
               </div>
 
               {financeTab === 'income' && (
-                <div className="finance-section">
-                  <div className="card">
-                    <h3>Input Penerimaan Dana (Bendahara)</h3>
-                    <p className="text-sm text-gray-500 mb-4">Hanya untuk input dana taktis dari bendahara. Pendapatan unit usaha tercatat otomatis.</p>
-                    <form onSubmit={handleIncomeSubmit} className="finance-form">
+                <div className="finance-section animate-fadeIn">
+                  <div className="card finance-card-padded">
+                    <div className="card-top-accent accent-income"></div>
+                    <div className="card-header-minimal">
+                       <h3>Input Penerimaan Dana</h3>
+                       <p className="helper-text">Hanya untuk input dana taktis dari bendahara.</p>
+                    </div>
+                    
+                    <form onSubmit={handleIncomeSubmit} className="form-stack">
                       <div className="form-group">
-                        <label>Jumlah Uang (EGP)</label>
-                        <input
-                          type="number"
-                          value={incomeForm.amount}
-                          onChange={e => setIncomeForm({ ...incomeForm, amount: e.target.value })}
-                          required
-                          placeholder="0.00"
-                        />
+                        <label className="standard-label">Jumlah Uang (EGP)</label>
+                        <div className="currency-input-wrapper">
+                           <span className="currency-prefix">EGP</span>
+                           <input
+                             type="number"
+                             value={incomeForm.amount}
+                             onChange={e => setIncomeForm({ ...incomeForm, amount: e.target.value })}
+                             required
+                             placeholder="0.00"
+                             className="amount-input"
+                           />
+                        </div>
                       </div>
+                      
+                      <div className="grid grid-cols-1 gap-4">
+                        <div className="form-group">
+                          <label className="standard-label">Tanggal</label>
+                          <input
+                            type="date"
+                            value={incomeForm.date}
+                            onChange={e => setIncomeForm({ ...incomeForm, date: e.target.value })}
+                            required
+                            className="task-input"
+                          />
+                        </div>
+                        <div className="form-group">
+                          <label className="standard-label">Keterangan</label>
+                          <input
+                            type="text"
+                            value={incomeForm.description}
+                            onChange={e => setIncomeForm({ ...incomeForm, description: e.target.value })}
+                            required
+                            placeholder="Contoh: Dana Takis Hostel"
+                            className="task-input"
+                          />
+                        </div>
+                      </div>
+
                       <div className="form-group">
-                        <label>Tanggal</label>
-                        <input
-                          type="date"
-                          value={incomeForm.date}
-                          onChange={e => setIncomeForm({ ...incomeForm, date: e.target.value })}
-                          required
-                        />
+                        <label className="standard-label">Upload Bukti Struk</label>
+                        <div className="custom-file-upload">
+                           <input
+                             type="file"
+                             accept="image/*,application/pdf"
+                             onChange={e => {
+                               if (e.target.files && e.target.files[0]) {
+                                 setIncomeForm({ ...incomeForm, file: e.target.files[0] })
+                               }
+                             }}
+                             id="income-file"
+                             className="hidden-file-input"
+                           />
+                           <label htmlFor="income-file" className="file-upload-trigger">
+                              <Camera size={20} /> 
+                              <span>{incomeForm.file ? incomeForm.file.name : 'Tap untuk Unggah Bukti'}</span>
+                           </label>
+                        </div>
                       </div>
-                      <div className="form-group full">
-                        <label>Keterangan</label>
-                        <input
-                          type="text"
-                          value={incomeForm.description}
-                          onChange={e => setIncomeForm({ ...incomeForm, description: e.target.value })}
-                          required
-                          placeholder="Contoh: Penerimaan Uang dari Bendahara"
-                        />
-                      </div>
-                      <div className="form-group full">
-                        <label>Upload Bukti Struk/Invoice</label>
-                        <input
-                          type="file"
-                          accept="image/*,application/pdf"
-                          onChange={e => {
-                            if (e.target.files && e.target.files[0]) {
-                              setIncomeForm({ ...incomeForm, file: e.target.files[0] })
-                            }
-                          }}
-                          className="file-input"
-                        />
-                      </div>
-                      <button type="submit" className="btn btn-success full">
-                        Simpan Pemasukan
+
+                      <button type="submit" className="action-btn income-btn">
+                        <Save size={18} /> Simpan Pemasukan
                       </button>
                     </form>
                   </div>
 
-                  <div className="card mt-4">
-                    <div className="card-header">
-                      <h3>Riwayat Pemasukan Bendahara</h3>
-                      <div className="filter-tabs">
-                        <button onClick={() => generatePDF('income')} className="btn btn-sm btn-outline">🖨️ PDF Arsip</button>
-                      </div>
+                  <div className="mt-6">
+                    <div className="section-header-row mb-4">
+                      <h3>Riwayat Pemasukan</h3>
+                      <button onClick={() => generatePDF('income')} className="pdf-mini-btn">
+                         <FileText size={16} /> PDF
+                      </button>
                     </div>
-                    <table className="table">
-                      <thead>
-                        <tr><th>Tgl</th><th>Ket</th><th>Kategori</th><th>Jml</th><th>Bukti</th></tr>
-                      </thead>
-                      <tbody>
+
+                    <div className="transaction-list">
                         {transactions.filter(t => t.type === 'in' && t.category === 'treasurer_funding').map(t => (
-                          <tr key={t.id}>
-                            <td>{t.date}</td>
-                            <td>{t.description}</td>
-                            <td>
-                              <span className="badge badge-warning">Dana Taktis</span>
-                            </td>
-                            <td className="text-success">{t.amount} {t.currency}</td>
-                            <td>
-                              {t.proofImage && (
-                                <a href={`/api/media/file/${typeof t.proofImage === 'string' ? t.proofImage : t.proofImage.filename}`} target="_blank" className="text-primary" style={{ fontSize: '0.8rem' }}>
-                                  📸 Lihat
-                                </a>
-                              )}
-                            </td>
-                          </tr>
+                          <div key={t.id} className="transaction-item income-item">
+                             <div className="item-main">
+                                <div className="item-info">
+                                   <span className="item-title">{t.description}</span>
+                                   <span className="item-date">{t.date}</span>
+                                </div>
+                                <div className="item-financial">
+                                   <span className="item-amount">+{t.amount}</span>
+                                   <span className="item-currency">{t.currency}</span>
+                                </div>
+                             </div>
+                             <div className="item-footer">
+                                <span className="item-badge-income">Dana Taktis</span>
+                                {t.proofImage && (
+                                  <a 
+                                    href={`/api/media/file/${typeof t.proofImage === 'string' ? t.proofImage : t.proofImage.filename}`} 
+                                    target="_blank" 
+                                    className="proof-link"
+                                  >
+                                    <Eye size={12} /> Bukti
+                                  </a>
+                                )}
+                             </div>
+                          </div>
                         ))}
                         {transactions.filter(t => t.type === 'in' && t.category === 'treasurer_funding').length === 0 && (
-                          <tr><td colSpan={5} style={{ textAlign: 'center', padding: '2rem' }}>Belum ada data pemasukan</td></tr>
+                          <div className="empty-state">Belum ada data pemasukan</div>
                         )}
-                      </tbody>
-                    </table>
+                    </div>
                   </div>
                 </div>
               )}
 
               {financeTab === 'expense' && (
-                <div className="finance-section">
-                  <div className="card">
-                    <h3>Input Pengeluaran Operasional</h3>
-                    <form onSubmit={handleExpenseSubmit} className="finance-form">
-                      <div className="form-group">
-                        <label>Tanggal</label>
-                        <input type="date" value={expenseForm.date} onChange={e => setExpenseForm({ ...expenseForm, date: e.target.value })} required />
-                      </div>
+                <div className="finance-section animate-fadeIn">
+                  <div className="card finance-card-padded">
+                    <div className="card-top-accent accent-expense"></div>
+                    <div className="card-header-minimal">
+                       <h3>Input Pengeluaran Operasional</h3>
+                       <p className="helper-text">Pencatatan belanja alat tulis, kantor, dan taktis lainnya.</p>
+                    </div>
 
-                      <div className="form-group full">
-                        <label>Nama Barang / Keterangan</label>
-                        <input type="text" value={expenseForm.itemName} onChange={e => setExpenseForm({ ...expenseForm, itemName: e.target.value })} required placeholder="Contoh: Beli Kertas HVS" />
-                      </div>
-
+                    <form onSubmit={handleExpenseSubmit} className="form-stack">
                       <div className="form-group">
-                        <label>Quantity</label>
-                        <input
-                          type="number"
-                          value={expenseForm.quantity}
-                          onChange={e => {
-                            const qty = Number(e.target.value)
-                            const price = Number(expenseForm.unitPrice)
-                            setExpenseForm({
-                              ...expenseForm,
-                              quantity: e.target.value,
-                              amount: (qty * price).toString()
-                            })
-                          }}
-                          placeholder="0"
-                        />
-                      </div>
-                      <div className="form-group">
-                        <label>Harga Satuan</label>
-                        <input
-                          type="number"
-                          value={expenseForm.unitPrice}
-                          onChange={e => {
-                            const price = Number(e.target.value)
-                            const qty = Number(expenseForm.quantity)
-                            setExpenseForm({
-                              ...expenseForm,
-                              unitPrice: e.target.value,
-                              amount: (qty * price).toString()
-                            })
-                          }}
-                          placeholder="0.00"
+                        <label className="standard-label">Nama Barang / Belanja</label>
+                        <input 
+                          type="text" 
+                          value={expenseForm.itemName} 
+                          onChange={e => setExpenseForm({ ...expenseForm, itemName: e.target.value })} 
+                          required 
+                          placeholder="Contoh: Beli Token Listrik" 
+                          className="task-input"
                         />
                       </div>
 
-                      <div className="form-group">
-                        <label>Total Jumlah (Otomatis)</label>
-                        <input type="number" value={expenseForm.amount} readOnly placeholder="0.00" className="input-disabled" />
+                      <div className="grid grid-cols-2 gap-4">
+                        <div className="form-group">
+                          <label className="standard-label">Qty</label>
+                          <input
+                            type="number"
+                            value={expenseForm.quantity}
+                            onChange={e => {
+                              const qty = Number(e.target.value)
+                              const price = Number(expenseForm.unitPrice)
+                              setExpenseForm({ ...expenseForm, quantity: e.target.value, amount: (qty * price).toString() })
+                            }}
+                            className="task-input"
+                          />
+                        </div>
+                        <div className="form-group">
+                          <label className="standard-label">Harga Satuan</label>
+                          <input
+                            type="number"
+                            value={expenseForm.unitPrice}
+                            onChange={e => {
+                              const price = Number(e.target.value)
+                              const qty = Number(expenseForm.quantity)
+                              setExpenseForm({ ...expenseForm, unitPrice: e.target.value, amount: (qty * price).toString() })
+                            }}
+                            className="task-input"
+                          />
+                        </div>
                       </div>
 
                       <div className="form-group">
-                        <label>Upload Bukti Kwitansi</label>
-                        <input
-                          type="file"
-                          accept="image/*,application/pdf"
-                          onChange={e => {
-                            if (e.target.files && e.target.files[0]) {
-                              setExpenseForm({ ...expenseForm, file: e.target.files[0] })
-                            }
-                          }}
-                          className="file-input"
-                        />
+                        <label className="standard-label">Total Pengeluaran (EGP)</label>
+                        <div className="currency-input-wrapper bg-gray-50">
+                           <span className="currency-prefix">EGP</span>
+                           <input type="number" value={expenseForm.amount} readOnly placeholder="0.00" className="amount-input text-danger font-bold" />
+                        </div>
                       </div>
 
-                      <button type="submit" className="btn btn-danger full">
-                        Simpan Pengeluaran
+                      <div className="grid grid-cols-1 gap-4">
+                         <div className="form-group text-sm font-medium">
+                            <label className="standard-label">Tanggal Transaksi</label>
+                            <input type="date" value={expenseForm.date} onChange={e => setExpenseForm({ ...expenseForm, date: e.target.value })} required className="task-input" />
+                         </div>
+                      </div>
+
+                      <div className="form-group">
+                        <label className="standard-label">Upload Bukti Kwitansi</label>
+                        <div className="custom-file-upload border-dashed">
+                           <input
+                             type="file"
+                             accept="image/*,application/pdf"
+                             onChange={e => {
+                               if (e.target.files && e.target.files[0]) {
+                                 setExpenseForm({ ...expenseForm, file: e.target.files[0] })
+                               }
+                             }}
+                             id="expense-file"
+                             className="hidden-file-input"
+                           />
+                           <label htmlFor="expense-file" className="file-upload-trigger">
+                              <Camera size={20} /> 
+                              <span>{expenseForm.file ? expenseForm.file.name : 'Tap untuk Unggah Struk'}</span>
+                           </label>
+                        </div>
+                      </div>
+
+                      <button type="submit" className="action-btn expense-btn">
+                        <Save size={18} /> Simpan Pengeluaran
                       </button>
                     </form>
                   </div>
 
-                  <div className="card mt-4">
-                    <div className="card-header">
-                      <h3>Laporan Operasional & Belanja</h3>
-                      <button onClick={() => generatePDF('expense')} className="btn btn-sm btn-outline">🖨️ Download PDF</button>
+                  <div className="card mt-6 financial-summary-card">
+                    <div className="card-header-minimal">
+                      <h3>Ikhtisar Saldo</h3>
+                      <button onClick={() => generatePDF('expense')} className="pdf-mini-btn">
+                         <Download size={16} /> Laporan PDF
+                      </button>
                     </div>
-                    <div className="stats-row">
-                      <div className="stat-item">
-                        <span className="label">Total Debit (Dana)</span>
-                        <span className="value text-success">{totalIncome}</span>
-                      </div>
-                      <div className="stat-item">
-                        <span className="label">Total Kredit (Belanja)</span>
-                        <span className="value text-danger">{totalExpense}</span>
-                      </div>
-                      <div className="stat-item">
-                        <span className="label">Sisa Saldo</span>
-                        <span className={`value ${remainingBalance < 0 ? 'text-danger' : 'text-primary'}`}>{remainingBalance}</span>
-                      </div>
+                    
+                    <div className="summary-pills mt-4">
+                        <div className="summary-pill">
+                           <div className="pill-icon bg-success-faint text-success"><ArrowDownLeft size={16} /></div>
+                           <div className="pill-content">
+                              <span className="pill-label">Total Masuk</span>
+                              <span className="pill-value text-success">{totalIncome}</span>
+                           </div>
+                        </div>
+                        <div className="summary-pill">
+                           <div className="pill-icon bg-danger-faint text-danger"><ArrowUpRight size={16} /></div>
+                           <div className="pill-content">
+                              <span className="pill-label">Total Belanja</span>
+                              <span className="pill-value text-danger">{totalExpense}</span>
+                           </div>
+                        </div>
+                        <div className="summary-pill highlight">
+                           <div className="pill-icon bg-primary-faint text-primary"><Wallet size={16} /></div>
+                           <div className="pill-content">
+                              <span className="pill-label">Sisa Saldo</span>
+                              <span className={`pill-value ${remainingBalance < 0 ? 'text-danger' : 'text-primary'}`}>{remainingBalance}</span>
+                           </div>
+                        </div>
                     </div>
-                    <table className="table">
-                      <thead>
-                        <tr><th>Tgl</th><th>Nama Barang</th><th>Qty</th><th>Harga</th><th>Total</th><th>Bukti</th></tr>
-                      </thead>
-                      <tbody>
+
+                    <div className="transaction-list mt-8">
+                        <h4 className="text-sm font-bold text-gray-400 uppercase tracking-widest mb-4">Daftar Belanja</h4>
                         {transactions.filter(t => t.type === 'out' && t.category === 'operational').map(t => (
-                          <tr key={t.id}>
-                            <td>{t.date}</td>
-                            <td>{t.description}</td>
-                            <td>{t.quantity}</td>
-                            <td>{t.unitPrice}</td>
-                            <td className="text-danger">{t.amount}</td>
-                            <td>
-                              {t.proofImage && (
-                                <a href={`/api/media/file/${typeof t.proofImage === 'string' ? t.proofImage : t.proofImage.filename}`} target="_blank" className="text-primary" style={{ fontSize: '0.8rem' }}>
-                                  📸 Bukti
-                                </a>
-                              )}
-                            </td>
-                          </tr>
+                          <div key={t.id} className="transaction-item expense-item">
+                             <div className="item-main">
+                                <div className="item-info">
+                                   <span className="item-title">{t.description}</span>
+                                   <span className="item-date">{t.date} • {t.quantity} Pcs x {t.unitPrice}</span>
+                                </div>
+                                <div className="item-financial">
+                                   <span className="item-amount">-{t.amount}</span>
+                                   <span className="item-currency">EGP</span>
+                                </div>
+                             </div>
+                             <div className="item-footer">
+                                <span className="item-badge-expense">Operasional</span>
+                                {t.proofImage && (
+                                  <a 
+                                    href={`/api/media/file/${typeof t.proofImage === 'string' ? t.proofImage : t.proofImage.filename}`} 
+                                    target="_blank" 
+                                    className="proof-link"
+                                  >
+                                   <Eye size={12} /> Struk
+                                  </a>
+                                )}
+                             </div>
+                          </div>
                         ))}
-                      </tbody>
-                    </table>
+                    </div>
                   </div>
                 </div>
               )}
@@ -1182,15 +1250,6 @@ export default function BPUPDPortal() {
         .grand-number { font-size: 1.6rem; color: var(--color-primary); }
         
         .revenue-currency { font-weight: 700; font-size: 0.7rem; padding: 2px 6px; border-radius: 4px; text-transform: uppercase; }
-        .badge-usd { background: var(--color-success-light); color: #166534; }
-        .badge-eur { background: var(--color-info-light); color: #1e40af; }
-        .badge-egp { background: var(--color-warning-light); color: #92400e; }
-        .badge-idr { background: #f3e8ff; color: #6b21a8; }
-        
-        .grand-total-card { 
-            grid-column: 1 / -1; 
-            background: linear-gradient(135deg, #fff 0%, #fff9f5 100%); 
-            border-left: 4px solid var(--color-secondary); 
             padding: 1.5rem;
         }
 
