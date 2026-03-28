@@ -68,3 +68,26 @@ export async function POST(req: Request) {
         return NextResponse.json({ error: 'Failed to create transaction' }, { status: 500 })
     }
 }
+
+export async function DELETE(req: Request) {
+    const payload = await getPayload({ config })
+
+    try {
+        const { searchParams } = new URL(req.url)
+        const id = searchParams.get('id')
+
+        if (!id) {
+            return NextResponse.json({ error: 'Missing transaction ID' }, { status: 400 })
+        }
+
+        await payload.delete({
+            collection: 'cashflow',
+            id: id,
+        })
+
+        return NextResponse.json({ success: true, deleted: id })
+    } catch (error) {
+        console.error('Error deleting transaction:', error)
+        return NextResponse.json({ error: 'Failed to delete transaction' }, { status: 500 })
+    }
+}

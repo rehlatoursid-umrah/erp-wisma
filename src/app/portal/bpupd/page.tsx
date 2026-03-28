@@ -6,7 +6,7 @@ import Header from '@/components/layout/Header'
 import PortalPinGuard from '@/components/auth/PortalPinGuard'
 import jsPDF from 'jspdf'
 import autoTable from 'jspdf-autotable'
-import { Plane, ClipboardList, Wallet, BarChart3, ChevronLeft, ChevronRight, Folder, FileText, CheckCircle2, Circle, Clock, Check, Plus, Upload, Printer, Download, Camera, Save, Eye, ArrowDownLeft, ArrowUpRight } from 'lucide-react'
+import { Plane, ClipboardList, Wallet, BarChart3, ChevronLeft, ChevronRight, Folder, FileText, CheckCircle2, Circle, Clock, Check, Plus, Upload, Printer, Download, Camera, Save, Eye, ArrowDownLeft, ArrowUpRight, Trash2 } from 'lucide-react'
 
 // Mock Data Types
 type Transaction = {
@@ -466,6 +466,22 @@ export default function BPUPDPortal() {
     }
   }
 
+  const handleDeleteTransaction = async (id: string | number) => {
+    if (!confirm('Yakin ingin menghapus transaksi ini? Data tidak bisa dikembalikan.')) return
+    try {
+      const res = await fetch(`/api/finance?id=${id}`, { method: 'DELETE' })
+      if (res.ok) {
+        setTransactions(prev => prev.filter(t => t.id !== id))
+        alert('Transaksi berhasil dihapus!')
+      } else {
+        alert('Gagal menghapus transaksi.')
+      }
+    } catch (error) {
+      console.error('Error deleting transaction:', error)
+      alert('Gagal menghapus transaksi.')
+    }
+  }
+
   const handleTaskSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     try {
@@ -790,6 +806,9 @@ export default function BPUPDPortal() {
                                     <Eye size={12} /> Bukti
                                   </a>
                                 )}
+                                <button onClick={() => handleDeleteTransaction(t.id)} className="delete-btn" title="Hapus transaksi">
+                                  <Trash2 size={14} />
+                                </button>
                              </div>
                           </div>
                         ))}
@@ -951,6 +970,9 @@ export default function BPUPDPortal() {
                                    <Eye size={12} /> Struk
                                   </a>
                                 )}
+                                <button onClick={() => handleDeleteTransaction(t.id)} className="delete-btn" title="Hapus transaksi">
+                                  <Trash2 size={14} />
+                                </button>
                              </div>
                           </div>
                         ))}
@@ -1483,6 +1505,17 @@ export default function BPUPDPortal() {
         .item-badge-income { font-size: 0.65rem; font-weight: 800; color: #854d0e; background: var(--color-warning-light); padding: 3px 10px; border-radius: var(--radius-full); }
         .item-badge-expense { font-size: 0.65rem; font-weight: 800; color: #374151; background: #e5e7eb; padding: 3px 10px; border-radius: var(--radius-full); }
         .proof-link { display: flex; align-items: center; gap: 0.3rem; font-size: 0.75rem; font-weight: 700; color: var(--color-primary); text-decoration: none; }
+
+        /* Delete Button */
+        .delete-btn {
+            display: flex; align-items: center; justify-content: center;
+            width: 32px; height: 32px; border-radius: var(--radius-md);
+            border: 1.5px solid #fecaca; background: #fff5f5;
+            color: #dc2626; cursor: pointer;
+            transition: all var(--transition-fast);
+            flex-shrink: 0; margin-left: auto;
+        }
+        .delete-btn:active { background: #dc2626; color: white; border-color: #dc2626; transform: scale(0.92); }
 
         /* Financial Summary Pills */
         .financial-summary-card { padding: 1.5rem !important; }
