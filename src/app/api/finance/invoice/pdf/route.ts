@@ -152,11 +152,11 @@ export async function GET(request: NextRequest) {
         .invoice-footer { text-align: center; padding: 30px; background: #f8fafc; color: #64748b; font-size: 0.85rem; border-top: 1px solid #e2e8f0; }
         
         .action-buttons {
-            display: flex; justify-content: flex-start; gap: 15px; margin: 0 auto 20px; width: 800px; padding: 0;
+            display: flex; justify-content: center; gap: 20px; margin: 30px auto 40px; width: 800px; padding: 0;
         }
         .btn {
-            border: 1px solid #e2e8f0; border-radius: 8px; cursor: pointer; font-size: 0.9rem; font-weight: 700;
-            display: flex; align-items: center; justify-content: center; gap: 8px; padding: 12px 20px; transition: all 0.2s;
+            border: 1px solid #e2e8f0; border-radius: 8px; cursor: pointer; font-size: 0.95rem; font-weight: 700;
+            display: flex; align-items: center; justify-content: center; gap: 10px; padding: 14px 32px; min-width: 180px; transition: all 0.2s;
         }
         .btn-primary { background: white; color: #0f172a; }
         .btn-primary:hover { background: #f1f5f9; }
@@ -179,17 +179,6 @@ export async function GET(request: NextRequest) {
 </head>
 <body>
     <div class="invoice-wrapper">
-        <div class="action-buttons no-print">
-            <button id="printBtn" class="btn btn-primary">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>
-                Print Invoice
-            </button>
-            <button id="waBtn" class="btn btn-success" data-id="${invoiceId}">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
-                Kirim WhatsApp
-            </button>
-        </div>
-
         <div class="container" id="invoice">
             <div class="invoice-header">
                 <div class="company-info">
@@ -281,6 +270,17 @@ export async function GET(request: NextRequest) {
             Terima kasih telah menggunakan layanan Wisma Nusantara Cairo<br>
             Invoice digenerate pada ${new Date().toLocaleString('id-ID')}
         </div>
+    </div>
+    
+    <div class="action-buttons no-print">
+        <button id="printBtn" class="btn btn-primary">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>
+            Print Invoice
+        </button>
+        <button id="waBtn" class="btn btn-success" data-id="${invoiceId}">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+            Kirim WhatsApp
+        </button>
     </div>
 </div>
 
