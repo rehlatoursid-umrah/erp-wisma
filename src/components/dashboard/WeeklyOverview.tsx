@@ -267,7 +267,7 @@ export default function WeeklyOverview({ refreshTrigger = 0 }: WeeklyOverviewPro
             background: var(--color-bg-card);
             border-radius: var(--radius-2xl);
             box-shadow: var(--shadow-md);
-            margin-bottom: var(--spacing-xl);
+            margin-bottom: 0; /* Changed from var(--spacing-xl) to 0 to remove double margin */
             border: 1px solid rgba(0,0,0,0.05);
             overflow: hidden;
           }

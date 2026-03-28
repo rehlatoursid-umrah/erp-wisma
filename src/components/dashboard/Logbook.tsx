@@ -118,8 +118,11 @@ export default function Logbook() {
             value={logText}
             onChange={(e) => setLogText(e.target.value)}
           />
+          <button type="submit" className="mobile-send-btn" disabled={!logText.trim()} aria-label="Kirim">
+            <Send size={16} />
+          </button>
         </div>
-        <button type="submit" className="btn btn-primary icon-btn">
+        <button type="submit" className="btn btn-primary icon-btn desktop-send-btn" disabled={!logText.trim()}>
           <Send size={16} /> Kirim
         </button>
       </form>
@@ -221,6 +224,140 @@ export default function Logbook() {
           font-size: 0.9375rem;
           color: var(--color-text-secondary);
           line-height: 1.4;
+        }
+
+        .mobile-send-btn {
+          display: none;
+        }
+
+        @media (max-width: 768px) {
+           .log-form {
+             margin-bottom: var(--spacing-md);
+           }
+           
+           .logbook h3 {
+             font-size: 1.1rem;
+             margin-bottom: var(--spacing-sm);
+           }
+
+           .input-group {
+             background: var(--color-bg-secondary);
+             border-radius: 50px;
+             padding: 4px;
+             padding-left: 12px;
+             display: flex;
+             align-items: center;
+             gap: 8px;
+             border: 1px solid rgba(0,0,0,0.05);
+           }
+
+           .category-select {
+             border: none;
+             background: transparent;
+             padding: 4px 8px;
+             border-radius: 20px;
+             color: var(--color-primary);
+             font-weight: 600;
+             font-size: 0.75rem;
+             min-width: auto;
+             appearance: none;
+             outline: none;
+             cursor: pointer;
+           }
+
+           .form-input {
+             border: none;
+             background: transparent;
+             padding: 8px 0;
+             font-size: 0.9rem;
+             flex: 1;
+             outline: none;
+             box-shadow: none;
+           }
+
+           .desktop-send-btn {
+             display: none !important;
+           }
+
+           .mobile-send-btn {
+             display: flex;
+             align-items: center;
+             justify-content: center;
+             width: 36px;
+             height: 36px;
+             border-radius: 50px;
+             background: var(--color-primary);
+             color: white;
+             border: none;
+             flex-shrink: 0;
+             margin-right: 2px;
+             cursor: pointer;
+             transition: all 0.2s ease;
+           }
+
+           .mobile-send-btn:disabled {
+             opacity: 0.5;
+             background: var(--color-text-muted);
+           }
+
+           .log-list {
+             gap: 0;
+             padding-left: 12px;
+             position: relative;
+             overflow-y: visible;
+             max-height: none;
+           }
+
+           .log-list::before {
+             content: '';
+             position: absolute;
+             left: 20px;
+             top: 10px;
+             bottom: 10px;
+             width: 2px;
+             background: var(--color-border);
+             z-index: 1;
+           }
+
+           .log-item {
+             background: transparent;
+             padding: var(--spacing-sm) 0 var(--spacing-md) 28px;
+             border-radius: 0;
+             position: relative;
+             z-index: 2;
+           }
+
+           .log-item::before {
+             content: '';
+             position: absolute;
+             left: 3px;
+             top: 18px;
+             width: 10px;
+             height: 10px;
+             border-radius: 50%;
+             background: var(--color-bg-card);
+             border: 2px solid var(--color-primary);
+           }
+
+           .log-header {
+             margin-bottom: 2px;
+           }
+
+           .log-author {
+             font-size: 0.85rem;
+             color: var(--color-text-primary);
+           }
+
+           .log-text {
+             font-size: 0.9rem;
+             background: var(--color-bg-secondary);
+             padding: var(--spacing-sm) var(--spacing-md);
+             border-radius: 0 var(--radius-xl) var(--radius-xl) var(--radius-xl);
+             display: inline-block;
+             margin-top: 4px;
+             border: 1px solid rgba(0,0,0,0.03);
+             color: var(--color-text-primary);
+           }
         }
       `}</style>
     </div>
