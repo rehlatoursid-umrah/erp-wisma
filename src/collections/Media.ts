@@ -7,6 +7,7 @@ export const Media: CollectionConfig = {
     },
     access: {
         read: () => true,
+        create: () => true,
     },
     upload: {
         staticDir: 'media',

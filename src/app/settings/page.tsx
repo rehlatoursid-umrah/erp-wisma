@@ -90,7 +90,7 @@ export default function SettingsPage() {
         body: formData,
       })
 
-      if (!mediaRes.ok) throw new Error('Failed to upload file to media collection')
+      if (!mediaRes.ok) throw new Error('Failed to upload: ' + await mediaRes.text())
       
       const mediaData = await mediaRes.json()
 
@@ -110,9 +110,9 @@ export default function SettingsPage() {
           setAvatarPreview(data.user.avatar.url)
         }
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error('Avatar upload error:', err)
-      alert('Gagal mengunggah foto. Pastikan koneksi dan ukuran file sesuai.')
+      alert('Gagal mengunggah foto: ' + (err.message || 'Error tidak diketahui'))
     } finally {
       setAvatarUploading(false)
     }
