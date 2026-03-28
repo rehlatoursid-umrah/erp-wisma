@@ -177,6 +177,28 @@ export async function GET(request: NextRequest) {
         /* Force background colors on print */
         * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; color-adjust: exact !important; }
         
+        /* Mobile Responsive Overrides */
+        @media (max-width: 768px) {
+            body { padding: 10px; }
+            .container { box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
+            .invoice-header { flex-direction: column; padding: 25px 20px; gap: 25px; align-items: stretch; border-bottom: 2px solid #111827; }
+            .company-info { flex-direction: column; align-items: flex-start; gap: 15px; }
+            .company-info img { width: 70px; }
+            .company-info h1 { font-size: 1.15rem; }
+            .invoice-title { text-align: left; }
+            .invoice-title h2 { font-size: 1.6rem; }
+            .invoice-body { padding: 20px; }
+            .invoice-details { flex-direction: column; gap: 20px; margin-bottom: 30px; }
+            .invoice-info { text-align: left; }
+            .items-table { font-size: 0.85rem; display: block; overflow-x: auto; white-space: nowrap; -webkit-overflow-scrolling: touch; }
+            .items-table th, .items-table td { padding: 12px 10px; }
+            .totals { justify-content: stretch; }
+            .totals-table { width: 100%; }
+            .payment-info { padding: 16px; margin-top: 25px; font-size: 0.85rem; }
+            .action-buttons { flex-direction: row; flex-wrap: wrap; gap: 10px; padding: 0 10px; }
+            .btn { flex: 1; min-width: 140px; padding: 10px 16px; font-size: 0.9rem; }
+        }
+
         @media print { 
             .no-print { display: none !important; } 
             body { background: white; padding: 0; } 
