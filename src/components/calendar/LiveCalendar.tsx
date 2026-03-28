@@ -408,15 +408,73 @@ export default function LiveCalendar({
           .desktop-only { display: none !important; }
           .calendar-legend { display: none; }
 
+          /* Phase 5: Mobile Calendar Navigation Redesign - "Integrated iOS Pill" */
+          .calendar-header {
+            position: relative;
+            margin-bottom: var(--spacing-md); /* Reduced margin */
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+          }
+
+          .calendar-nav {
+            background: var(--color-bg-secondary);
+            border-radius: 50px;
+            padding: 4px;
+            width: 100%;
+            justify-content: space-between;
+            gap: 0;
+            margin-top: 24px; /* Space for absolute floating Ghost Button */
+          }
+
+          .nav-btn {
+            border: none;
+            background: transparent;
+            width: 44px;
+            height: 44px;
+            border-radius: 50px;
+          }
+
+          .nav-btn:hover {
+            background: var(--color-bg-card);
+            color: var(--color-primary);
+            transform: none;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+          }
+
+          .calendar-nav h3 {
+            font-size: 1.05rem;
+            min-width: 0;
+            flex: 1;
+            font-weight: 700;
+          }
+
+          .today-btn {
+            position: absolute;
+            top: -12px;
+            right: 0;
+            background: transparent;
+            color: var(--color-primary);
+            box-shadow: none;
+            padding: 4px 8px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            border-radius: 0;
+            transition: opacity 0.2s;
+          }
+
+          .today-btn:hover {
+            background: transparent;
+            transform: none;
+            box-shadow: none;
+            opacity: 0.7;
+          }
+
           .calendar-day {
             min-height: 60px;
           }
           .day-number {
             font-size: 0.875rem;
-          }
-          .calendar-nav h3 {
-            font-size: 1.125rem;
-            min-width: 150px;
           }
 
           .agenda-title {
