@@ -267,35 +267,51 @@ export async function GET(request: NextRequest) {
     }
 }
 
-// WhatsApp notification helper
+// WhatsApp notification helper (GoWA API - Basic Auth)
 async function sendWhatsAppNotification({ to, message }: { to: string; message: string }) {
+    const endpoint = process.env.WHATSAPP_API_ENDPOINT
+    const username = process.env.WHATSAPP_API_USERNAME
+    const password = process.env.WHATSAPP_API_PASSWORD
+
+    if (!endpoint || !username || !password) {
+        console.error('❌ WhatsApp API not configured (missing WHATSAPP_API_ENDPOINT/USERNAME/PASSWORD)')
+        return false
+    }
+
     let phone = to.replace(/[^0-9]/g, '')
     if (phone.startsWith('0')) {
         phone = '20' + phone.slice(1)
     }
+    if (!phone.includes('@')) {
+        phone += '@s.whatsapp.net'
+    }
 
     try {
-        const response = await fetch(process.env.WHATSAPP_API_URL || 'https://api.whatsapp.com/send', {
-            method: 'POST',
+        const { default: axios } = await import('axios')
+        const response = await axios.post(`${endpoint.replace(/\/$/, '')}/send/message`, {
+            phone,
+            message,
+            is_forwarded: false,
+        }, {
+            auth: { username, password },
             headers: {
                 'Content-Type': 'application/json',
-                'Authorization': `Bearer ${process.env.WHATSAPP_API_TOKEN}`,
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36',
+                'Accept': 'application/json, text/plain, */*',
             },
-            body: JSON.stringify({
-                messaging_product: 'whatsapp',
-                to: phone,
-                type: 'text',
-                text: { body: message },
-            }),
+            timeout: 30000,
+            validateStatus: () => true,
         })
 
-        if (!response.ok) {
-            console.error('WhatsApp API error:', await response.text())
+        if (response.status >= 200 && response.status < 300) {
+            console.log(`✅ WA notification sent to ${to}`)
+            return true
+        } else {
+            console.error('❌ WhatsApp API error:', response.status, response.data)
+            return false
         }
-
-        return response.ok
     } catch (error) {
-        console.error('WhatsApp send error:', error)
+        console.error('❌ WhatsApp send error:', error)
         return false
     }
 }

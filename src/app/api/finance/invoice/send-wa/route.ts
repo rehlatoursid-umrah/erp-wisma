@@ -98,6 +98,17 @@ export async function POST(request: NextRequest) {
         })
 
         if (response.status >= 200 && response.status < 300) {
+            // Update waSent flag
+            try {
+                await payload.update({
+                    collection: 'transactions',
+                    id,
+                    data: { waSent: true },
+                    overrideAccess: true,
+                })
+            } catch (updateErr) {
+                console.error('Failed to update waSent flag:', updateErr)
+            }
             return NextResponse.json({ success: true, message: 'Invoice Whatsapp with PDF sent successfully' })
         } else {
             console.error('WhatsApp API Error:', response.data)

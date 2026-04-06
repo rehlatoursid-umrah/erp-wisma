@@ -1,5 +1,7 @@
 import { NextResponse } from 'next/server'
 import axios from 'axios'
+import { getPayload } from 'payload'
+import configPromise from '@payload-config'
 
 export const maxDuration = 60
 export const dynamic = 'force-dynamic'
@@ -87,6 +89,31 @@ _Terima kasih telah menggunakan layanan Wisma Nusantara Cairo_ 🏢`
         console.log(`📥 GoWA Response: ${response.status}`, JSON.stringify(response.data).substring(0, 500))
 
         if (response.status >= 200 && response.status < 300) {
+            // Update waSent flag on related invoice
+            try {
+                const payload = await getPayload({ config: configPromise })
+                const invoiceQuery = await payload.find({
+                    collection: 'transactions',
+                    where: {
+                        and: [
+                            { bookingType: { equals: 'auditorium' } },
+                            { customerName: { equals: guestName } },
+                        ]
+                    },
+                    sort: '-createdAt',
+                    limit: 1,
+                })
+                if (invoiceQuery.docs.length > 0) {
+                    await payload.update({
+                        collection: 'transactions',
+                        id: invoiceQuery.docs[0].id,
+                        data: { waSent: true },
+                        overrideAccess: true,
+                    })
+                }
+            } catch (updateErr) {
+                console.error('Failed to update waSent flag:', updateErr)
+            }
             return NextResponse.json({
                 success: true,
                 message: `Invoice PDF berhasil dikirim ke WhatsApp ${phone}`,

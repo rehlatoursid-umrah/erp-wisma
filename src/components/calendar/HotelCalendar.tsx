@@ -621,21 +621,16 @@ export default function HotelCalendar({ onBookRoom, refreshTrigger = 0, onUpdate
                               totalAmount: totalAmount,
                               currency: selectedCurrency,
                               bookingType: 'hotel',
-                              relatedBooking: selectedBooking.originalId || selectedBooking.id.split('-')[0],
+                              relatedBooking: selectedBooking.originalId,
                               paymentStatus: 'pending', // DRAFT
                               paymentMethod: 'cash',
+                              subtotal: totalAmount,
                               notes: `Draft Invoice for Booking ${selectedBooking.bookingId}`
                             })
                           })
 
                           if (res.ok) {
-                            // Update booking status to 'confirmed'
-                            const bookingDocId = selectedBooking.originalId || selectedBooking.id.split('-')[0]
-                            await fetch(`/api/hotel-bookings/${bookingDocId}`, {
-                              method: 'PATCH',
-                              headers: { 'Content-Type': 'application/json' },
-                              body: JSON.stringify({ status: 'confirmed' })
-                            })
+                            // Booking status is already updated to 'confirmed' by the invoice API
                             alert('✅ Booking Confirmed & Draft Invoice Created!')
                             setSelectedBooking(null)
                             fetchBookings()
@@ -699,21 +694,16 @@ export default function HotelCalendar({ onBookRoom, refreshTrigger = 0, onUpdate
                             totalAmount: totalAmount,
                             currency: selectedCurrency,
                             bookingType: 'hotel',
-                            relatedBooking: selectedBooking.originalId || selectedBooking.id.split('-')[0],
+                            relatedBooking: selectedBooking.originalId,
                             paymentStatus: 'paid', // PAID
                             paymentMethod: 'cash',
+                            subtotal: totalAmount,
                             notes: `Paid Invoice for Booking ${selectedBooking.bookingId}`
                           })
                         })
 
                         if (res.ok) {
-                          // Update booking status to 'paid'
-                          const bookingDocId = selectedBooking.originalId || selectedBooking.id.split('-')[0]
-                          await fetch(`/api/hotel-bookings/${bookingDocId}`, {
-                            method: 'PATCH',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ status: 'paid' })
-                          })
+                          // Booking status is already updated to 'paid' by the invoice API
                           alert('✅ Payment Recorded!')
                           setSelectedBooking(null)
                           fetchBookings()

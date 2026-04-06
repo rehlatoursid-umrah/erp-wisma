@@ -734,9 +734,10 @@ export default function AuditoriumCalendar({
                                 return items
                               })(),
                               totalAmount: selectedBooking.totalPrice,
+                              subtotal: selectedBooking.totalPrice,
                               currency: selectedCurrency,
                               bookingType: 'auditorium',
-                              relatedBooking: selectedBooking.id, // Use 'id' for direct relation or 'bookingId' if mapped that way. stored as 'id' usually.
+                              relatedBooking: selectedBooking.id,
                               paymentStatus: 'pending', // DRAFT
                               paymentMethod: 'cash',
                               notes: `Draft Invoice for Booking ${selectedBooking.bookingId}`
@@ -837,6 +838,7 @@ export default function AuditoriumCalendar({
                               return items
                             })(),
                             totalAmount: selectedBooking.totalPrice,
+                            subtotal: selectedBooking.totalPrice,
                             currency: selectedCurrency,
                             bookingType: 'auditorium',
                             relatedBooking: selectedBooking.id,

@@ -80,6 +80,28 @@ export const Transactions: CollectionConfig = {
             defaultValue: 'EGP',
         },
         {
+            name: 'subtotal',
+            type: 'number',
+            admin: {
+                description: 'Subtotal sebelum diskon',
+            },
+        },
+        {
+            name: 'discount',
+            type: 'number',
+            defaultValue: 0,
+            admin: {
+                description: 'Jumlah diskon',
+            },
+        },
+        {
+            name: 'invoiceDate',
+            type: 'date',
+            admin: {
+                description: 'Tanggal invoice (bisa berbeda dari tanggal pembuatan)',
+            },
+        },
+        {
             name: 'totalAmount',
             type: 'number',
             required: true,
