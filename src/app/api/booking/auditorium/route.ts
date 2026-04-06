@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getPayload } from 'payload'
 import configPromise from '@/payload.config'
 
-const ADMIN_PHONE = '201507049289'
+const ADMIN_PHONE = '6285189916769'
 
 import {
     HALL_PACKAGES,
