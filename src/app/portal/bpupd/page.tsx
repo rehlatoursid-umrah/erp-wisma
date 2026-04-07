@@ -37,6 +37,14 @@ type Task = {
   relatedRoom?: string
 }
 
+type ChartBar = {
+  month: number
+  year: number
+  label: string
+  income: number
+  expense: number
+}
+
 export default function BPUPDPortal() {
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [activeTab, setActiveTab] = useState<'proker' | 'dana_ops' | 'pendapatan_unit'>('proker')
@@ -96,8 +104,10 @@ export default function BPUPDPortal() {
   const [cfYear,  setCfYear]  = useState(CURRENT_YEAR)
   const [cfView, setCfView]   = useState<'dashboard' | 'archive'>('dashboard')
   // Archive: month summaries for the fiscal year (Feb → Jan)
-  const [archiveSummaries, setArchiveSummaries] = useState<Record<string, { income: number; expense: number; balance: number }>>({}
-  )
+  const [archiveSummaries, setArchiveSummaries] = useState<Record<string, { income: number; expense: number; balance: number }>>({})
+
+  // Fiscal Year Chart Data
+  const [fiscalChartData, setFiscalChartData] = useState<ChartBar[]>([])
 
   const generateMonthlyUnitReport = (monthIndex: number, category: string) => {
     const doc = new jsPDF()
@@ -289,6 +299,40 @@ export default function BPUPDPortal() {
   useEffect(() => {
     // Fetch Finance Data for current month
     fetchCashflow(CURRENT_MONTH, CURRENT_YEAR)
+
+    // Fetch ALL cashflow (no filter) for fiscal year chart
+    const fetchFiscalChart = async () => {
+      try {
+        const res = await fetch('/api/finance')
+        if (res.ok) {
+          const data = await res.json()
+          const allCf = data.cashflow || []
+          // Group by month
+          const grouped: Record<string, { income: number; expense: number }> = {}
+          allCf.forEach((item: any) => {
+            if (!item.transactionDate) return
+            const d = new Date(item.transactionDate)
+            const key = `${d.getFullYear()}-${d.getMonth()}`
+            if (!grouped[key]) grouped[key] = { income: 0, expense: 0 }
+            if (item.type === 'in') grouped[key].income += item.amount || 0
+            if (item.type === 'out') grouped[key].expense += item.amount || 0
+          })
+          // Map to fiscal months
+          const fiscalStartYear = CURRENT_MONTH >= 1 ? CURRENT_YEAR : CURRENT_YEAR - 1
+          const bars: ChartBar[] = []
+          for (let i = 0; i < 12; i++) {
+            const raw = 1 + i
+            const month = raw % 12
+            const year = raw >= 12 ? fiscalStartYear + 1 : fiscalStartYear
+            const key = `${year}-${month}`
+            const d = grouped[key] || { income: 0, expense: 0 }
+            bars.push({ month, year, label: new Date(year, month, 1).toLocaleString('id-ID', { month: 'short' }), ...d })
+          }
+          setFiscalChartData(bars)
+        }
+      } catch (e) { console.error('Failed to fetch fiscal chart', e) }
+    }
+    fetchFiscalChart()
 
     // Fetch Tasks
     const fetchTasks = async () => {
@@ -858,6 +902,65 @@ export default function BPUPDPortal() {
 
             return (
             <div className="cashflow-dashboard">
+
+              {/* ── Fiscal Year Chart ── */}
+              {fiscalChartData.length > 0 && (() => {
+                const maxVal = Math.max(...fiscalChartData.map(b => Math.max(b.income, b.expense)), 1)
+                const totalYearIncome  = fiscalChartData.reduce((a, b) => a + b.income, 0)
+                const totalYearExpense = fiscalChartData.reduce((a, b) => a + b.expense, 0)
+                return (
+                  <div className="fy-chart-card">
+                    <div className="fy-chart-header">
+                      <div className="fy-chart-title-row">
+                        <BarChart3 size={20} style={{ color: 'var(--color-primary)' }} />
+                        <h3>Grafik Operasional Tahunan</h3>
+                      </div>
+                      <div className="fy-chart-legend">
+                        <span className="fy-legend-item"><span className="fy-legend-dot fy-dot-income" /> Dana Masuk <strong>EGP {totalYearIncome.toLocaleString()}</strong></span>
+                        <span className="fy-legend-item"><span className="fy-legend-dot fy-dot-expense" /> Belanja <strong>EGP {totalYearExpense.toLocaleString()}</strong></span>
+                      </div>
+                    </div>
+                    <div className="fy-chart-body">
+                      {/* Y-axis labels */}
+                      <div className="fy-y-axis">
+                        <span>{maxVal.toLocaleString()}</span>
+                        <span>{Math.round(maxVal * 0.75).toLocaleString()}</span>
+                        <span>{Math.round(maxVal * 0.5).toLocaleString()}</span>
+                        <span>{Math.round(maxVal * 0.25).toLocaleString()}</span>
+                        <span>0</span>
+                      </div>
+                      {/* Bars */}
+                      <div className="fy-bars-area">
+                        {/* Horizontal gridlines */}
+                        <div className="fy-gridlines">
+                          <div className="fy-gridline" style={{ bottom: '25%' }} />
+                          <div className="fy-gridline" style={{ bottom: '50%' }} />
+                          <div className="fy-gridline" style={{ bottom: '75%' }} />
+                          <div className="fy-gridline" style={{ bottom: '100%' }} />
+                        </div>
+                        {fiscalChartData.map((bar, i) => {
+                          const incPct = maxVal > 0 ? (bar.income / maxVal) * 100 : 0
+                          const expPct = maxVal > 0 ? (bar.expense / maxVal) * 100 : 0
+                          const isSel = bar.month === cfMonth && bar.year === cfYear
+                          return (
+                            <div key={i} className={`fy-bar-group ${isSel ? 'fy-bar-selected' : ''}`} onClick={() => { setCfMonth(bar.month); setCfYear(bar.year) }}>
+                              <div className="fy-bar-pair">
+                                <div className="fy-bar fy-bar-income" style={{ height: `${incPct}%` }}>
+                                  {bar.income > 0 && <span className="fy-bar-tooltip">{bar.income.toLocaleString()}</span>}
+                                </div>
+                                <div className="fy-bar fy-bar-expense" style={{ height: `${expPct}%` }}>
+                                  {bar.expense > 0 && <span className="fy-bar-tooltip">{bar.expense.toLocaleString()}</span>}
+                                </div>
+                              </div>
+                              <span className="fy-bar-label">{bar.label}</span>
+                            </div>
+                          )
+                        })}
+                      </div>
+                    </div>
+                  </div>
+                )
+              })()}
 
               {/* ── Month Navigator (Fiscal Year: Feb → Jan) ── */}
               <div className="cf-month-nav">
@@ -1977,6 +2080,41 @@ export default function BPUPDPortal() {
         .cf-archive-pdf-btn { display: inline-flex; align-items: center; gap: 7px; padding: 9px 16px; background: var(--color-primary); color: white; border: none; border-radius: 10px; font-weight: 700; font-size: 0.82rem; cursor: pointer; transition: opacity 0.2s; white-space: nowrap; flex-shrink: 0; }
         .cf-archive-pdf-btn:hover { opacity: 0.88; }
         .cf-archive-expense-note { background: rgba(107,114,128,0.06); border: 1.5px dashed rgba(107,114,128,0.25); border-radius: 10px; padding: 10px 14px; font-size: 0.8rem; color: var(--color-text-muted); display: flex; align-items: center; gap: 8px; }
+
+        /* ── Fiscal Year Chart ── */
+        .fy-chart-card { background: var(--color-bg-card); border-radius: var(--radius-xl); padding: 20px; box-shadow: var(--shadow-sm); border: 1px solid var(--color-bg-secondary); }
+        .fy-chart-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; flex-wrap: wrap; gap: 12px; }
+        .fy-chart-title-row { display: flex; align-items: center; gap: 10px; }
+        .fy-chart-title-row h3 { font-size: 1.05rem; font-weight: 700; color: var(--color-text-primary); margin: 0; }
+        .fy-chart-legend { display: flex; gap: 16px; font-size: 0.8rem; color: var(--color-text-secondary); }
+        .fy-legend-item { display: flex; align-items: center; gap: 6px; }
+        .fy-legend-dot { width: 10px; height: 10px; border-radius: 3px; }
+        .fy-dot-income { background: #10b981; }
+        .fy-dot-expense { background: #ef4444; }
+        
+        .fy-chart-body { display: flex; gap: 10px; height: 220px; position: relative; }
+        .fy-y-axis { display: flex; flex-direction: column; justify-content: space-between; font-size: 0.65rem; color: var(--color-text-muted); text-align: right; padding-right: 8px; font-family: var(--font-heading); min-width: 40px; }
+        
+        .fy-bars-area { flex: 1; display: flex; justify-content: space-between; position: relative; padding-top: 5px; }
+        .fy-gridlines { position: absolute; inset: 0; display: flex; flex-direction: column; pointer-events: none; z-index: 0; }
+        .fy-gridline { position: absolute; left: 0; right: 0; border-bottom: 1px dashed rgba(0,0,0,0.06); }
+        
+        .fy-bar-group { display: flex; flex-direction: column; justify-content: flex-end; align-items: center; gap: 8px; z-index: 1; flex: 1; cursor: pointer; transition: transform 0.2s; padding: 0 4px; }
+        .fy-bar-group:hover { transform: translateY(-4px); }
+        .fy-bar-group.fy-bar-selected .fy-bar-label { color: var(--color-primary); font-weight: 800; }
+        .fy-bar-group.fy-bar-selected .fy-bar { opacity: 1; }
+        
+        .fy-bar-pair { display: flex; gap: 2px; align-items: flex-end; height: 100%; width: 100%; justify-content: center; position: relative; }
+        .fy-bar { width: 40%; max-width: 24px; min-width: 8px; border-radius: 4px 4px 0 0; position: relative; opacity: 0.85; transition: opacity 0.2s, height 0.6s cubic-bezier(0.4, 0, 0.2, 1); }
+        .fy-bar:hover { opacity: 1; }
+        .fy-bar-income { background: linear-gradient(to top, #059669, #10b981); }
+        .fy-bar-expense { background: linear-gradient(to top, #dc2626, #ef4444); }
+        
+        .fy-bar-tooltip { position: absolute; top: -26px; left: 50%; transform: translateX(-50%); background: var(--color-bg-inverse); color: var(--color-text-inverse); font-size: 0.65rem; font-weight: 700; padding: 3px 6px; border-radius: 4px; pointer-events: none; opacity: 0; transition: opacity 0.2s, top 0.2s; white-space: nowrap; font-family: var(--font-heading); z-index: 10; }
+        .fy-bar:hover .fy-bar-tooltip { opacity: 1; top: -30px; }
+        
+        .fy-bar-label { font-size: 0.65rem; font-weight: 600; color: var(--color-text-muted); text-transform: uppercase; }
+
 
       `}</style>
       </div >
