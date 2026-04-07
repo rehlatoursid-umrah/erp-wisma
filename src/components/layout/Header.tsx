@@ -13,11 +13,12 @@ export default function Header({ onMenuClick, balances }: HeaderProps & {
     USD: number
     IDR: number
     EUR: number
+    monthLabel?: string
   }
 }) {
   const [user, setUser] = useState<{ name: string; role: string; avatar?: any } | null>(null)
   const [time, setTime] = useState<string>('')
-  const [internalBalances, setInternalBalances] = useState<{ EGP: number, USD: number, IDR: number, EUR: number } | null>(null)
+  const [internalBalances, setInternalBalances] = useState<{ EGP: number, USD: number, IDR: number, EUR: number, monthLabel?: string } | null>(null)
 
   // Fetch current user
   useEffect(() => {
@@ -78,32 +79,43 @@ export default function Header({ onMenuClick, balances }: HeaderProps & {
         </button>
         <div className="header-ticker">
           <div className="ticker-wrapper">
+            {/* Month Label Badge */}
+            <div className="ticker-month-badge">
+              📅 {displayBalances?.monthLabel || new Date().toLocaleDateString('id-ID', { month: 'long', year: 'numeric' })}
+            </div>
+
+            <div className="ticker-divider">|</div>
+
             {/* USD Balance */}
             <div className="ticker-item">
-              <Globe size={16} />
-              <span>USD: <strong>{displayBalances?.USD?.toLocaleString() || '0'}</strong></span>
+              <Globe size={15} />
+              <span className="ticker-currency">USD</span>
+              <strong className="ticker-amount">{displayBalances?.USD?.toLocaleString() || '0'}</strong>
             </div>
             {/* EUR Balance */}
             <div className="ticker-item">
-              <Euro size={16} />
-              <span>EUR: <strong>{displayBalances?.EUR?.toLocaleString() || '0'}</strong></span>
+              <Euro size={15} />
+              <span className="ticker-currency">EUR</span>
+              <strong className="ticker-amount">{displayBalances?.EUR?.toLocaleString() || '0'}</strong>
             </div>
             {/* EGP Balance */}
             <div className="ticker-item">
-              <Banknote size={16} />
-              <span>EGP: <strong>{displayBalances?.EGP?.toLocaleString() || '0'}</strong></span>
+              <Banknote size={15} />
+              <span className="ticker-currency">EGP</span>
+              <strong className="ticker-amount">{displayBalances?.EGP?.toLocaleString() || '0'}</strong>
             </div>
             {/* IDR Balance */}
             <div className="ticker-item">
-              <Coins size={16} />
-              <span>IDR: <strong>{displayBalances?.IDR?.toLocaleString() || '0'}</strong></span>
+              <Coins size={15} />
+              <span className="ticker-currency">IDR</span>
+              <strong className="ticker-amount">{displayBalances?.IDR?.toLocaleString() || '0'}</strong>
             </div>
 
             <div className="ticker-divider">|</div>
 
             {/* Clock */}
             <div className="ticker-item clock">
-              <Clock size={16} />
+              <Clock size={15} />
               <span style={{ minWidth: '80px', display: 'inline-block' }}>{time}</span>
             </div>
           </div>
@@ -158,41 +170,79 @@ export default function Header({ onMenuClick, balances }: HeaderProps & {
         .header-ticker {
           display: flex;
           align-items: center;
-          overflow-x: auto; /* Allow horizontal scroll if needed */
-          padding-bottom: 4px; /* Space for scrollbar */
-          scrollbar-width: none; /* Hide scrollbar Firefox */
+          overflow-x: auto;
+          padding-bottom: 2px;
+          scrollbar-width: none;
           flex: 1;
         }
 
         .header-ticker::-webkit-scrollbar {
-          display: none; /* Hide scrollbar Chrome/Safari */
+          display: none;
         }
         
         .ticker-wrapper {
           display: flex;
           align-items: center;
-          gap: var(--spacing-lg);
+          gap: var(--spacing-md);
+        }
+
+        .ticker-month-badge {
+          display: inline-flex;
+          align-items: center;
+          gap: 4px;
+          font-size: 0.78rem;
+          font-weight: 600;
+          color: var(--color-primary);
+          background: rgba(139, 69, 19, 0.08);
+          border: 1px solid rgba(139, 69, 19, 0.15);
+          padding: 3px 10px;
+          border-radius: 20px;
+          white-space: nowrap;
+          letter-spacing: 0.01em;
         }
 
         .ticker-item {
           display: flex;
           align-items: center;
-          gap: var(--spacing-xs);
-          font-size: 0.9375rem;
+          gap: 5px;
+          font-size: 0.875rem;
           color: var(--color-text-secondary);
           white-space: nowrap;
+          background: var(--color-bg-secondary);
+          padding: 4px 10px;
+          border-radius: 8px;
+          transition: all 0.2s ease;
+        }
+
+        .ticker-item:hover {
+          background: rgba(139, 69, 19, 0.06);
+        }
+
+        .ticker-currency {
+          font-size: 0.75rem;
+          color: var(--color-text-muted);
+          font-weight: 500;
+          letter-spacing: 0.05em;
+        }
+
+        .ticker-amount {
+          font-size: 0.9rem;
+          font-weight: 700;
+          color: var(--color-text-primary);
         }
 
         .ticker-divider {
             color: var(--color-text-muted);
-            opacity: 0.5;
-            font-size: 1.2rem;
+            opacity: 0.3;
+            font-size: 1rem;
+            padding: 0 2px;
         }
 
         .clock {
             font-family: monospace;
             font-weight: 600;
             color: var(--color-primary);
+            background: rgba(139, 69, 19, 0.06) !important;
         }
 
         .status-ok {

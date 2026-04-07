@@ -22,11 +22,24 @@ export async function GET(req: Request) {
     }
 
     try {
-        // Use mongoose aggregation directly to avoid memory exhaustion
+        // Calculate start and end of current month
+        const now = new Date()
+        const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1)
+        const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999)
+
+        // Use mongoose aggregation directly for performance
         const Model = payload.db.collections?.['transactions']
         if (Model && typeof Model.aggregate === 'function') {
             const result = await Model.aggregate([
-                { $match: { paymentStatus: 'paid' } },
+                {
+                    $match: {
+                        paymentStatus: 'paid',
+                        createdAt: {
+                            $gte: startOfMonth,
+                            $lte: endOfMonth
+                        }
+                    }
+                },
                 { $group: { _id: '$currency', total: { $sum: '$totalAmount' } } }
             ])
             
@@ -40,7 +53,11 @@ export async function GET(req: Request) {
             const paidInvoices = await payload.find({
                 collection: 'transactions',
                 where: {
-                    paymentStatus: { equals: 'paid' }
+                    and: [
+                        { paymentStatus: { equals: 'paid' } },
+                        { createdAt: { greater_than_equal: startOfMonth.toISOString() } },
+                        { createdAt: { less_than_equal: endOfMonth.toISOString() } },
+                    ]
                 },
                 pagination: false,
                 limit: 10000,
@@ -56,7 +73,9 @@ export async function GET(req: Request) {
             })
         }
 
-        return NextResponse.json(balances)
+        // Include month label for the frontend
+        const monthLabel = now.toLocaleDateString('id-ID', { month: 'long', year: 'numeric' })
+        return NextResponse.json({ ...balances, monthLabel })
     } catch (error) {
         console.error('Error calculating balances:', error)
         return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 })

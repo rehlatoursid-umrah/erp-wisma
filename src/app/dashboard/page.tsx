@@ -143,6 +143,7 @@ export default function DashboardPage() {
       USD: number
       IDR: number
       EUR: number
+      monthLabel?: string
     }
   }>({
     hotel: 0,
@@ -246,45 +247,32 @@ export default function DashboardPage() {
           balances={stats.balances}
         />
 
-        {/* Tab Navigation & Actions */}
-        <div className="dashboard-controls" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+        {/* Premium Tab Navigation */}
+        <div className="dashboard-controls" style={{ marginBottom: '24px' }}>
           <div className="dashboard-tabs">
-            <button
-              className={`tab ${activeTab === 'overview' ? 'active' : ''}`}
-              onClick={() => setActiveTab('overview')}
-            >
-              <LayoutDashboard size={18} /> Overview
-            </button>
-            <button
-              className={`tab ${activeTab === 'hotel' ? 'active' : ''}`}
-              onClick={() => setActiveTab('hotel')}
-            >
-              <Hotel size={18} /> Hotel
-            </button>
-            <button
-              className={`tab ${activeTab === 'aula' ? 'active' : ''}`}
-              onClick={() => setActiveTab('aula')}
-            >
-              <Building2 size={18} /> Auditorium
-            </button>
-            <button
-              className={`tab ${activeTab === 'visa' ? 'active' : ''}`}
-              onClick={() => setActiveTab('visa')}
-            >
-              <Plane size={18} /> Visa
-            </button>
-            <button
-              className={`tab ${activeTab === 'rental' ? 'active' : ''}`}
-              onClick={() => setActiveTab('rental')}
-            >
-              <Package size={18} /> Rental
-            </button>
-            <button
-              className={`tab ${activeTab === 'invoice' ? 'active' : ''}`}
-              onClick={() => setActiveTab('invoice')}
-            >
-              <Receipt size={18} /> Invoice
-            </button>
+            {[
+              { key: 'overview', icon: <LayoutDashboard size={18} />, label: 'Overview', color: '#8B4513' },
+              { key: 'hotel', icon: <Hotel size={18} />, label: 'Hotel', color: '#3b82f6' },
+              { key: 'aula', icon: <Building2 size={18} />, label: 'Auditorium', color: '#8b5cf6' },
+              { key: 'visa', icon: <Plane size={18} />, label: 'Visa', color: '#f59e0b' },
+              { key: 'rental', icon: <Package size={18} />, label: 'Rental', color: '#10b981' },
+              { key: 'invoice', icon: <Receipt size={18} />, label: 'Invoice', color: '#ef4444' },
+            ].map((tab) => (
+              <button
+                key={tab.key}
+                className={`tab ${activeTab === tab.key ? 'active' : ''}`}
+                onClick={() => setActiveTab(tab.key as TabType)}
+                style={{
+                  '--tab-color': tab.color,
+                  '--tab-glow': `${tab.color}25`,
+                  '--tab-bg': `${tab.color}12`,
+                } as React.CSSProperties}
+              >
+                <span className="tab-icon">{tab.icon}</span>
+                <span className="tab-label">{tab.label}</span>
+                {activeTab === tab.key && <span className="tab-indicator" />}
+              </button>
+            ))}
           </div>
         </div>
 
@@ -561,14 +549,17 @@ export default function DashboardPage() {
 
         .dashboard-tabs {
           display: flex;
-          gap: var(--spacing-md);
-          margin-bottom: var(--spacing-xl);
+          gap: 6px;
           overflow-x: auto;
           scrollbar-width: none;
-          -ms-overflow-style: none; /* IE and Edge */
-          padding: 0;
-          background: transparent;
-          border-bottom: 1px solid var(--color-bg-secondary);
+          -ms-overflow-style: none;
+          padding: 6px;
+          background: rgba(255, 255, 255, 0.7);
+          backdrop-filter: blur(20px);
+          -webkit-backdrop-filter: blur(20px);
+          border: 1px solid rgba(139, 69, 19, 0.08);
+          border-radius: 16px;
+          box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04), 0 4px 12px rgba(0, 0, 0, 0.02);
         }
 
         .dashboard-tabs::-webkit-scrollbar {
@@ -578,29 +569,113 @@ export default function DashboardPage() {
         .tab {
           display: inline-flex;
           align-items: center;
-          gap: 6px;
-          padding: var(--spacing-xs) 0 var(--spacing-sm);
+          gap: 8px;
+          padding: 10px 18px;
           background: transparent;
           border: none;
-          border-bottom: 2px solid transparent;
+          border-radius: 12px;
           cursor: pointer;
-          font-size: 0.9375rem;
+          font-size: 0.9rem;
           font-weight: 500;
-          color: var(--color-text-muted);
-          transition: all var(--transition-base);
+          color: #6b7280;
+          transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
           white-space: nowrap;
           flex-shrink: 0;
-          border-radius: 0;
+          position: relative;
+          overflow: hidden;
+        }
+
+        .tab-icon {
+          display: flex;
+          align-items: center;
+          transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .tab-label {
+          transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .tab-indicator {
+          position: absolute;
+          bottom: 4px;
+          left: 50%;
+          transform: translateX(-50%);
+          width: 20px;
+          height: 3px;
+          border-radius: 3px;
+          background: var(--tab-color, var(--color-primary));
+          animation: indicatorIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        @keyframes indicatorIn {
+          from { width: 0; opacity: 0; }
+          to { width: 20px; opacity: 1; }
         }
 
         .tab:hover {
-          color: var(--color-text-primary);
+          color: var(--tab-color, #374151);
+          background: var(--tab-bg, rgba(139, 69, 19, 0.06));
+          transform: translateY(-1px);
+        }
+
+        .tab:hover .tab-icon {
+          transform: scale(1.15);
         }
 
         .tab.active {
-          color: var(--color-primary);
-          border-bottom-color: var(--color-primary);
+          color: var(--tab-color, var(--color-primary));
+          background: var(--tab-bg, rgba(139, 69, 19, 0.08));
           font-weight: 600;
+          box-shadow: 0 2px 8px var(--tab-glow, rgba(139, 69, 19, 0.12));
+        }
+
+        .tab.active .tab-icon {
+          transform: scale(1.1);
+        }
+
+        @media (max-width: 768px) {
+          .dashboard-controls {
+            margin-top: calc(var(--spacing-xl) + 4px);
+            margin-bottom: var(--spacing-lg) !important;
+          }
+
+          .dashboard-tabs {
+            background: rgba(243, 244, 246, 0.95);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-radius: 14px;
+            padding: 4px;
+            border: 1px solid rgba(0, 0, 0, 0.04);
+            gap: 2px;
+            box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.04);
+            mask-image: linear-gradient(to right, black 90%, transparent);
+            -webkit-mask-image: linear-gradient(to right, black 90%, transparent);
+          }
+
+          .tab {
+            padding: 8px 14px;
+            border-radius: 10px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            gap: 5px;
+          }
+
+          .tab.active {
+            background: white;
+            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08), 0 2px 8px rgba(0, 0, 0, 0.04);
+          }
+
+          .tab-indicator {
+            display: none;
+          }
+
+          .tab-label {
+            display: none;
+          }
+
+          .tab.active .tab-label {
+            display: inline;
+          }
         }
 
         .overview-grid {
@@ -618,44 +693,16 @@ export default function DashboardPage() {
           width: 100%;
         }
 
+        @media (max-width: 1200px) {
+          .stats-row {
+            grid-template-columns: repeat(2, 1fr);
+          }
+        }
+
         @media (max-width: 768px) {
           .stats-row {
-             grid-template-columns: repeat(2, 1fr);
-             gap: var(--spacing-sm);
-          }
-
-          /* Phase 3: Breathing Room & iOS Segmented Pill Tabs */
-          .dashboard-controls {
-            margin-top: calc(var(--spacing-xl) + 4px); /* Provide space from sticky header */
-            margin-bottom: var(--spacing-lg) !important;
-          }
-
-          .dashboard-tabs {
-            background: var(--color-bg-secondary);
-            border-radius: 50px;
-            padding: 4px;
-            border-bottom: none;
-            gap: 2px;
-            margin-bottom: 0;
-            /* Optional: soften right-edge scrolling fade */
-            mask-image: linear-gradient(to right, black 90%, transparent);
-            -webkit-mask-image: linear-gradient(to right, black 90%, transparent);
-          }
-
-          .tab {
-            padding: 8px 16px;
-            border-bottom: none;
-            border-radius: 50px;
-            font-size: 0.85rem;
-            color: var(--color-text-secondary);
-            font-weight: 600;
-          }
-
-          .tab.active {
-            background: var(--color-bg-card); /* White/solid active pill */
-            color: var(--color-primary);
-            border-bottom-color: transparent;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.06); /* iOS lift effect */
+            grid-template-columns: repeat(2, 1fr);
+            gap: var(--spacing-sm);
           }
         }
 

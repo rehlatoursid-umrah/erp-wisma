@@ -93,12 +93,18 @@ export async function GET() {
             sort: '-updatedAt', // Show most recently paid/updated
         })
 
-        // 6. Calculate Balances (USD, EGP, IDR)
-        // Income: From Paid Transactions ONLY (As per user request: "uang total pemasukan unit usaha saja")
-        const allPaidInvoices = await payload.find({
+        // 6. Calculate Balances — CURRENT MONTH only (from Paid Transactions)
+        const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1)
+        const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999)
+
+        const monthlyPaidInvoices = await payload.find({
             collection: 'transactions',
             where: {
-                paymentStatus: { equals: 'paid' }
+                and: [
+                    { paymentStatus: { equals: 'paid' } },
+                    { createdAt: { greater_than_equal: startOfMonth.toISOString() } },
+                    { createdAt: { less_than_equal: endOfMonth.toISOString() } },
+                ]
             },
             limit: 10000,
             pagination: false,
@@ -111,8 +117,8 @@ export async function GET() {
             EUR: 0,
         }
 
-        // Add Income
-        allPaidInvoices.docs.forEach((inv: any) => {
+        // Add Income (current month only)
+        monthlyPaidInvoices.docs.forEach((inv: any) => {
             const amount = inv.totalAmount || 0
             const currency = inv.currency as 'EGP' | 'USD' | 'IDR' | 'EUR'
             if (balances.hasOwnProperty(currency)) {
@@ -120,13 +126,15 @@ export async function GET() {
             }
         })
 
+        const monthLabel = now.toLocaleDateString('id-ID', { month: 'long', year: 'numeric' })
+
         return NextResponse.json({
             stats: {
                 hotel: occupiedRooms,
                 aula: upcomingEventsCount,
                 visa: activeVisaCount,
                 rental: activeRentalsCount,
-                balances // Add balances here
+                balances: { ...balances, monthLabel }
             },
             data: {
                 hotel: hotelBookings.docs,
