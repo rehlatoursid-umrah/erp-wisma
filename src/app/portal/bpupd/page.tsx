@@ -6,7 +6,7 @@ import Header from '@/components/layout/Header'
 import PortalPinGuard from '@/components/auth/PortalPinGuard'
 import jsPDF from 'jspdf'
 import autoTable from 'jspdf-autotable'
-import { Plane, ClipboardList, Wallet, BarChart3, ChevronLeft, ChevronRight, Folder, FileText, CheckCircle2, Circle, Clock, Check, Plus, Upload, Printer, Download, Camera, Save, Eye, ArrowDownLeft, ArrowUpRight, Trash2 } from 'lucide-react'
+import { Plane, ClipboardList, Wallet, BarChart3, ChevronLeft, ChevronRight, Folder, FileText, CheckCircle2, Plus, Download, Camera, Save, Eye, ArrowDownLeft, ArrowUpRight, Trash2, X, KanbanSquare, TrendingDown, GripVertical, UserCircle2, Calendar, AlertCircle, CheckCheck, MoveRight, MoveLeft, Filter } from 'lucide-react'
 
 // Mock Data Types
 type Transaction = {
@@ -29,28 +29,42 @@ type Transaction = {
 type Task = {
   id: string
   title: string
-  category: 'housekeeping' | 'maintenance' | 'inventory' | 'admin'
+  description?: string
+  category: 'housekeeping' | 'maintenance' | 'inventory' | 'admin' | 'bpupd'
   priority: 'high' | 'normal' | 'low'
   status: 'pending' | 'in_progress' | 'done'
   dueDate: string
+  relatedRoom?: string
 }
 
 export default function BPUPDPortal() {
   const [sidebarOpen, setSidebarOpen] = useState(false)
-  const [activeTab, setActiveTab] = useState<'kanban' | 'jamaah' | 'broadcast' | 'proker' | 'dana_ops' | 'pendapatan_unit'>('kanban')
+  const [activeTab, setActiveTab] = useState<'proker' | 'dana_ops' | 'pendapatan_unit'>('proker')
   const [financeTab, setFinanceTab] = useState<'income' | 'expense'>('income')
 
   // Financial State
   const [transactions, setTransactions] = useState<Transaction[]>([])
   const [invoices, setInvoices] = useState<Transaction[]>([])
 
-  // Tasks State
+  // Trello Board State
   const [tasks, setTasks] = useState<Task[]>([])
+  const [prokerMonth, setProkerMonth] = useState(new Date().getMonth())
+  const [prokerYear, setProkerYear] = useState(new Date().getFullYear())
+  const [showAddTask, setShowAddTask] = useState<string | null>(null) // column status
+  const [filterAssignee, setFilterAssignee] = useState<string>('all')
   const [taskForm, setTaskForm] = useState({
     title: '',
-    category: 'housekeeping',
-    priority: 'normal'
+    description: '',
+    priority: 'normal' as 'high' | 'normal' | 'low',
+    assigneeName: '',
+    dueDate: new Date().toISOString().split('T')[0],
   })
+
+  const STAFF = [
+    { name: 'Widad Arsyad', initials: 'WA', color: '#3b82f6' },
+    { name: 'Indra Juliana Salim', initials: 'IJ', color: '#8b5cf6' },
+    { name: 'Zulfan Firosi Zulfadhli', initials: 'ZF', color: '#10b981' },
+  ]
 
   // Income Form State
   const [incomeForm, setIncomeForm] = useState({
@@ -315,7 +329,8 @@ export default function BPUPDPortal() {
     // Fetch Tasks
     const fetchTasks = async () => {
       try {
-        const res = await fetch('/api/tasks?category=bpupd')
+        const now = new Date()
+        const res = await fetch(`/api/tasks?category=bpupd&month=${now.getMonth()}&year=${now.getFullYear()}`)
         if (res.ok) {
           const data = await res.json()
           setTasks(data)
@@ -482,27 +497,39 @@ export default function BPUPDPortal() {
     }
   }
 
-  const handleTaskSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
+  // Fetch tasks when month/year changes
+  useEffect(() => {
+    const fetchTasksByMonth = async () => {
+      try {
+        const res = await fetch(`/api/tasks?category=bpupd&month=${prokerMonth}&year=${prokerYear}`)
+        if (res.ok) {
+          const data = await res.json()
+          setTasks(data)
+        }
+      } catch (e) { console.error(e) }
+    }
+    fetchTasksByMonth()
+  }, [prokerMonth, prokerYear])
+
+  const handleAddTask = async (colStatus: string) => {
+    if (!taskForm.title.trim()) return
+    const dueDate = new Date(prokerYear, prokerMonth, 15).toISOString()
     try {
       const res = await fetch('/api/tasks', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(taskForm)
+        body: JSON.stringify({ ...taskForm, category: 'bpupd', status: colStatus, dueDate })
       })
       if (res.ok) {
         const newTask = await res.json()
-        setTasks(prev => [newTask, ...prev])
-        setTaskForm({ title: '', category: 'housekeeping', priority: 'normal' })
+        setTasks(prev => [{ ...newTask, relatedRoom: newTask.relatedRoom || '' }, ...prev])
+        setTaskForm({ title: '', description: '', priority: 'normal', assigneeName: '', dueDate })
+        setShowAddTask(null)
       }
-    } catch (error) {
-      console.error('Error creating task', error)
-      alert('Failed to create task')
-    }
+    } catch (e) { console.error(e) }
   }
 
-  const toggleTaskStatus = async (task: Task) => {
-    const newStatus = task.status === 'done' ? 'pending' : 'done'
+  const moveTask = async (task: Task, newStatus: string) => {
     try {
       const res = await fetch('/api/tasks', {
         method: 'PATCH',
@@ -510,11 +537,17 @@ export default function BPUPDPortal() {
         body: JSON.stringify({ id: task.id, status: newStatus })
       })
       if (res.ok) {
-        setTasks(prev => prev.map(t => t.id === task.id ? { ...t, status: newStatus } : t))
+        setTasks(prev => prev.map(t => t.id === task.id ? { ...t, status: newStatus as any } : t))
       }
-    } catch (error) {
-      console.error('Error updating task', error)
-    }
+    } catch (e) { console.error(e) }
+  }
+
+  const deleteTask = async (id: string) => {
+    if (!confirm('Hapus task ini?')) return
+    try {
+      const res = await fetch(`/api/tasks?id=${id}`, { method: 'DELETE' })
+      if (res.ok) setTasks(prev => prev.filter(t => t.id !== id))
+    } catch (e) { console.error(e) }
   }
 
   const generatePDF = (type: 'income' | 'expense') => {
@@ -583,405 +616,303 @@ export default function BPUPDPortal() {
             </div>
           </div>
 
+          {/* Premium Tab Navigation */}
           <div className="tabs-container">
             <div className="tabs">
-              <button className={`tab ${activeTab === 'kanban' ? 'active' : ''}`} onClick={() => setActiveTab('kanban')}>
-                  <ClipboardList size={18} /> Visa Kanban
-              </button>
-              <button className={`tab ${activeTab === 'proker' ? 'active' : ''}`} onClick={() => setActiveTab('proker')}>
-                  <CheckCircle2 size={18} /> Proker Bulanan
-              </button>
-              <button className={`tab ${activeTab === 'dana_ops' ? 'active' : ''}`} onClick={() => setActiveTab('dana_ops')}>
-                  <Wallet size={18} /> Dana Operasional
-              </button>
-              <button className={`tab ${activeTab === 'pendapatan_unit' ? 'active' : ''}`} onClick={() => setActiveTab('pendapatan_unit')}>
-                  <BarChart3 size={18} /> Monitor Pendapatan
-              </button>
+              {[
+                { key: 'proker', icon: <KanbanSquare size={18} />, label: 'Proker Bulanan' },
+                { key: 'dana_ops', icon: <Wallet size={18} />, label: 'Dana Operasional' },
+                { key: 'pendapatan_unit', icon: <BarChart3 size={18} />, label: 'Monitor Pendapatan' },
+              ].map(t => (
+                <button key={t.key} className={`tab ${activeTab === t.key ? 'active' : ''}`} onClick={() => setActiveTab(t.key as any)}>
+                  {t.icon} {t.label}
+                </button>
+              ))}
             </div>
           </div>
 
-          {activeTab === 'kanban' && (
-            <div className="kanban-board">
-              <div className="kanban-column">
-                <h3 className="column-header pending">📄 Pending Docs (2)</h3>
-              </div>
-              {/* ... existing kanban ... */}
-              <div className="kanban-unavailable">
-                <p>Kanban Board Visualization</p>
-              </div>
-            </div>
-          )}
-
-          {activeTab === 'proker' && (
-            <div className="proker-container">
-              <div className="card full-width">
-                <div className="card-header">
-                  <h3>📝 Program Kerja Bulanan - Februari 2026</h3>
+          {/* ═══════════════════════════════════════════
+              PROKER BULANAN — Trello Board
+          ═══════════════════════════════════════════ */}
+          {activeTab === 'proker' && (() => {
+            const monthName = new Date(prokerYear, prokerMonth, 1).toLocaleString('id-ID', { month: 'long', year: 'numeric' })
+            const COLS = [
+              { status: 'pending', label: '📋 Todo', color: '#6b7280', bg: '#f3f4f6' },
+              { status: 'in_progress', label: '⚡ In Progress', color: '#f59e0b', bg: '#fffbeb' },
+              { status: 'done', label: '✅ Selesai', color: '#10b981', bg: '#ecfdf5' },
+            ]
+            const filtered = tasks.filter(t => filterAssignee === 'all' || (t as any).relatedRoom === filterAssignee)
+            return (
+              <div className="proker-board-wrapper">
+                {/* Board Header */}
+                <div className="proker-header">
+                  <div className="proker-title-row">
+                    <KanbanSquare size={22} style={{ color: 'var(--color-primary)' }} />
+                    <h2>Program Kerja Bulanan</h2>
+                  </div>
+                  <div className="proker-controls-row">
+                    {/* Month Selector */}
+                    <div className="month-nav-pill">
+                      <button className="mnav-btn" onClick={() => { if (prokerMonth === 0) { setProkerMonth(11); setProkerYear(y => y - 1) } else setProkerMonth(m => m - 1) }}><ChevronLeft size={16} /></button>
+                      <span className="mnav-label">{monthName}</span>
+                      <button className="mnav-btn" onClick={() => { if (prokerMonth === 11) { setProkerMonth(0); setProkerYear(y => y + 1) } else setProkerMonth(m => m + 1) }}><ChevronRight size={16} /></button>
+                    </div>
+                    {/* Assignee Filter */}
+                    <div className="assignee-filter-row">
+                      <button className={`af-chip ${filterAssignee === 'all' ? 'af-active' : ''}`} onClick={() => setFilterAssignee('all')}>Semua</button>
+                      {STAFF.map(s => (
+                        <button key={s.name} className={`af-chip ${filterAssignee === s.name ? 'af-active' : ''}`} onClick={() => setFilterAssignee(filterAssignee === s.name ? 'all' : s.name)} style={{ '--chip-color': s.color } as any}>
+                          <span className="af-avatar" style={{ background: s.color }}>{s.initials}</span>
+                          <span className="af-name">{s.initials}</span>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
                 </div>
 
-                <form onSubmit={handleTaskSubmit} className="mobile-task-form">
-                  <div className="task-input-row">
-                    <input
-                      type="text"
-                      placeholder="Tambah kegiatan baru..."
-                      value={taskForm.title}
-                      onChange={e => setTaskForm({ ...taskForm, title: e.target.value })}
-                      required
-                      className="task-input"
-                    />
-                    <button type="submit" className="task-submit-btn">
-                       <Plus size={20} />
-                    </button>
-                  </div>
-                  <div className="task-filters-row">
-                    <select
-                      value={taskForm.category}
-                      onChange={e => setTaskForm({ ...taskForm, category: e.target.value as any })}
-                      className="task-select pill-select"
-                    >
-                      <option value="housekeeping">Housekeeping</option>
-                      <option value="maintenance">Maintenance</option>
-                      <option value="inventory">Inventory</option>
-                      <option value="admin">Admin</option>
-                    </select>
-                    <select
-                      value={taskForm.priority}
-                      onChange={e => setTaskForm({ ...taskForm, priority: e.target.value as any })}
-                      className="task-select pill-select"
-                    >
-                      <option value="normal">Normal</option>
-                      <option value="high">High priority</option>
-                      <option value="low">Low priority</option>
-                    </select>
-                  </div>
-                </form>
-
-                <div className="todo-list">
-                  {tasks.length === 0 ? (
-                    <div className="empty-state">
-                        <CheckCircle2 size={48} className="text-gray-300 mb-2" />
-                        <p>Belum ada program kerja.</p>
-                    </div>
-                  ) : (
-                    tasks.map(task => (
-                      <div key={task.id} className={`todo-item modern-card ${task.status}`}>
-                        <div className="todo-checkbox" onClick={() => toggleTaskStatus(task)}>
-                            {task.status === 'done' ? <CheckCircle2 size={24} className="text-emerald-500" /> : <Circle size={24} className="text-gray-300" />}
+                {/* Kanban Board */}
+                <div className="trello-board">
+                  {COLS.map(col => {
+                    const colTasks = filtered.filter(t => t.status === col.status)
+                    return (
+                      <div key={col.status} className="trello-col">
+                        <div className="trello-col-header">
+                          <span className="trello-col-title" style={{ color: col.color }}>{col.label}</span>
+                          <span className="trello-col-count" style={{ background: col.bg, color: col.color }}>{colTasks.length}</span>
+                          <button className="trello-add-btn" onClick={() => { setShowAddTask(showAddTask === col.status ? null : col.status); setTaskForm({ title: '', description: '', priority: 'normal', assigneeName: '', dueDate: new Date(prokerYear, prokerMonth, 15).toISOString().split('T')[0] }) }}>
+                            <Plus size={16} />
+                          </button>
                         </div>
-                        <div className="todo-content">
-                          <span className={`todo-title ${task.status === 'done' ? 'completed' : ''}`}>
-                            {task.title}
-                          </span>
-                          <div className="todo-meta-tags">
-                            <span className="micro-tag text-xs font-medium px-2 py-0.5 rounded-full bg-slate-100 text-slate-600">{task.category}</span>
-                            <span className={`micro-tag text-xs font-medium px-2 py-0.5 rounded-full ${task.priority === 'high' ? 'bg-red-100 text-red-600' : task.priority === 'normal' ? 'bg-amber-100 text-amber-700' : 'bg-emerald-100 text-emerald-700'}`}>
-                                {task.priority}
-                            </span>
+
+                        {/* Quick Add Form */}
+                        {showAddTask === col.status && (
+                          <div className="trello-add-form">
+                            <input className="trello-input" placeholder="Judul task..." value={taskForm.title} onChange={e => setTaskForm(f => ({ ...f, title: e.target.value }))} autoFocus />
+                            <textarea className="trello-textarea" placeholder="Deskripsi (opsional)" value={taskForm.description} onChange={e => setTaskForm(f => ({ ...f, description: e.target.value }))} rows={2} />
+                            <div className="trello-form-row">
+                              <select className="trello-select" value={taskForm.priority} onChange={e => setTaskForm(f => ({ ...f, priority: e.target.value as any }))}>
+                                <option value="high">🔴 High</option>
+                                <option value="normal">🟡 Normal</option>
+                                <option value="low">🟢 Low</option>
+                              </select>
+                              <select className="trello-select" value={taskForm.assigneeName} onChange={e => setTaskForm(f => ({ ...f, assigneeName: e.target.value }))}>
+                                <option value="">— Assignee —</option>
+                                {STAFF.map(s => <option key={s.name} value={s.name}>{s.name}</option>)}
+                              </select>
+                            </div>
+                            <div className="trello-form-actions">
+                              <button className="trello-save-btn" onClick={() => handleAddTask(col.status)}><Plus size={14} /> Tambah</button>
+                              <button className="trello-cancel-btn" onClick={() => setShowAddTask(null)}><X size={14} /></button>
+                            </div>
                           </div>
-                        </div>
-                      </div>
-                    ))
-                  )}
-                </div>
-              </div>
-            </div>
-          )}
-
-          {activeTab === 'dana_ops' && (
-            <div className="finance-dashboard">
-              <div className="finance-tabs">
-                <button className={`sub-tab ${financeTab === 'income' ? 'active' : ''}`} onClick={() => setFinanceTab('income')}>
-                   <Download size={15} /> Pemasukan
-                </button>
-                <button className={`sub-tab ${financeTab === 'expense' ? 'active' : ''}`} onClick={() => setFinanceTab('expense')}>
-                   <Upload size={15} /> Pengeluaran
-                </button>
-              </div>
-
-              {financeTab === 'income' && (
-                <div className="finance-section animate-fadeIn">
-                  <div className="card finance-card-padded">
-                    <div className="card-top-accent accent-income"></div>
-                    <div className="card-header-minimal">
-                       <h3>Input Penerimaan Dana</h3>
-                       <p className="helper-text">Hanya untuk input dana taktis dari bendahara.</p>
-                    </div>
-                    
-                    <form onSubmit={handleIncomeSubmit} className="form-stack">
-                      <div className="form-group">
-                        <label className="standard-label">Jumlah Uang (EGP)</label>
-                        <div className="currency-input-wrapper">
-                           <span className="currency-prefix">EGP</span>
-                           <input
-                             type="number"
-                             value={incomeForm.amount}
-                             onChange={e => setIncomeForm({ ...incomeForm, amount: e.target.value })}
-                             required
-                             placeholder="0.00"
-                             className="amount-input"
-                           />
-                        </div>
-                      </div>
-                      
-                      <div className="grid grid-cols-1 gap-4">
-                        <div className="form-group">
-                          <label className="standard-label">Tanggal</label>
-                          <input
-                            type="date"
-                            value={incomeForm.date}
-                            onChange={e => setIncomeForm({ ...incomeForm, date: e.target.value })}
-                            required
-                            className="task-input"
-                          />
-                        </div>
-                        <div className="form-group">
-                          <label className="standard-label">Keterangan</label>
-                          <input
-                            type="text"
-                            value={incomeForm.description}
-                            onChange={e => setIncomeForm({ ...incomeForm, description: e.target.value })}
-                            required
-                            placeholder="Contoh: Dana Takis Hostel"
-                            className="task-input"
-                          />
-                        </div>
-                      </div>
-
-                      <div className="form-group">
-                        <label className="standard-label">Upload Bukti Struk</label>
-                        <div className="custom-file-upload">
-                           <input
-                             type="file"
-                             accept="image/*,application/pdf"
-                             onChange={e => {
-                               if (e.target.files && e.target.files[0]) {
-                                 setIncomeForm({ ...incomeForm, file: e.target.files[0] })
-                               }
-                             }}
-                             id="income-file"
-                             className="hidden-file-input"
-                           />
-                           <label htmlFor="income-file" className="file-upload-trigger">
-                              <Camera size={20} /> 
-                              <span>{incomeForm.file ? incomeForm.file.name : 'Tap untuk Unggah Bukti'}</span>
-                           </label>
-                        </div>
-                      </div>
-
-                      <button type="submit" className="action-btn income-btn">
-                        <Save size={18} /> Simpan Pemasukan
-                      </button>
-                    </form>
-                  </div>
-
-                  <div className="mt-6">
-                    <div className="section-header-row mb-4">
-                      <h3>Riwayat Pemasukan</h3>
-                      <button onClick={() => generatePDF('income')} className="pdf-mini-btn">
-                         <FileText size={16} /> PDF
-                      </button>
-                    </div>
-
-                    <div className="transaction-list">
-                        {transactions.filter(t => t.type === 'in' && t.category === 'treasurer_funding').map(t => (
-                          <div key={t.id} className="transaction-item income-item">
-                             <div className="item-main">
-                                <div className="item-info">
-                                   <span className="item-title">{t.description}</span>
-                                   <span className="item-date">{t.date}</span>
-                                </div>
-                                <div className="item-financial">
-                                   <span className="item-amount">+{t.amount}</span>
-                                   <span className="item-currency">{t.currency}</span>
-                                </div>
-                             </div>
-                             <div className="item-footer">
-                                <span className="item-badge-income">Dana Taktis</span>
-                                {t.proofImage && (
-                                  <a 
-                                    href={`/api/media/file/${typeof t.proofImage === 'string' ? t.proofImage : t.proofImage.filename}`} 
-                                    target="_blank" 
-                                    className="proof-link"
-                                  >
-                                    <Eye size={12} /> Bukti
-                                  </a>
-                                )}
-                                <button onClick={() => handleDeleteTransaction(t.id)} className="delete-btn" title="Hapus transaksi">
-                                  <Trash2 size={14} />
-                                </button>
-                             </div>
-                          </div>
-                        ))}
-                        {transactions.filter(t => t.type === 'in' && t.category === 'treasurer_funding').length === 0 && (
-                          <div className="empty-state">Belum ada data pemasukan</div>
                         )}
-                    </div>
+
+                        {/* Cards */}
+                        <div className="trello-cards">
+                          {colTasks.length === 0 && showAddTask !== col.status && (
+                            <div className="trello-empty">Belum ada task di sini</div>
+                          )}
+                          {colTasks.map(task => {
+                            const assignee = STAFF.find(s => s.name === (task as any).relatedRoom)
+                            return (
+                              <div key={task.id} className={`trello-card priority-${task.priority}`}>
+                                <div className="trello-card-body">
+                                  <p className={`trello-card-title ${task.status === 'done' ? 'task-done' : ''}`}>{task.title}</p>
+                                  {task.description && <p className="trello-card-desc">{task.description}</p>}
+                                </div>
+                                <div className="trello-card-footer">
+                                  <span className={`priority-badge p-${task.priority}`}>
+                                    {task.priority === 'high' ? '🔴 High' : task.priority === 'normal' ? '🟡 Normal' : '🟢 Low'}
+                                  </span>
+                                  {assignee && (
+                                    <span className="assignee-chip" style={{ background: assignee.color + '20', color: assignee.color, border: `1px solid ${assignee.color}40` }}>
+                                      <span className="assignee-dot" style={{ background: assignee.color }}>{assignee.initials[0]}</span>
+                                      {assignee.initials}
+                                    </span>
+                                  )}
+                                </div>
+                                <div className="trello-card-actions">
+                                  {col.status !== 'pending' && (
+                                    <button className="card-move-btn" title="Mundur" onClick={() => moveTask(task, col.status === 'in_progress' ? 'pending' : 'in_progress')}><MoveLeft size={13} /></button>
+                                  )}
+                                  {col.status !== 'done' && (
+                                    <button className="card-move-btn fwd" title="Maju" onClick={() => moveTask(task, col.status === 'pending' ? 'in_progress' : 'done')}><MoveRight size={13} /></button>
+                                  )}
+                                  <button className="card-del-btn" title="Hapus" onClick={() => deleteTask(task.id)}><Trash2 size={13} /></button>
+                                </div>
+                              </div>
+                            )
+                          })}
+                        </div>
+                      </div>
+                    )
+                  })}
+                </div>
+
+                {/* Staff Summary */}
+                <div className="staff-summary">
+                  {STAFF.map(s => {
+                    const myTasks = tasks.filter(t => (t as any).relatedRoom === s.name)
+                    const done = myTasks.filter(t => t.status === 'done').length
+                    const total = myTasks.length
+                    const pct = total > 0 ? Math.round((done / total) * 100) : 0
+                    return (
+                      <div key={s.name} className="staff-card">
+                        <div className="staff-avatar" style={{ background: s.color }}>{s.initials}</div>
+                        <div className="staff-info">
+                          <span className="staff-name">{s.name}</span>
+                          <div className="staff-progress-bar"><div className="staff-progress-fill" style={{ width: `${pct}%`, background: s.color }} /></div>
+                          <span className="staff-stat">{done}/{total} selesai · {pct}%</span>
+                        </div>
+                      </div>
+                    )
+                  })}
+                </div>
+              </div>
+            )
+          })()}
+
+          {/* ═══════════════════════════════════════════
+              DANA OPERASIONAL — New Cashflow UI
+          ═══════════════════════════════════════════ */}
+          {activeTab === 'dana_ops' && (
+            <div className="cashflow-dashboard">
+
+              {/* Summary Row */}
+              <div className="cf-summary-row">
+                <div className="cf-card cf-income-card">
+                  <div className="cf-card-icon"><ArrowDownLeft size={22} /></div>
+                  <div className="cf-card-body">
+                    <span className="cf-card-label">Dana Diterima</span>
+                    <span className="cf-card-value">EGP {totalIncome.toLocaleString()}</span>
+                    <span className="cf-card-sub">dari Bendahara</span>
+                  </div>
+                </div>
+                <div className="cf-card cf-expense-card">
+                  <div className="cf-card-icon"><TrendingDown size={22} /></div>
+                  <div className="cf-card-body">
+                    <span className="cf-card-label">Total Belanja</span>
+                    <span className="cf-card-value">EGP {totalExpense.toLocaleString()}</span>
+                    <span className="cf-card-sub">sudah dipakai</span>
+                  </div>
+                </div>
+                <div className={`cf-card cf-balance-card ${remainingBalance < 0 ? 'cf-negative' : ''}`}>
+                  <div className="cf-card-icon"><Wallet size={22} /></div>
+                  <div className="cf-card-body">
+                    <span className="cf-card-label">Sisa Saldo</span>
+                    <span className="cf-card-value">EGP {remainingBalance.toLocaleString()}</span>
+                    <span className="cf-card-sub">{remainingBalance < 0 ? '⚠️ melebihi anggaran' : 'tersisa'}</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Budget Progress Bar */}
+              {totalIncome > 0 && (
+                <div className="cf-progress-wrapper">
+                  <div className="cf-progress-header">
+                    <span>Penggunaan Anggaran</span>
+                    <span className={`cf-pct ${totalExpense / totalIncome > 0.8 ? 'cf-pct-danger' : ''}`}>
+                      {Math.min(Math.round((totalExpense / totalIncome) * 100), 100)}% terpakai
+                    </span>
+                  </div>
+                  <div className="cf-progress-bar">
+                    <div className="cf-progress-fill" style={{ width: `${Math.min((totalExpense / totalIncome) * 100, 100)}%`, background: totalExpense / totalIncome > 0.8 ? '#ef4444' : totalExpense / totalIncome > 0.6 ? '#f59e0b' : '#10b981' }} />
                   </div>
                 </div>
               )}
 
-              {financeTab === 'expense' && (
-                <div className="finance-section animate-fadeIn">
-                  <div className="card finance-card-padded">
-                    <div className="card-top-accent accent-expense"></div>
-                    <div className="card-header-minimal">
-                       <h3>Input Pengeluaran Operasional</h3>
-                       <p className="helper-text">Pencatatan belanja alat tulis, kantor, dan taktis lainnya.</p>
-                    </div>
-
-                    <form onSubmit={handleExpenseSubmit} className="form-stack">
-                      <div className="form-group">
-                        <label className="standard-label">Nama Barang / Belanja</label>
-                        <input 
-                          type="text" 
-                          value={expenseForm.itemName} 
-                          onChange={e => setExpenseForm({ ...expenseForm, itemName: e.target.value })} 
-                          required 
-                          placeholder="Contoh: Beli Token Listrik" 
-                          className="task-input"
-                        />
-                      </div>
-
-                      <div className="grid grid-cols-2 gap-4">
-                        <div className="form-group">
-                          <label className="standard-label">Qty</label>
-                          <input
-                            type="number"
-                            value={expenseForm.quantity}
-                            onChange={e => {
-                              const qty = Number(e.target.value)
-                              const price = Number(expenseForm.unitPrice)
-                              setExpenseForm({ ...expenseForm, quantity: e.target.value, amount: (qty * price).toString() })
-                            }}
-                            placeholder="1"
-                            className="task-input"
-                          />
-                        </div>
-                        <div className="form-group">
-                          <label className="standard-label">Harga Satuan</label>
-                          <input
-                            type="number"
-                            value={expenseForm.unitPrice}
-                            onChange={e => {
-                              const price = Number(e.target.value)
-                              const qty = Number(expenseForm.quantity)
-                              setExpenseForm({ ...expenseForm, unitPrice: e.target.value, amount: (qty * price).toString() })
-                            }}
-                            placeholder="0"
-                            className="task-input"
-                          />
-                        </div>
-                      </div>
-
-                      <div className="form-group">
-                        <label className="standard-label">Total Pengeluaran (EGP)</label>
-                        <div className="currency-input-wrapper bg-gray-50">
-                           <span className="currency-prefix">EGP</span>
-                           <input type="number" value={expenseForm.amount} readOnly placeholder="0.00" className="amount-input text-danger font-bold" />
-                        </div>
-                      </div>
-
-                      <div className="grid grid-cols-1 gap-4">
-                         <div className="form-group text-sm font-medium">
-                            <label className="standard-label">Tanggal Transaksi</label>
-                            <input type="date" value={expenseForm.date} onChange={e => setExpenseForm({ ...expenseForm, date: e.target.value })} required className="task-input" />
-                         </div>
-                      </div>
-
-                      <div className="form-group">
-                        <label className="standard-label">Upload Bukti Kwitansi</label>
-                        <div className="custom-file-upload border-dashed">
-                           <input
-                             type="file"
-                             accept="image/*,application/pdf"
-                             onChange={e => {
-                               if (e.target.files && e.target.files[0]) {
-                                 setExpenseForm({ ...expenseForm, file: e.target.files[0] })
-                               }
-                             }}
-                             id="expense-file"
-                             className="hidden-file-input"
-                           />
-                           <label htmlFor="expense-file" className="file-upload-trigger">
-                              <Camera size={20} /> 
-                              <span>{expenseForm.file ? expenseForm.file.name : 'Tap untuk Unggah Struk'}</span>
-                           </label>
-                        </div>
-                      </div>
-
-                      <button type="submit" className="action-btn expense-btn">
-                        <Save size={18} /> Simpan Pengeluaran
-                      </button>
-                    </form>
+              <div className="cf-two-col">
+                {/* LEFT — Dana Masuk (READ-ONLY dari Bendahara) */}
+                <div className="cf-section">
+                  <div className="cf-section-header income-header">
+                    <div className="cf-section-title"><ArrowDownLeft size={18} /> Dana dari Bendahara</div>
+                    <span className="cf-readonly-badge">Read-Only</span>
                   </div>
-
-                  <div className="card mt-6 financial-summary-card">
-                    <div className="card-header-minimal">
-                      <h3>Ikhtisar Saldo</h3>
-                      <button onClick={() => generatePDF('expense')} className="pdf-mini-btn">
-                         <Download size={16} /> Laporan PDF
-                      </button>
-                    </div>
-                    
-                    <div className="summary-pills mt-4">
-                        <div className="summary-pill">
-                           <div className="pill-icon bg-success-faint text-success"><ArrowDownLeft size={16} /></div>
-                           <div className="pill-content">
-                              <span className="pill-label">Total Masuk</span>
-                              <span className="pill-value text-success">{totalIncome}</span>
-                           </div>
-                        </div>
-                        <div className="summary-pill">
-                           <div className="pill-icon bg-danger-faint text-danger"><ArrowUpRight size={16} /></div>
-                           <div className="pill-content">
-                              <span className="pill-label">Total Belanja</span>
-                              <span className="pill-value text-danger">{totalExpense}</span>
-                           </div>
-                        </div>
-                        <div className="summary-pill highlight">
-                           <div className="pill-icon bg-primary-faint text-primary"><Wallet size={16} /></div>
-                           <div className="pill-content">
-                              <span className="pill-label">Sisa Saldo</span>
-                              <span className={`pill-value ${remainingBalance < 0 ? 'text-danger' : 'text-primary'}`}>{remainingBalance}</span>
-                           </div>
-                        </div>
-                    </div>
-
-                    <div className="transaction-list mt-8">
-                        <h4 className="text-sm font-bold text-gray-400 uppercase tracking-widest mb-4">Daftar Belanja</h4>
-                        {transactions.filter(t => t.type === 'out' && t.category === 'operational').map(t => (
-                          <div key={t.id} className="transaction-item expense-item">
-                             <div className="item-main">
-                                <div className="item-info">
-                                   <span className="item-title">{t.description}</span>
-                                   <span className="item-date">{t.date} • {t.quantity} Pcs x {t.unitPrice}</span>
-                                </div>
-                                <div className="item-financial">
-                                   <span className="item-amount">-{t.amount}</span>
-                                   <span className="item-currency">EGP</span>
-                                </div>
-                             </div>
-                             <div className="item-footer">
-                                <span className="item-badge-expense">Operasional</span>
-                                {t.proofImage && (
-                                  <a 
-                                    href={`/api/media/file/${typeof t.proofImage === 'string' ? t.proofImage : t.proofImage.filename}`} 
-                                    target="_blank" 
-                                    className="proof-link"
-                                  >
-                                   <Eye size={12} /> Struk
-                                  </a>
-                                )}
-                                <button onClick={() => handleDeleteTransaction(t.id)} className="delete-btn" title="Hapus transaksi">
-                                  <Trash2 size={14} />
-                                </button>
-                             </div>
+                  <div className="cf-timeline">
+                    {transactions.filter(t => t.type === 'in' && t.category === 'treasurer_funding').length === 0 ? (
+                      <div className="cf-empty"><Wallet size={32} /><p>Menunggu transfer dari Bendahara</p></div>
+                    ) : (
+                      transactions.filter(t => t.type === 'in' && t.category === 'treasurer_funding').map(t => (
+                        <div key={t.id} className="cf-timeline-item income-item">
+                          <div className="cf-tl-dot income-dot" />
+                          <div className="cf-tl-body">
+                            <div className="cf-tl-top">
+                              <span className="cf-tl-title">{t.description}</span>
+                              <span className="cf-tl-amount income-amount">+{t.amount.toLocaleString()} EGP</span>
+                            </div>
+                            <div className="cf-tl-meta">
+                              <span>{t.date}</span>
+                              {t.proofImage && <a href={`/api/media/file/${typeof t.proofImage === 'string' ? t.proofImage : t.proofImage.filename}`} target="_blank" className="cf-proof-link"><Eye size={11} /> Bukti</a>}
+                            </div>
                           </div>
-                        ))}
-                    </div>
+                        </div>
+                      ))
+                    )}
                   </div>
                 </div>
-              )}
+
+                {/* RIGHT — Catat Belanja (BPUPD Input) */}
+                <div className="cf-section">
+                  <div className="cf-section-header expense-header">
+                    <div className="cf-section-title"><TrendingDown size={18} /> Catat Belanja</div>
+                    <button onClick={() => generatePDF('expense')} className="cf-pdf-btn"><Download size={14} /> PDF</button>
+                  </div>
+
+                  {/* Expense Form */}
+                  <form onSubmit={handleExpenseSubmit} className="cf-expense-form">
+                    <input type="text" className="cf-input" placeholder="Nama barang / keperluan *" value={expenseForm.itemName} onChange={e => setExpenseForm({ ...expenseForm, itemName: e.target.value })} required />
+                    <div className="cf-input-row">
+                      <div className="cf-input-group">
+                        <label>Qty</label>
+                        <input type="number" className="cf-input" placeholder="1" value={expenseForm.quantity} onChange={e => { const qty = Number(e.target.value); const price = Number(expenseForm.unitPrice); setExpenseForm({ ...expenseForm, quantity: e.target.value, amount: (qty * price).toString() }) }} />
+                      </div>
+                      <div className="cf-input-group">
+                        <label>Harga Satuan</label>
+                        <input type="number" className="cf-input" placeholder="0" value={expenseForm.unitPrice} onChange={e => { const price = Number(e.target.value); const qty = Number(expenseForm.quantity); setExpenseForm({ ...expenseForm, unitPrice: e.target.value, amount: (qty * price).toString() }) }} />
+                      </div>
+                    </div>
+                    <div className="cf-total-display">
+                      <span>Total</span>
+                      <span className="cf-total-value">EGP {Number(expenseForm.amount).toLocaleString() || '0'}</span>
+                    </div>
+                    <input type="date" className="cf-input" value={expenseForm.date} onChange={e => setExpenseForm({ ...expenseForm, date: e.target.value })} required />
+                    <div className="cf-upload-area">
+                      <input type="file" accept="image/*,application/pdf" id="exp-file" className="hidden-file-input" onChange={e => { if (e.target.files?.[0]) setExpenseForm({ ...expenseForm, file: e.target.files[0] }) }} />
+                      <label htmlFor="exp-file" className="cf-upload-label">
+                        <Camera size={18} />
+                        <span>{expenseForm.file ? expenseForm.file.name : 'Upload Struk / Kwitansi'}</span>
+                      </label>
+                    </div>
+                    <button type="submit" className="cf-submit-btn"><Save size={16} /> Simpan Belanja</button>
+                  </form>
+
+                  {/* Expense List */}
+                  <div className="cf-timeline" style={{ marginTop: '20px' }}>
+                    {transactions.filter(t => t.type === 'out').length === 0 ? (
+                      <div className="cf-empty"><TrendingDown size={32} /><p>Belum ada catatan belanja</p></div>
+                    ) : (
+                      transactions.filter(t => t.type === 'out').map(t => (
+                        <div key={t.id} className="cf-timeline-item expense-item">
+                          <div className="cf-tl-dot expense-dot" />
+                          <div className="cf-tl-body">
+                            <div className="cf-tl-top">
+                              <span className="cf-tl-title">{t.description}</span>
+                              <span className="cf-tl-amount expense-amount">-{t.amount.toLocaleString()} EGP</span>
+                            </div>
+                            <div className="cf-tl-meta">
+                              <span>{t.date}{t.quantity ? ` · ${t.quantity}x @ ${t.unitPrice}` : ''}</span>
+                              <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
+                                {t.proofImage && <a href={`/api/media/file/${typeof t.proofImage === 'string' ? t.proofImage : t.proofImage.filename}`} target="_blank" className="cf-proof-link"><Eye size={11} /> Struk</a>}
+                                <button onClick={() => handleDeleteTransaction(t.id)} className="cf-del-btn"><Trash2 size={12} /></button>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      ))
+                    )}
+                  </div>
+                </div>
+              </div>
             </div>
           )}
 
@@ -1186,11 +1117,9 @@ export default function BPUPDPortal() {
             padding-bottom: 80px; 
         }
         
-        /* Consistent Typography */
         h1, h2, h3, h4 { font-family: var(--font-heading); }
-        .revenue-number { font-family: var(--font-heading); }
 
-        /* Modern Portal Header */
+        /* Portal Header */
         .portal-header { 
             padding: var(--spacing-lg); 
             background: var(--color-bg-card); 
@@ -1727,6 +1656,166 @@ export default function BPUPDPortal() {
         .file-title { font-size: 0.85rem; font-weight: 700; color: var(--color-text-primary); }
         .file-sub { font-size: 0.7rem; color: var(--color-text-muted); }
         .file-dl-icon { color: var(--color-text-muted); flex-shrink: 0; }
+
+        /* ═══════════════════════════════════
+           TRELLO BOARD — Proker Bulanan
+        ═══════════════════════════════════ */
+        .proker-board-wrapper { padding: var(--spacing-lg); display: flex; flex-direction: column; gap: 20px; }
+        .proker-header { background: var(--color-bg-card); border-radius: var(--radius-xl); padding: 16px 20px; display: flex; flex-direction: column; gap: 14px; box-shadow: var(--shadow-sm); border: 1px solid var(--color-bg-secondary); }
+        .proker-title-row { display: flex; align-items: center; gap: 10px; }
+        .proker-title-row h2 { font-size: 1.2rem; font-weight: 700; color: var(--color-text-primary); margin: 0; }
+        .proker-controls-row { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; }
+
+        /* Month Nav */
+        .month-nav-pill { display: inline-flex; align-items: center; background: var(--color-bg-secondary); border-radius: 30px; overflow: hidden; border: 1px solid var(--color-bg-secondary); }
+        .mnav-btn { background: none; border: none; padding: 6px 10px; cursor: pointer; color: var(--color-text-secondary); display: flex; align-items: center; transition: background 0.2s; }
+        .mnav-btn:hover { background: rgba(139,69,19,0.08); color: var(--color-primary); }
+        .mnav-label { font-size: 0.85rem; font-weight: 700; padding: 0 8px; color: var(--color-text-primary); white-space: nowrap; min-width: 110px; text-align: center; }
+
+        /* Assignee Filter */
+        .assignee-filter-row { display: flex; flex-wrap: wrap; gap: 6px; }
+        .af-chip { display: inline-flex; align-items: center; gap: 5px; padding: 5px 12px; border-radius: 20px; font-size: 0.78rem; font-weight: 600; border: 1.5px solid var(--color-bg-secondary); background: var(--color-bg-secondary); color: var(--color-text-secondary); cursor: pointer; transition: all 0.2s; }
+        .af-chip.af-active { background: rgba(139,69,19,0.1); border-color: var(--color-primary); color: var(--color-primary); }
+        .af-avatar { font-size: 0.68rem; font-weight: 700; color: white; width: 18px; height: 18px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+
+        /* Board */
+        .trello-board { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+        @media (max-width: 768px) { .trello-board { grid-template-columns: 1fr; } }
+
+        /* Column */
+        .trello-col { background: var(--color-bg-secondary); border-radius: var(--radius-xl); padding: 12px; display: flex; flex-direction: column; gap: 10px; min-height: 300px; }
+        .trello-col-header { display: flex; align-items: center; gap: 8px; padding: 2px 0 6px; border-bottom: 1.5px solid rgba(0,0,0,0.06); }
+        .trello-col-title { font-size: 0.82rem; font-weight: 700; flex: 1; }
+        .trello-col-count { font-size: 0.72rem; font-weight: 700; padding: 2px 8px; border-radius: 20px; min-width: 22px; text-align: center; }
+        .trello-add-btn { background: none; border: none; cursor: pointer; color: var(--color-text-muted); display: flex; align-items: center; border-radius: 6px; padding: 3px; transition: all 0.2s; }
+        .trello-add-btn:hover { background: var(--color-bg-card); color: var(--color-primary); }
+
+        /* Add Form */
+        .trello-add-form { background: var(--color-bg-card); border-radius: var(--radius-lg); padding: 10px; display: flex; flex-direction: column; gap: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); border: 1px solid var(--color-bg-secondary); }
+        .trello-input, .trello-textarea, .trello-select { width: 100%; padding: 8px 10px; border: 1.5px solid var(--color-bg-secondary); border-radius: 8px; font-size: 0.82rem; background: var(--color-bg-primary); color: var(--color-text-primary); font-family: var(--font-sans); transition: border 0.2s; resize: none; }
+        .trello-input:focus, .trello-textarea:focus, .trello-select:focus { outline: none; border-color: var(--color-primary); }
+        .trello-form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+        .trello-form-actions { display: flex; gap: 6px; }
+        .trello-save-btn { flex: 1; background: var(--color-primary); color: white; border: none; border-radius: 8px; padding: 7px; font-weight: 700; font-size: 0.8rem; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 5px; transition: opacity 0.2s; }
+        .trello-save-btn:hover { opacity: 0.88; }
+        .trello-cancel-btn { background: var(--color-bg-secondary); border: none; border-radius: 8px; padding: 7px 10px; cursor: pointer; color: var(--color-text-muted); display: flex; align-items: center; transition: background 0.2s; }
+        .trello-cancel-btn:hover { background: rgba(239,68,68,0.1); color: #ef4444; }
+
+        /* Cards */
+        .trello-cards { display: flex; flex-direction: column; gap: 8px; }
+        .trello-empty { text-align: center; padding: 20px; color: var(--color-text-muted); font-size: 0.78rem; border: 1.5px dashed var(--color-bg-card); border-radius: var(--radius-lg); }
+        .trello-card { background: var(--color-bg-card); border-radius: var(--radius-lg); padding: 10px 12px; box-shadow: 0 1px 4px rgba(0,0,0,0.06); border-left: 3px solid transparent; transition: box-shadow 0.2s, transform 0.15s; }
+        .trello-card:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.1); transform: translateY(-1px); }
+        .trello-card.priority-high { border-left-color: #ef4444; }
+        .trello-card.priority-normal { border-left-color: #f59e0b; }
+        .trello-card.priority-low { border-left-color: #10b981; }
+        .trello-card-body { margin-bottom: 8px; }
+        .trello-card-title { font-size: 0.85rem; font-weight: 600; color: var(--color-text-primary); line-height: 1.4; }
+        .trello-card-title.task-done { text-decoration: line-through; color: var(--color-text-muted); }
+        .trello-card-desc { font-size: 0.75rem; color: var(--color-text-muted); margin-top: 4px; line-height: 1.4; }
+        .trello-card-footer { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; margin-bottom: 6px; }
+        .priority-badge { font-size: 0.68rem; font-weight: 700; padding: 2px 7px; border-radius: 10px; }
+        .p-high { background: #fee2e2; color: #dc2626; }
+        .p-normal { background: #fef3c7; color: #b45309; }
+        .p-low { background: #d1fae5; color: #065f46; }
+        .assignee-chip { display: inline-flex; align-items: center; gap: 4px; font-size: 0.68rem; font-weight: 700; padding: 2px 7px; border-radius: 10px; }
+        .assignee-dot { width: 14px; height: 14px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.55rem; color: white; font-weight: 700; }
+        .trello-card-actions { display: flex; gap: 4px; justify-content: flex-end; padding-top: 6px; border-top: 1px solid var(--color-bg-secondary); }
+        .card-move-btn { background: var(--color-bg-secondary); border: none; border-radius: 6px; padding: 4px 6px; cursor: pointer; color: var(--color-text-muted); display: flex; align-items: center; transition: all 0.15s; }
+        .card-move-btn:hover { background: rgba(139,69,19,0.1); color: var(--color-primary); }
+        .card-move-btn.fwd:hover { background: rgba(16,185,129,0.1); color: #10b981; }
+        .card-del-btn { background: none; border: none; border-radius: 6px; padding: 4px 6px; cursor: pointer; color: var(--color-text-muted); display: flex; align-items: center; transition: all 0.15s; margin-left: auto; }
+        .card-del-btn:hover { background: rgba(239,68,68,0.08); color: #ef4444; }
+
+        /* Staff Summary */
+        .staff-summary { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+        @media (max-width: 768px) { .staff-summary { grid-template-columns: 1fr; } }
+        .staff-card { background: var(--color-bg-card); border-radius: var(--radius-xl); padding: 14px 16px; display: flex; align-items: center; gap: 14px; box-shadow: var(--shadow-sm); border: 1px solid var(--color-bg-secondary); }
+        .staff-avatar { width: 44px; height: 44px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: 800; font-size: 0.9rem; flex-shrink: 0; }
+        .staff-info { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 5px; }
+        .staff-name { font-size: 0.82rem; font-weight: 700; color: var(--color-text-primary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .staff-progress-bar { height: 6px; background: var(--color-bg-secondary); border-radius: 10px; overflow: hidden; }
+        .staff-progress-fill { height: 100%; border-radius: 10px; transition: width 0.5s ease; }
+        .staff-stat { font-size: 0.72rem; color: var(--color-text-muted); }
+
+        /* ═══════════════════════════════════
+           CASHFLOW DASHBOARD — Dana Ops
+        ═══════════════════════════════════ */
+        .cashflow-dashboard { padding: var(--spacing-lg); display: flex; flex-direction: column; gap: 20px; }
+
+        /* Summary Cards */
+        .cf-summary-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+        @media (max-width: 768px) { .cf-summary-row { grid-template-columns: 1fr; gap: 10px; } }
+        .cf-card { background: var(--color-bg-card); border-radius: var(--radius-xl); padding: 18px; display: flex; align-items: center; gap: 14px; box-shadow: var(--shadow-sm); border: 1.5px solid transparent; transition: all 0.2s; }
+        .cf-card:hover { transform: translateY(-2px); box-shadow: var(--shadow-md); }
+        .cf-card-icon { width: 44px; height: 44px; border-radius: 12px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+        .cf-income-card .cf-card-icon { background: rgba(16,185,129,0.1); color: #10b981; }
+        .cf-income-card { border-color: rgba(16,185,129,0.15); }
+        .cf-expense-card .cf-card-icon { background: rgba(239,68,68,0.1); color: #ef4444; }
+        .cf-expense-card { border-color: rgba(239,68,68,0.15); }
+        .cf-balance-card .cf-card-icon { background: rgba(139,69,19,0.1); color: var(--color-primary); }
+        .cf-balance-card { border-color: rgba(139,69,19,0.15); }
+        .cf-negative .cf-card-icon { background: rgba(239,68,68,0.1); color: #ef4444; }
+        .cf-negative { border-color: rgba(239,68,68,0.3) !important; }
+        .cf-card-body { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+        .cf-card-label { font-size: 0.75rem; color: var(--color-text-muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; }
+        .cf-card-value { font-size: 1.1rem; font-weight: 800; color: var(--color-text-primary); font-family: var(--font-heading); }
+        .cf-card-sub { font-size: 0.72rem; color: var(--color-text-muted); }
+
+        /* Progress */
+        .cf-progress-wrapper { background: var(--color-bg-card); border-radius: var(--radius-xl); padding: 16px 20px; box-shadow: var(--shadow-sm); border: 1px solid var(--color-bg-secondary); }
+        .cf-progress-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; font-size: 0.82rem; font-weight: 600; color: var(--color-text-secondary); }
+        .cf-pct { font-weight: 800; color: #10b981; }
+        .cf-pct.cf-pct-danger { color: #ef4444; }
+        .cf-progress-bar { height: 10px; background: var(--color-bg-secondary); border-radius: 10px; overflow: hidden; }
+        .cf-progress-fill { height: 100%; border-radius: 10px; transition: width 0.6s ease; }
+
+        /* Two Column Layout */
+        .cf-two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+        @media (max-width: 900px) { .cf-two-col { grid-template-columns: 1fr; } }
+        .cf-section { background: var(--color-bg-card); border-radius: var(--radius-xl); padding: 18px; box-shadow: var(--shadow-sm); border: 1px solid var(--color-bg-secondary); display: flex; flex-direction: column; gap: 14px; }
+        .cf-section-header { display: flex; align-items: center; justify-content: space-between; }
+        .cf-section-title { display: flex; align-items: center; gap: 8px; font-size: 0.9rem; font-weight: 700; color: var(--color-text-primary); }
+        .income-header .cf-section-title { color: #10b981; }
+        .expense-header .cf-section-title { color: #ef4444; }
+        .cf-readonly-badge { font-size: 0.68rem; font-weight: 700; padding: 3px 9px; background: rgba(107,114,128,0.1); color: var(--color-text-muted); border-radius: 20px; border: 1px solid var(--color-bg-secondary); }
+        .cf-pdf-btn { display: inline-flex; align-items: center; gap: 5px; font-size: 0.75rem; font-weight: 700; padding: 5px 10px; background: var(--color-bg-secondary); border: none; border-radius: 8px; cursor: pointer; color: var(--color-text-secondary); transition: all 0.2s; }
+        .cf-pdf-btn:hover { background: rgba(139,69,19,0.1); color: var(--color-primary); }
+
+        /* Timeline */
+        .cf-timeline { display: flex; flex-direction: column; gap: 0; }
+        .cf-timeline-item { display: flex; gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--color-bg-secondary); }
+        .cf-timeline-item:last-child { border-bottom: none; }
+        .cf-tl-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; margin-top: 5px; }
+        .income-dot { background: #10b981; }
+        .expense-dot { background: #ef4444; }
+        .cf-tl-body { flex: 1; min-width: 0; }
+        .cf-tl-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; margin-bottom: 3px; }
+        .cf-tl-title { font-size: 0.84rem; font-weight: 600; color: var(--color-text-primary); }
+        .cf-tl-amount { font-size: 0.84rem; font-weight: 800; white-space: nowrap; font-family: var(--font-heading); }
+        .income-amount { color: #10b981; }
+        .expense-amount { color: #ef4444; }
+        .cf-tl-meta { display: flex; align-items: center; gap: 10px; font-size: 0.72rem; color: var(--color-text-muted); }
+        .cf-proof-link { display: inline-flex; align-items: center; gap: 3px; color: var(--color-primary); font-weight: 600; text-decoration: none; font-size: 0.72rem; }
+        .cf-del-btn { background: none; border: none; padding: 2px 4px; cursor: pointer; color: var(--color-text-muted); display: flex; align-items: center; border-radius: 4px; transition: all 0.15s; }
+        .cf-del-btn:hover { background: rgba(239,68,68,0.08); color: #ef4444; }
+        .cf-empty { display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 28px; color: var(--color-text-muted); text-align: center; }
+        .cf-empty p { font-size: 0.82rem; }
+
+        /* Expense Form */
+        .cf-expense-form { display: flex; flex-direction: column; gap: 10px; }
+        .cf-input { width: 100%; padding: 10px 12px; border: 1.5px solid var(--color-bg-secondary); border-radius: 10px; font-size: 0.85rem; background: var(--color-bg-primary); color: var(--color-text-primary); font-family: var(--font-sans); transition: border 0.2s; box-sizing: border-box; }
+        .cf-input:focus { outline: none; border-color: var(--color-primary); }
+        .cf-input-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+        .cf-input-group { display: flex; flex-direction: column; gap: 4px; }
+        .cf-input-group label { font-size: 0.75rem; font-weight: 600; color: var(--color-text-muted); }
+        .cf-total-display { background: var(--color-bg-secondary); border-radius: 10px; padding: 10px 14px; display: flex; justify-content: space-between; align-items: center; }
+        .cf-total-value { font-size: 1.05rem; font-weight: 800; color: #ef4444; font-family: var(--font-heading); }
+        .cf-upload-area { border: 1.5px dashed var(--color-bg-secondary); border-radius: 10px; overflow: hidden; }
+        .cf-upload-label { display: flex; align-items: center; gap: 10px; padding: 12px 14px; cursor: pointer; color: var(--color-text-muted); font-size: 0.82rem; transition: background 0.2s; }
+        .cf-upload-label:hover { background: var(--color-bg-secondary); }
+        .cf-submit-btn { background: linear-gradient(135deg, #8B4513, #A0522D); color: white; border: none; border-radius: 10px; padding: 12px; font-weight: 700; font-size: 0.88rem; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; transition: opacity 0.2s, transform 0.15s; }
+        .cf-submit-btn:hover { opacity: 0.9; transform: translateY(-1px); }
 
       `}</style>
       </div >
