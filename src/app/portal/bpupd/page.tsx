@@ -88,6 +88,17 @@ export default function BPUPDPortal() {
   const [reportYear, setReportYear] = useState(new Date().getFullYear())
   const [openMonth, setOpenMonth] = useState<number | null>(null)
 
+  // Monthly Cashflow State
+  const TODAY = new Date()
+  const CURRENT_MONTH = TODAY.getMonth()   // 0-11
+  const CURRENT_YEAR  = TODAY.getFullYear()
+  const [cfMonth, setCfMonth] = useState(CURRENT_MONTH)
+  const [cfYear,  setCfYear]  = useState(CURRENT_YEAR)
+  const [cfView, setCfView]   = useState<'dashboard' | 'archive'>('dashboard')
+  // Archive: month summaries for the fiscal year (Feb → Jan)
+  const [archiveSummaries, setArchiveSummaries] = useState<Record<string, { income: number; expense: number; balance: number }>>({}
+  )
+
   const generateMonthlyUnitReport = (monthIndex: number, category: string) => {
     const doc = new jsPDF()
     const monthName = new Date(reportYear, monthIndex, 1).toLocaleString('id-ID', { month: 'long' })
@@ -275,56 +286,9 @@ export default function BPUPDPortal() {
   }
 
   // Initial Fetch
-
-  // Initial Fetch
   useEffect(() => {
-    // Fetch Finance Data
-    const fetchFinance = async () => {
-      try {
-        const res = await fetch('/api/finance')
-        if (res.ok) {
-          const data = await res.json()
-
-          // 1. Map Cashflow Records (For Dana Operasional & Reports)
-          const mappedCashflow = (data.cashflow || []).map((item: any) => ({
-            id: item.id,
-            date: item.transactionDate ? item.transactionDate.split('T')[0] : '',
-            category: item.category,
-            amount: item.amount,
-            currency: item.currency,
-            type: item.type,
-            description: item.description,
-            status: item.approvalStatus,
-            quantity: item.quantity,
-            unitPrice: item.unitPrice,
-            proofImage: item.proofImage
-          }))
-          setTransactions(mappedCashflow)
-
-          // 2. Map Paid Invoices (For Monitor Pendapatan Unit - The "Truth" for Income)
-          const mappedInvoices = (data.invoices || []).map((inv: any) => ({
-            id: inv.id,
-            date: inv.invoiceDate ? inv.invoiceDate.split('T')[0] : (inv.updatedAt ? inv.updatedAt.split('T')[0] : ''),
-            category: inv.bookingType || 'manual',
-            amount: inv.totalAmount,
-            currency: inv.currency,
-            type: 'in',
-            description: `${inv.invoiceNo} - ${inv.customerName}`,
-            status: 'approved',
-            quantity: 1,
-            unitPrice: inv.totalAmount,
-            proofImage: null,
-            relatedBooking: inv.relatedBooking,
-            customerName: inv.customerName,
-            items: inv.items
-          }))
-          setInvoices(mappedInvoices)
-        }
-      } catch (error) {
-        console.error('Failed to fetch finance', error)
-      }
-    }
-    fetchFinance()
+    // Fetch Finance Data for current month
+    fetchCashflow(CURRENT_MONTH, CURRENT_YEAR)
 
     // Fetch Tasks
     const fetchTasks = async () => {
@@ -341,6 +305,118 @@ export default function BPUPDPortal() {
     }
     fetchTasks()
   }, [])
+
+  // Re-fetch when cfMonth/cfYear changes
+  useEffect(() => {
+    fetchCashflow(cfMonth, cfYear)
+  }, [cfMonth, cfYear])
+
+  const fetchCashflow = async (month: number, year: number) => {
+    try {
+      const res = await fetch(`/api/finance?month=${month}&year=${year}`)
+      if (res.ok) {
+        const data = await res.json()
+        const mapped = (data.cashflow || []).map((item: any) => ({
+          id: item.id,
+          date: item.transactionDate ? item.transactionDate.split('T')[0] : '',
+          category: item.category,
+          amount: item.amount,
+          currency: item.currency,
+          type: item.type,
+          description: item.description,
+          status: item.approvalStatus,
+          quantity: item.quantity,
+          unitPrice: item.unitPrice,
+          proofImage: item.proofImage
+        }))
+        setTransactions(mapped)
+
+        const mappedInvoices = (data.invoices || []).map((inv: any) => ({
+          id: inv.id,
+          date: inv.invoiceDate ? inv.invoiceDate.split('T')[0] : (inv.updatedAt ? inv.updatedAt.split('T')[0] : ''),
+          category: inv.bookingType || 'manual',
+          amount: inv.totalAmount,
+          currency: inv.currency,
+          type: 'in' as const,
+          description: `${inv.invoiceNo} - ${inv.customerName}`,
+          status: 'approved' as const,
+          quantity: 1,
+          unitPrice: inv.totalAmount,
+          proofImage: null,
+          relatedBooking: inv.relatedBooking,
+          customerName: inv.customerName,
+          items: inv.items
+        }))
+        setInvoices(mappedInvoices)
+      }
+    } catch (error) {
+      console.error('Failed to fetch finance', error)
+    }
+  }
+
+  // Build fiscal year months: Feb of start year → Jan of next year
+  const buildFiscalMonths = () => {
+    // Fiscal year starts Feb; determine start year based on current date
+    // If current month >= Feb (index 1), fiscal year started this year
+    // If current month < Feb (Jan only), fiscal year started last year
+    const fiscalStartYear = CURRENT_MONTH >= 1 ? CURRENT_YEAR : CURRENT_YEAR - 1
+    const months: { month: number; year: number; label: string }[] = []
+    // Feb (1) → Jan (0) next year = 12 months
+    for (let i = 0; i < 12; i++) {
+      const raw = 1 + i // Feb=1 ... Dec=11, then Jan=0
+      const month = raw % 12 // wraps Jan to 0
+      const year  = raw >= 12 ? fiscalStartYear + 1 : fiscalStartYear
+      months.push({
+        month,
+        year,
+        label: new Date(year, month, 1).toLocaleString('id-ID', { month: 'short' }),
+      })
+    }
+    return months
+  }
+
+  const fiscalMonths = buildFiscalMonths()
+
+  // Generate monthly PDF for cashflow
+  const generateCashflowPDF = (month: number, year: number, txs: Transaction[]) => {
+    const doc = new jsPDF()
+    const monthName = new Date(year, month, 1).toLocaleString('id-ID', { month: 'long', year: 'numeric' })
+
+    // Header
+    doc.setFontSize(14); doc.setFont('helvetica', 'bold')
+    doc.text('WISMA NUSANTARA CAIRO — BPUPD', 105, 15, { align: 'center' })
+    doc.setFontSize(10); doc.setFont('helvetica', 'normal')
+    doc.text('Laporan Dana Operasional', 105, 22, { align: 'center' })
+    doc.text(`Periode: ${monthName}`, 105, 28, { align: 'center' })
+    doc.line(14, 32, 196, 32)
+
+    const income  = txs.filter(t => t.type === 'in').reduce((a, t) => a + t.amount, 0)
+    const expense = txs.filter(t => t.type === 'out').reduce((a, t) => a + t.amount, 0)
+
+    doc.setFontSize(11); doc.setFont('helvetica', 'bold')
+    doc.text('Ringkasan:', 14, 40)
+    doc.setFont('helvetica', 'normal'); doc.setFontSize(10)
+    doc.text(`Dana Masuk  : EGP ${income.toLocaleString()}`, 14, 47)
+    doc.text(`Total Belanja: EGP ${expense.toLocaleString()}`, 14, 53)
+    doc.text(`Sisa Saldo   : EGP ${(income - expense).toLocaleString()}`, 14, 59)
+
+    autoTable(doc as any, {
+      head: [['Tgl', 'Keterangan', 'Tipe', 'Qty', 'Jumlah (EGP)']],
+      body: txs.map(t => [
+        t.date,
+        t.description,
+        t.type === 'in' ? '💰 Masuk' : '🛒 Belanja',
+        t.quantity || '-',
+        `${t.type === 'in' ? '+' : '-'}${t.amount.toLocaleString()}`
+      ]),
+      startY: 68,
+      theme: 'grid',
+      headStyles: { fillColor: [139, 69, 19], textColor: 255 },
+      styles: { fontSize: 9, cellPadding: 3 },
+    })
+
+    doc.save(`Cashflow_BPUPD_${monthName.replace(' ', '_')}.pdf`)
+  }
 
   const handleIncomeSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -773,10 +849,58 @@ export default function BPUPDPortal() {
           })()}
 
           {/* ═══════════════════════════════════════════
-              DANA OPERASIONAL — New Cashflow UI
+              DANA OPERASIONAL — Monthly Cashflow UI
           ═══════════════════════════════════════════ */}
-          {activeTab === 'dana_ops' && (
+          {activeTab === 'dana_ops' && (() => {
+            const isCurrentMonth = cfMonth === CURRENT_MONTH && cfYear === CURRENT_YEAR
+            const isArchive = !isCurrentMonth
+            const viewLabel = new Date(cfYear, cfMonth, 1).toLocaleString('id-ID', { month: 'long', year: 'numeric' })
+
+            return (
             <div className="cashflow-dashboard">
+
+              {/* ── Month Navigator (Fiscal Year: Feb → Jan) ── */}
+              <div className="cf-month-nav">
+                <div className="cf-month-nav-header">
+                  <span className="cf-fiscal-label">📅 Tahun Fiskal — {fiscalMonths[0]?.label} {fiscalMonths[0]?.year} s/d {fiscalMonths[11]?.label} {fiscalMonths[11]?.year}</span>
+                </div>
+                <div className="cf-month-pills">
+                  {fiscalMonths.map((fm) => {
+                    const isCurrent = fm.month === CURRENT_MONTH && fm.year === CURRENT_YEAR
+                    const isSelected = fm.month === cfMonth && fm.year === cfYear
+                    const isPast = new Date(fm.year, fm.month, 1) < new Date(CURRENT_YEAR, CURRENT_MONTH, 1)
+                    return (
+                      <button
+                        key={`${fm.year}-${fm.month}`}
+                        className={`cf-month-pill ${isSelected ? 'cf-mp-selected' : ''} ${isCurrent ? 'cf-mp-current' : ''} ${isPast ? 'cf-mp-past' : ''}`}
+                        onClick={() => { setCfMonth(fm.month); setCfYear(fm.year) }}
+                      >
+                        <span className="cf-mp-label">{fm.label}</span>
+                        <span className="cf-mp-year">{String(fm.year).slice(2)}</span>
+                        {isCurrent && <span className="cf-mp-dot" />}
+                        {isPast && <span className="cf-mp-check">✓</span>}
+                      </button>
+                    )
+                  })}
+                </div>
+              </div>
+
+              {/* ── Archive Banner (when viewing past month) ── */}
+              {isArchive && (
+                <div className="cf-archive-banner">
+                  <div className="cf-archive-icon">📁</div>
+                  <div className="cf-archive-info">
+                    <span className="cf-archive-title">Arsip — {viewLabel}</span>
+                    <span className="cf-archive-sub">Periode ini sudah selesai. Data bersifat read-only.</span>
+                  </div>
+                  <button
+                    className="cf-archive-pdf-btn"
+                    onClick={() => generateCashflowPDF(cfMonth, cfYear, transactions)}
+                  >
+                    <Download size={16} /> Unduh PDF
+                  </button>
+                </div>
+              )}
 
               {/* Summary Row */}
               <div className="cf-summary-row">
@@ -851,14 +975,19 @@ export default function BPUPDPortal() {
                   </div>
                 </div>
 
-                {/* RIGHT — Catat Belanja (BPUPD Input) */}
+                {/* RIGHT — Catat Belanja (only for current month) */}
                 <div className="cf-section">
                   <div className="cf-section-header expense-header">
                     <div className="cf-section-title"><TrendingDown size={18} /> Catat Belanja</div>
-                    <button onClick={() => generatePDF('expense')} className="cf-pdf-btn"><Download size={14} /> PDF</button>
+                    <button onClick={() => generateCashflowPDF(cfMonth, cfYear, transactions)} className="cf-pdf-btn"><Download size={14} /> PDF</button>
                   </div>
 
-                  {/* Expense Form */}
+                  {isArchive ? (
+                    /* Archive View — read-only expense list only */
+                    <div className="cf-archive-expense-note">
+                      <span>🔒 Periode ini sudah ditutup. Data di bawah adalah arsip belanja.</span>
+                    </div>
+                  ) : (
                   <form onSubmit={handleExpenseSubmit} className="cf-expense-form">
                     <input type="text" className="cf-input" placeholder="Nama barang / keperluan *" value={expenseForm.itemName} onChange={e => setExpenseForm({ ...expenseForm, itemName: e.target.value })} required />
                     <div className="cf-input-row">
@@ -885,11 +1014,12 @@ export default function BPUPDPortal() {
                     </div>
                     <button type="submit" className="cf-submit-btn"><Save size={16} /> Simpan Belanja</button>
                   </form>
+                  )}
 
-                  {/* Expense List */}
-                  <div className="cf-timeline" style={{ marginTop: '20px' }}>
+                  {/* Expense List — shared (current & archive) */}
+                  <div className="cf-timeline" style={{ marginTop: '12px' }}>
                     {transactions.filter(t => t.type === 'out').length === 0 ? (
-                      <div className="cf-empty"><TrendingDown size={32} /><p>Belum ada catatan belanja</p></div>
+                      <div className="cf-empty"><TrendingDown size={32} /><p>{isArchive ? 'Tidak ada belanja di periode ini' : 'Belum ada catatan belanja'}</p></div>
                     ) : (
                       transactions.filter(t => t.type === 'out').map(t => (
                         <div key={t.id} className="cf-timeline-item expense-item">
@@ -903,7 +1033,7 @@ export default function BPUPDPortal() {
                               <span>{t.date}{t.quantity ? ` · ${t.quantity}x @ ${t.unitPrice}` : ''}</span>
                               <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
                                 {t.proofImage && <a href={`/api/media/file/${typeof t.proofImage === 'string' ? t.proofImage : t.proofImage.filename}`} target="_blank" className="cf-proof-link"><Eye size={11} /> Struk</a>}
-                                <button onClick={() => handleDeleteTransaction(t.id)} className="cf-del-btn"><Trash2 size={12} /></button>
+                                {!isArchive && <button onClick={() => handleDeleteTransaction(t.id)} className="cf-del-btn"><Trash2 size={12} /></button>}
                               </div>
                             </div>
                           </div>
@@ -914,7 +1044,8 @@ export default function BPUPDPortal() {
                 </div>
               </div>
             </div>
-          )}
+            )
+          })()}
 
           {/* Monitor Pendapatan Unit — Premium Overhaul */}
           {activeTab === 'pendapatan_unit' && (
@@ -1816,6 +1947,36 @@ export default function BPUPDPortal() {
         .cf-upload-label:hover { background: var(--color-bg-secondary); }
         .cf-submit-btn { background: linear-gradient(135deg, #8B4513, #A0522D); color: white; border: none; border-radius: 10px; padding: 12px; font-weight: 700; font-size: 0.88rem; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; transition: opacity 0.2s, transform 0.15s; }
         .cf-submit-btn:hover { opacity: 0.9; transform: translateY(-1px); }
+
+        /* ── Month Navigator ── */
+        .cf-month-nav { background: var(--color-bg-card); border-radius: var(--radius-xl); padding: 14px 16px; box-shadow: var(--shadow-sm); border: 1px solid var(--color-bg-secondary); }
+        .cf-month-nav-header { margin-bottom: 10px; }
+        .cf-fiscal-label { font-size: 0.75rem; font-weight: 700; color: var(--color-text-muted); text-transform: uppercase; letter-spacing: 0.05em; }
+        .cf-month-pills { display: flex; flex-wrap: wrap; gap: 6px; }
+        .cf-month-pill { position: relative; display: flex; flex-direction: column; align-items: center; padding: 6px 10px; border-radius: 10px; border: 1.5px solid var(--color-bg-secondary); background: var(--color-bg-primary); cursor: pointer; transition: all 0.18s; min-width: 44px; gap: 1px; }
+        .cf-month-pill:hover { border-color: var(--color-primary); background: rgba(139,69,19,0.05); }
+        .cf-mp-label { font-size: 0.78rem; font-weight: 700; color: var(--color-text-primary); }
+        .cf-mp-year  { font-size: 0.62rem; color: var(--color-text-muted); font-weight: 600; }
+        .cf-month-pill.cf-mp-past { opacity: 0.75; }
+        .cf-month-pill.cf-mp-past .cf-mp-label { color: var(--color-text-muted); }
+        .cf-mp-check { position: absolute; top: -5px; right: -5px; font-size: 0.6rem; background: #10b981; color: white; border-radius: 50%; width: 14px; height: 14px; display: flex; align-items: center; justify-content: center; font-weight: 700; }
+        .cf-month-pill.cf-mp-current { border-color: var(--color-primary); background: rgba(139,69,19,0.08); }
+        .cf-month-pill.cf-mp-current .cf-mp-label { color: var(--color-primary); }
+        .cf-mp-dot { position: absolute; top: -4px; right: -4px; width: 9px; height: 9px; background: var(--color-primary); border-radius: 50%; border: 2px solid var(--color-bg-card); animation: pulse-dot 2s infinite; }
+        @keyframes pulse-dot { 0%,100% { transform: scale(1); opacity:1 } 50% { transform: scale(1.3); opacity:.7 } }
+        .cf-month-pill.cf-mp-selected { border-color: var(--color-primary) !important; background: var(--color-primary) !important; }
+        .cf-month-pill.cf-mp-selected .cf-mp-label,
+        .cf-month-pill.cf-mp-selected .cf-mp-year { color: white !important; }
+
+        /* ── Archive Banner ── */
+        .cf-archive-banner { display: flex; align-items: center; gap: 14px; background: linear-gradient(135deg, rgba(107,114,128,0.08), rgba(107,114,128,0.04)); border: 1.5px solid rgba(107,114,128,0.2); border-radius: var(--radius-xl); padding: 14px 18px; }
+        .cf-archive-icon { font-size: 2rem; flex-shrink: 0; }
+        .cf-archive-info { flex: 1; display: flex; flex-direction: column; gap: 2px; }
+        .cf-archive-title { font-size: 0.95rem; font-weight: 700; color: var(--color-text-primary); }
+        .cf-archive-sub   { font-size: 0.78rem; color: var(--color-text-muted); }
+        .cf-archive-pdf-btn { display: inline-flex; align-items: center; gap: 7px; padding: 9px 16px; background: var(--color-primary); color: white; border: none; border-radius: 10px; font-weight: 700; font-size: 0.82rem; cursor: pointer; transition: opacity 0.2s; white-space: nowrap; flex-shrink: 0; }
+        .cf-archive-pdf-btn:hover { opacity: 0.88; }
+        .cf-archive-expense-note { background: rgba(107,114,128,0.06); border: 1.5px dashed rgba(107,114,128,0.25); border-radius: 10px; padding: 10px 14px; font-size: 0.8rem; color: var(--color-text-muted); display: flex; align-items: center; gap: 8px; }
 
       `}</style>
       </div >

@@ -2,22 +2,38 @@ import { getPayload } from 'payload'
 import config from '@payload-config'
 import { NextResponse } from 'next/server'
 
-export async function GET() {
+export async function GET(req: Request) {
     const payload = await getPayload({ config })
+    const { searchParams } = new URL(req.url)
+    const month = searchParams.get('month')  // 0-11
+    const year  = searchParams.get('year')
 
     try {
+        // Build cashflow query with optional month/year filter
+        const cashflowWhere: any = {}
+
+        if (month !== null && year !== null) {
+            const m = Number(month)
+            const y = Number(year)
+            const startOfMonth = new Date(y, m, 1).toISOString()
+            const endOfMonth   = new Date(y, m + 1, 0, 23, 59, 59, 999).toISOString()
+            cashflowWhere.and = [
+                { transactionDate: { greater_than_equal: startOfMonth } },
+                { transactionDate: { less_than_equal: endOfMonth } },
+            ]
+        }
+
         const cashflow = await payload.find({
             collection: 'cashflow',
+            where: cashflowWhere,
             sort: '-transactionDate',
-            limit: 100,
+            limit: 500,
             pagination: false,
         })
 
         const invoices = await payload.find({
             collection: 'transactions',
-            where: {
-                paymentStatus: { equals: 'paid' }
-            },
+            where: { paymentStatus: { equals: 'paid' } },
             sort: '-updatedAt',
             limit: 10000,
             pagination: false,
@@ -41,7 +57,6 @@ export async function POST(req: Request) {
         const body = await req.json()
         const { transactionDate, category, amount, currency, type, description, quantity, unitPrice, proofImage } = body
 
-        // Validation
         if (!transactionDate || !category || !amount || !currency || !type) {
             return NextResponse.json({ error: 'Missing required fields' }, { status: 400 })
         }
@@ -49,16 +64,16 @@ export async function POST(req: Request) {
         const newTransaction = await payload.create({
             collection: 'cashflow',
             data: {
-                transactionDate: transactionDate,
-                type: type, // 'in' or 'out'
-                category: category,
+                transactionDate,
+                type,
+                category,
                 amount: Number(amount),
-                currency: currency,
-                description: description,
-                quantity: quantity ? Number(quantity) : undefined,
-                unitPrice: unitPrice ? Number(unitPrice) : undefined,
+                currency,
+                description,
+                quantity:   quantity   ? Number(quantity)   : undefined,
+                unitPrice:  unitPrice  ? Number(unitPrice)  : undefined,
                 proofImage: proofImage || undefined,
-                approvalStatus: 'approved', // Auto-approve for now/Simplification
+                approvalStatus: 'approved',
             },
         })
 
@@ -80,11 +95,7 @@ export async function DELETE(req: Request) {
             return NextResponse.json({ error: 'Missing transaction ID' }, { status: 400 })
         }
 
-        await payload.delete({
-            collection: 'cashflow',
-            id: id,
-        })
-
+        await payload.delete({ collection: 'cashflow', id })
         return NextResponse.json({ success: true, deleted: id })
     } catch (error) {
         console.error('Error deleting transaction:', error)
