@@ -314,7 +314,7 @@ export default function BPUPDPortal() {
             const d = new Date(item.transactionDate)
             const key = `${d.getFullYear()}-${d.getMonth()}`
             if (!grouped[key]) grouped[key] = { income: 0, expense: 0 }
-            if (item.type === 'in') grouped[key].income += item.amount || 0
+            if (item.type === 'in' && item.category === 'treasurer_funding') grouped[key].income += item.amount || 0
             if (item.type === 'out') grouped[key].expense += item.amount || 0
           })
           // Map to fiscal months
