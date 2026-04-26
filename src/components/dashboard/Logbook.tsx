@@ -1,15 +1,6 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-
-interface LogEntry {
-  id: string
-  text: string
-  timestamp: Date
-  author: string
-  category?: string
-}
-
 import {
   BookOpen,
   Megaphone,
@@ -19,12 +10,41 @@ import {
   Briefcase,
   Send
 } from 'lucide-react'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Input } from '@/components/ui/input'
+import { Button } from '@/components/ui/button'
+import { cn } from '@/lib/utils'
 
-// ... interface LogEntry ...
+interface LogEntry {
+  id: string
+  text: string
+  timestamp: Date
+  author: string
+  category?: string
+}
+
+const CATEGORIES = [
+  { value: 'general', label: 'Umum (Piket)', icon: Megaphone },
+  { value: 'bpupd', label: 'BPUPD', icon: Plane },
+  { value: 'bppg', label: 'BPPG', icon: Home },
+  { value: 'bendahara', label: 'Bendahara', icon: Wallet },
+  { value: 'direktur', label: 'Direktur', icon: Briefcase },
+]
+
+function getCategoryIcon(category?: string) {
+  const cat = CATEGORIES.find(c => c.value === category)
+  if (!cat) return <Megaphone size={14} />
+  const Icon = cat.icon
+  return <Icon size={14} />
+}
+
+function getCategoryLabel(category?: string) {
+  if (!category || category === 'general') return 'Piket/Umum'
+  return category.toUpperCase()
+}
 
 export default function Logbook() {
   const [logText, setLogText] = useState('')
-  // ... state ...
   const [category, setCategory] = useState('general')
   const [logs, setLogs] = useState<LogEntry[]>([])
 
@@ -32,7 +52,6 @@ export default function Logbook() {
   useEffect(() => {
     const fetchLogs = async () => {
       try {
-        // Calculate date 2 weeks ago
         const twoWeeksAgo = new Date()
         twoWeeksAgo.setDate(twoWeeksAgo.getDate() - 14)
         const fromDateStr = twoWeeksAgo.toISOString()
@@ -40,12 +59,11 @@ export default function Logbook() {
         const res = await fetch(`/api/tasks?fromDate=${fromDateStr}`)
         if (res.ok) {
           const data = await res.json()
-          // Map tasks to log entries
           const mappedLogs = data.map((task: any) => ({
             id: task.id,
-            text: task.title, // using title as the log text
+            text: task.title,
             timestamp: new Date(task.createdAt),
-            author: task.category === 'general' ? 'Piket' : task.category.toUpperCase(), // approximate author based on category or add author field later
+            author: task.category === 'general' ? 'Piket' : task.category.toUpperCase(),
             category: task.category
           }))
           setLogs(mappedLogs)
@@ -95,271 +113,116 @@ export default function Logbook() {
   }
 
   return (
-    <div className="card logbook">
-      <h3><BookOpen className="inline-icon" size={20} /> Daily Logbook</h3>
+    <Card>
+      <CardHeader className="pb-3">
+        <CardTitle className="text-base font-semibold flex items-center gap-2">
+          <BookOpen size={20} className="text-muted-foreground" />
+          Daily Logbook
+        </CardTitle>
+      </CardHeader>
 
-      <form onSubmit={handleSubmit} className="log-form">
-        <div className="input-group">
-          <select
-            value={category}
-            onChange={(e) => setCategory(e.target.value)}
-            className="category-select"
-          >
-            <option value="general">Umum (Piket)</option>
-            <option value="bpupd">BPUPD</option>
-            <option value="bppg">BPPG</option>
-            <option value="bendahara">Bendahara</option>
-            <option value="direktur">Direktur</option>
-          </select>
-          <input
-            type="text"
-            className="form-input"
-            placeholder={`Catatan untuk ${category.toUpperCase()}...`}
-            value={logText}
-            onChange={(e) => setLogText(e.target.value)}
-          />
-          <button type="submit" className="mobile-send-btn" disabled={!logText.trim()} aria-label="Kirim">
-            <Send size={16} />
-          </button>
-        </div>
-        <button type="submit" className="btn btn-primary icon-btn desktop-send-btn" disabled={!logText.trim()}>
-          <Send size={16} /> Kirim
-        </button>
-      </form>
-
-      <div className="log-list">
-        {logs.map((log) => (
-          <div key={log.id} className="log-item">
-            <div className="log-header">
-              <span className="log-author">
-                {log.category === 'general' ? <><Megaphone size={14} /> Piket/Umum</> :
-                  log.category === 'bpupd' ? <><Plane size={14} /> BPUPD</> :
-                    log.category === 'bppg' ? <><Home size={14} /> BPPG</> :
-                      log.category === 'bendahara' ? <><Wallet size={14} /> Bendahara</> :
-                        log.category === 'direktur' ? <><Briefcase size={14} /> Direktur</> : log.category}
-              </span>
-              <span className="log-time">{formatTime(log.timestamp)}</span>
-            </div>
-            <p className="log-text">{log.text}</p>
+      <CardContent className="space-y-4">
+        {/* Input Form */}
+        <form onSubmit={handleSubmit} className="space-y-2">
+          {/* Desktop Layout */}
+          <div className="hidden lg:flex gap-2">
+            <select
+              value={category}
+              onChange={(e) => setCategory(e.target.value)}
+              className="h-9 rounded-md border border-input bg-background px-3 text-sm min-w-[130px] focus:outline-none focus:ring-2 focus:ring-ring"
+            >
+              {CATEGORIES.map(cat => (
+                <option key={cat.value} value={cat.value}>{cat.label}</option>
+              ))}
+            </select>
+            <Input
+              type="text"
+              placeholder={`Catatan untuk ${category.toUpperCase()}...`}
+              value={logText}
+              onChange={(e) => setLogText(e.target.value)}
+              className="flex-1"
+            />
+            <Button type="submit" disabled={!logText.trim()} size="sm" className="gap-1.5">
+              <Send size={14} /> Kirim
+            </Button>
           </div>
-        ))}
-      </div>
 
-      <style jsx>{`
-        .inline-icon {
-            display: inline-block;
-            vertical-align: middle;
-            margin-right: 8px;
-            margin-bottom: 2px;
-        }
+          {/* Mobile Layout — iMessage-style input */}
+          <div className="lg:hidden flex items-center gap-2 bg-muted/50 dark:bg-muted rounded-full pl-3 pr-1 py-1 border border-border/50">
+            <select
+              value={category}
+              onChange={(e) => setCategory(e.target.value)}
+              className="bg-transparent border-none text-xs font-semibold text-primary min-w-0 w-auto appearance-none cursor-pointer focus:outline-none"
+            >
+              {CATEGORIES.map(cat => (
+                <option key={cat.value} value={cat.value}>{cat.label}</option>
+              ))}
+            </select>
+            <input
+              type="text"
+              placeholder={`Catatan...`}
+              value={logText}
+              onChange={(e) => setLogText(e.target.value)}
+              className="flex-1 bg-transparent border-none text-sm focus:outline-none min-w-0 py-1.5"
+            />
+            <button
+              type="submit"
+              disabled={!logText.trim()}
+              className={cn(
+                "w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 transition-all",
+                logText.trim()
+                  ? "bg-primary text-primary-foreground"
+                  : "bg-muted-foreground/30 text-muted-foreground"
+              )}
+            >
+              <Send size={14} />
+            </button>
+          </div>
+        </form>
 
-        .icon-btn {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-        }
-        
-        /* ... existing styles ... */
+        {/* Log Entries */}
+        {/* Desktop: Card list */}
+        <div className="hidden lg:flex flex-col gap-2 max-h-[300px] overflow-y-auto scrollbar-hide">
+          {logs.map((log) => (
+            <div key={log.id} className="p-3 bg-muted/40 dark:bg-muted/20 rounded-lg transition-colors hover:bg-muted/60">
+              <div className="flex items-center justify-between mb-1">
+                <span className="text-xs font-semibold text-primary flex items-center gap-1.5">
+                  {getCategoryIcon(log.category)}
+                  {getCategoryLabel(log.category)}
+                </span>
+                <span className="text-[0.7rem] text-muted-foreground">{formatTime(log.timestamp)}</span>
+              </div>
+              <p className="text-sm text-foreground/80 leading-relaxed">{log.text}</p>
+            </div>
+          ))}
+        </div>
 
-        .log-form {
-          display: flex;
-          flex-direction: column;
-          gap: var(--spacing-sm);
-          margin-bottom: var(--spacing-lg);
-        }
+        {/* Mobile: Timeline view */}
+        <div className="lg:hidden relative pl-6">
+          {/* Timeline line */}
+          <div className="absolute left-[11px] top-2 bottom-2 w-0.5 bg-border" />
 
-        .input-group {
-            display: flex;
-            gap: var(--spacing-sm);
-        }
+          <div className="flex flex-col">
+            {logs.map((log) => (
+              <div key={log.id} className="relative pb-4 last:pb-0">
+                {/* Timeline dot */}
+                <div className="absolute -left-[15px] top-2 w-2.5 h-2.5 rounded-full bg-card border-2 border-primary z-10" />
 
-        .category-select {
-            padding: 8px;
-            border: 1px solid var(--color-border);
-            border-radius: var(--radius-md);
-            background: var(--color-bg-primary);
-            font-size: 0.875rem;
-            min-width: 120px;
-        }
-
-        .log-form input {
-          flex: 1;
-        }
-
-        .log-list {
-          display: flex;
-          flex-direction: column;
-          gap: var(--spacing-md);
-          max-height: 300px;
-          overflow-y: auto;
-        }
-
-        .log-item {
-          padding: var(--spacing-md);
-          background: var(--color-bg-secondary);
-          border-radius: var(--radius-md);
-        }
-
-        .log-header {
-          display: flex;
-          justify-content: space-between;
-          margin-bottom: var(--spacing-xs);
-        }
-
-        .log-author {
-          font-weight: 600;
-          font-size: 0.8125rem;
-          color: var(--color-primary);
-          display: flex;
-          align-items: center;
-          gap: 6px;
-        }
-
-        .log-time {
-          font-size: 0.75rem;
-          color: var(--color-text-muted);
-        }
-
-        .log-text {
-          font-size: 0.9375rem;
-          color: var(--color-text-secondary);
-          line-height: 1.4;
-        }
-
-        .mobile-send-btn {
-          display: none;
-        }
-
-        @media (max-width: 768px) {
-           .log-form {
-             margin-bottom: var(--spacing-md);
-           }
-           
-           .logbook h3 {
-             font-size: 1.1rem;
-             margin-bottom: var(--spacing-sm);
-           }
-
-           .input-group {
-             background: var(--color-bg-secondary);
-             border-radius: 50px;
-             padding: 4px;
-             padding-left: 12px;
-             display: flex;
-             align-items: center;
-             gap: 8px;
-             border: 1px solid rgba(0,0,0,0.05);
-           }
-
-           .category-select {
-             border: none;
-             background: transparent;
-             padding: 4px 8px;
-             border-radius: 20px;
-             color: var(--color-primary);
-             font-weight: 600;
-             font-size: 0.75rem;
-             min-width: auto;
-             appearance: none;
-             outline: none;
-             cursor: pointer;
-           }
-
-           .form-input {
-             border: none;
-             background: transparent;
-             padding: 8px 0;
-             font-size: 0.9rem;
-             flex: 1;
-             outline: none;
-             box-shadow: none;
-           }
-
-           .desktop-send-btn {
-             display: none !important;
-           }
-
-           .mobile-send-btn {
-             display: flex;
-             align-items: center;
-             justify-content: center;
-             width: 36px;
-             height: 36px;
-             border-radius: 50px;
-             background: var(--color-primary);
-             color: white;
-             border: none;
-             flex-shrink: 0;
-             margin-right: 2px;
-             cursor: pointer;
-             transition: all 0.2s ease;
-           }
-
-           .mobile-send-btn:disabled {
-             opacity: 0.5;
-             background: var(--color-text-muted);
-           }
-
-           .log-list {
-             gap: 0;
-             padding-left: 12px;
-             position: relative;
-             overflow-y: visible;
-             max-height: none;
-           }
-
-           .log-list::before {
-             content: '';
-             position: absolute;
-             left: 20px;
-             top: 10px;
-             bottom: 10px;
-             width: 2px;
-             background: var(--color-border);
-             z-index: 1;
-           }
-
-           .log-item {
-             background: transparent;
-             padding: var(--spacing-sm) 0 var(--spacing-md) 28px;
-             border-radius: 0;
-             position: relative;
-             z-index: 2;
-           }
-
-           .log-item::before {
-             content: '';
-             position: absolute;
-             left: 3px;
-             top: 18px;
-             width: 10px;
-             height: 10px;
-             border-radius: 50%;
-             background: var(--color-bg-card);
-             border: 2px solid var(--color-primary);
-           }
-
-           .log-header {
-             margin-bottom: 2px;
-           }
-
-           .log-author {
-             font-size: 0.85rem;
-             color: var(--color-text-primary);
-           }
-
-           .log-text {
-             font-size: 0.9rem;
-             background: var(--color-bg-secondary);
-             padding: var(--spacing-sm) var(--spacing-md);
-             border-radius: 0 var(--radius-xl) var(--radius-xl) var(--radius-xl);
-             display: inline-block;
-             margin-top: 4px;
-             border: 1px solid rgba(0,0,0,0.03);
-             color: var(--color-text-primary);
-           }
-        }
-      `}</style>
-    </div>
+                <div className="flex items-center justify-between mb-0.5">
+                  <span className="text-xs font-semibold text-foreground flex items-center gap-1.5">
+                    {getCategoryIcon(log.category)}
+                    {getCategoryLabel(log.category)}
+                  </span>
+                  <span className="text-[0.65rem] text-muted-foreground">{formatTime(log.timestamp)}</span>
+                </div>
+                <p className="text-sm text-foreground/80 bg-muted/40 dark:bg-muted/20 inline-block px-3 py-1.5 rounded-r-xl rounded-bl-xl border border-border/30 mt-0.5">
+                  {log.text}
+                </p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </CardContent>
+    </Card>
   )
 }

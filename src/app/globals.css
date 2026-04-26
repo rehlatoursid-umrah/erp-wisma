@@ -1,3 +1,118 @@
+/* ═══════════════════════════════════════════════════════ */
+/* TAILWIND CSS v3 DIRECTIVES                             */
+/* ═══════════════════════════════════════════════════════ */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ═══════════════════════════════════════════════════════ */
+/* SHADCN/UI DESIGN TOKENS (HSL)                          */
+/* Light + Dark mode via next-themes class strategy       */
+/* These coexist with legacy --color-* variables below    */
+/* ═══════════════════════════════════════════════════════ */
+@layer base {
+  :root {
+    /* Background & Foreground */
+    --background: 40 20% 97%;
+    --foreground: 20 14% 9%;
+
+    /* Card */
+    --card: 0 0% 100%;
+    --card-foreground: 20 14% 9%;
+
+    /* Popover */
+    --popover: 0 0% 100%;
+    --popover-foreground: 20 14% 9%;
+
+    /* Primary — Brand: Saddle Brown #8B4513 */
+    --primary: 25 75% 31%;
+    --primary-foreground: 25 60% 97%;
+
+    /* Secondary */
+    --secondary: 32 38% 93%;
+    --secondary-foreground: 20 14% 9%;
+
+    /* Muted */
+    --muted: 32 38% 93%;
+    --muted-foreground: 28 7% 51%;
+
+    /* Accent — Gold */
+    --accent: 43 90% 38%;
+    --accent-foreground: 20 14% 9%;
+
+    /* Destructive */
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+
+    /* Status Colors (Extended for ERP) */
+    --success: 142 71% 45%;
+    --success-foreground: 0 0% 100%;
+    --warning: 48 96% 47%;
+    --warning-foreground: 20 14% 9%;
+    --info: 217 91% 60%;
+    --info-foreground: 0 0% 100%;
+
+    /* Border & Input */
+    --border: 32 20% 88%;
+    --input: 32 20% 88%;
+    --ring: 25 75% 31%;
+
+    /* Radius */
+    --radius: 0.5rem;
+  }
+
+  .dark {
+    /* Background & Foreground */
+    --background: 20 14% 4%;
+    --foreground: 40 20% 97%;
+
+    /* Card */
+    --card: 20 14% 9%;
+    --card-foreground: 40 20% 97%;
+
+    /* Popover */
+    --popover: 20 14% 9%;
+    --popover-foreground: 40 20% 97%;
+
+    /* Primary — Lighter brown for dark backgrounds */
+    --primary: 28 47% 65%;
+    --primary-foreground: 20 14% 9%;
+
+    /* Secondary */
+    --secondary: 20 6% 15%;
+    --secondary-foreground: 40 20% 97%;
+
+    /* Muted */
+    --muted: 20 6% 15%;
+    --muted-foreground: 25 6% 45%;
+
+    /* Accent — Brighter gold for dark */
+    --accent: 43 80% 50%;
+    --accent-foreground: 20 14% 9%;
+
+    /* Destructive */
+    --destructive: 0 63% 31%;
+    --destructive-foreground: 0 0% 100%;
+
+    /* Status Colors */
+    --success: 142 71% 45%;
+    --success-foreground: 0 0% 100%;
+    --warning: 48 96% 47%;
+    --warning-foreground: 20 14% 9%;
+    --info: 217 91% 60%;
+    --info-foreground: 0 0% 100%;
+
+    /* Border & Input */
+    --border: 20 6% 15%;
+    --input: 20 6% 15%;
+    --ring: 28 47% 65%;
+  }
+}
+
+/* ═══════════════════════════════════════════════════════ */
+/* EXISTING LEGACY CSS BELOW — DO NOT MODIFY              */
+/* ═══════════════════════════════════════════════════════ */
+
 /* WIN-OS Design System - Clean, Professional, Modern */
 
 :root {

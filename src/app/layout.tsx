@@ -1,6 +1,8 @@
 import type { Metadata } from 'next'
 import { Inter, Outfit } from 'next/font/google'
 import './globals.css'
+import { ThemeProvider } from '@/components/theme-provider'
+import { Toaster } from 'sonner'
 
 const inter = Inter({
     subsets: ['latin'],
@@ -44,8 +46,19 @@ export default function RootLayout({
     children: React.ReactNode
 }) {
     return (
-        <html lang="id" className={`${inter.variable} ${outfit.variable}`}>
-            <body>{children}</body>
+        <html lang="id" className={`${inter.variable} ${outfit.variable}`} suppressHydrationWarning>
+            <body>
+                <ThemeProvider
+                    attribute="class"
+                    defaultTheme="light"
+                    enableSystem
+                    disableTransitionOnChange
+                >
+                    {children}
+                    <Toaster richColors position="top-right" />
+                </ThemeProvider>
+            </body>
         </html>
     )
 }
+

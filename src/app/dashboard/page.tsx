@@ -2,13 +2,15 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
+import dynamic from 'next/dynamic'
 import {
   Hotel,
   Building2,
   Plane,
   Package,
   Receipt,
-  LayoutDashboard
+  LayoutDashboard,
+  Loader2
 } from 'lucide-react'
 import Sidebar from '@/components/layout/Sidebar'
 import Header from '@/components/layout/Header'
@@ -20,25 +22,25 @@ import Logbook from '@/components/dashboard/Logbook'
 import ManualInvoiceModal from '@/components/invoice/ManualInvoiceModal'
 import InvoiceView from '@/components/dashboard/InvoiceView'
 import WeeklyOverview from '@/components/dashboard/WeeklyOverview'
+import MiniCalendarCard from '@/components/dashboard/MiniCalendarCard'
+import RecentInvoicesCard from '@/components/dashboard/RecentInvoicesCard'
+import { cn } from '@/lib/utils'
 
-// Auditorium booking interface
-interface AuditoriumBooking {
-  id: string
-  date: string
-  bookerName: string
-  eventName: string
-  startTime: string
-  endTime: string
-  excludeService: string
-}
+// Lazy-load Recharts components (SSR unsafe)
+const RevenueChart = dynamic(() => import('@/components/dashboard/RevenueChart'), { ssr: false })
+const OccupancyBar = dynamic(() => import('@/components/dashboard/OccupancyBar'), { ssr: false })
 
-// Mock data untuk demo
-const mockAulaBookings = [
-  { date: '2026-02-02', title: 'Pertemuan Keluarga Ahmad', type: 'booked' as const },
-  { date: '2026-02-05', title: 'Acara Pengajian', type: 'booked' as const },
-  { date: '2026-02-08', title: 'Inquiry: Resepsi', type: 'inquiry' as const },
-  { date: '2026-02-12', title: 'Workshop UMKM', type: 'booked' as const },
-  { date: '2026-02-15', title: 'Inquiry: Meeting', type: 'inquiry' as const },
+// ═══ TYPES ═══
+type BookingType = 'hotel' | 'aula' | 'visa' | 'rental'
+type TabType = 'overview' | 'invoice' | BookingType
+
+const TAB_CONFIG = [
+  { key: 'overview' as const, icon: LayoutDashboard, label: 'Overview', color: '#8B4513' },
+  { key: 'hotel' as const, icon: Hotel, label: 'Hotel', color: '#3b82f6' },
+  { key: 'aula' as const, icon: Building2, label: 'Auditorium', color: '#8b5cf6' },
+  { key: 'visa' as const, icon: Plane, label: 'Visa', color: '#f59e0b' },
+  { key: 'rental' as const, icon: Package, label: 'Rental', color: '#10b981' },
+  { key: 'invoice' as const, icon: Receipt, label: 'Invoice', color: '#ef4444' },
 ]
 
 const mockVisaInquiries = [
@@ -54,41 +56,6 @@ const mockRentalBookings = [
   { date: '2026-02-08', title: 'Kursi x50', type: 'rental' as const },
 ]
 
-const mockHotelRooms = [
-  {
-    id: '101', name: 'Room 101', type: 'standard' as const, price: 300, bookings: [
-      { date: '2026-02-02', guestName: 'Ahmad' },
-      { date: '2026-02-03', guestName: 'Ahmad' },
-      { date: '2026-02-10', guestName: 'Siti' },
-    ]
-  },
-  {
-    id: '102', name: 'Room 102', type: 'standard' as const, price: 300, bookings: [
-      { date: '2026-02-05', guestName: 'Budi' },
-      { date: '2026-02-06', guestName: 'Budi' },
-    ]
-  },
-  { id: '103', name: 'Room 103', type: 'deluxe' as const, price: 450, bookings: [] },
-  {
-    id: '104', name: 'Room 104', type: 'suite' as const, price: 600, bookings: [
-      { date: '2026-02-08', guestName: 'VIP Guest' },
-      { date: '2026-02-09', guestName: 'VIP Guest' },
-      { date: '2026-02-10', guestName: 'VIP Guest' },
-    ]
-  },
-  { id: 'A', name: 'Homestay A', type: 'standard' as const, price: 500, bookings: [] },
-  {
-    id: 'B', name: 'Homestay B', type: 'standard' as const, price: 500, bookings: [
-      { date: '2026-02-02', guestName: 'Keluarga Ali' },
-      { date: '2026-02-03', guestName: 'Keluarga Ali' },
-      { date: '2026-02-04', guestName: 'Keluarga Ali' },
-    ]
-  },
-]
-
-type BookingType = 'hotel' | 'aula' | 'visa' | 'rental'
-type TabType = 'overview' | 'invoice' | BookingType
-
 export default function DashboardPage() {
   const router = useRouter()
   const [sessionLoading, setSessionLoading] = useState(true)
@@ -96,78 +63,33 @@ export default function DashboardPage() {
   const [activeTab, setActiveTab] = useState<TabType>('overview')
   const [refreshTrigger, setRefreshTrigger] = useState(0)
 
+  // ═══ SESSION CHECK ═══
   useEffect(() => {
-    // Check Payload session
     fetch('/api/users/me')
       .then(res => res.json())
       .then(data => {
-        if (!data?.user) {
-          router.push('/')
-        } else {
-          setSessionLoading(false)
-        }
+        if (!data?.user) router.push('/')
+        else setSessionLoading(false)
       })
       .catch(() => router.push('/'))
   }, [router])
 
+  // ═══ BOOKING MODAL STATE ═══
   const [bookingModal, setBookingModal] = useState<{ isOpen: boolean; type: BookingType; date?: Date }>({
     isOpen: false,
     type: 'hotel',
   })
-  const [recentInvoices, setRecentInvoices] = useState([
-    { id: 'INV-20260202-0001', customer: 'Ahmad Fauzi', type: 'Hotel', amount: 'EGP 900', status: 'sent' },
-    { id: 'INV-20260201-0012', customer: 'Siti Aminah', type: 'Aula', amount: 'EGP 450', status: 'paid' },
-  ])
-  const [auditoriumBookings, setAuditoriumBookings] = useState<AuditoriumBooking[]>([])
 
-  // Fetch auditorium bookings from API
-  const fetchAuditoriumBookings = async () => {
-    try {
-      const res = await fetch('/api/booking/auditorium?status=all')
-      if (res.ok) {
-        const data = await res.json()
-        setAuditoriumBookings(data.bookings || [])
-      }
-    } catch (error) {
-      console.error('Failed to fetch auditorium bookings:', error)
-    }
-  }
-
+  // ═══ DASHBOARD DATA ═══
   const [stats, setStats] = useState<{
-    hotel: number
-    aula: number
-    visa: number
-    rental: number
-    balances?: {
-      EGP: number
-      USD: number
-      IDR: number
-      EUR: number
-      monthLabel?: string
-    }
-  }>({
-    hotel: 0,
-    aula: 0,
-    visa: 0,
-    rental: 0,
-    balances: { EGP: 0, USD: 0, IDR: 0, EUR: 0 }
-  })
+    hotel: number; aula: number; visa: number; rental: number
+    balances?: { EGP: number; USD: number; IDR: number; EUR: number; monthLabel?: string }
+  }>({ hotel: 0, aula: 0, visa: 0, rental: 0, balances: { EGP: 0, USD: 0, IDR: 0, EUR: 0 } })
 
   const [dashboardData, setDashboardData] = useState<{
-    hotel: any[],
-    aula: any[],
-    visa: any[],
-    rental: any[],
-    recentPaidInvoices: any[]
-  }>({
-    hotel: [],
-    aula: [],
-    visa: [],
-    rental: [],
-    recentPaidInvoices: []
-  })
+    hotel: any[]; aula: any[]; visa: any[]; rental: any[]; recentPaidInvoices: any[]
+  }>({ hotel: [], aula: [], visa: [], rental: [], recentPaidInvoices: [] })
 
-  // Fetch dashboard stats from API
   const fetchDashboardStats = async () => {
     try {
       const res = await fetch('/api/dashboard/stats')
@@ -181,317 +103,231 @@ export default function DashboardPage() {
     }
   }
 
-  // Load bookings on mount
   useEffect(() => {
-    fetchAuditoriumBookings()
     fetchDashboardStats()
   }, [])
 
+  // ═══ HANDLERS ═══
   const handleBooking = (data: any) => {
-    // Generate invoice
-    const invoiceNo = `INV-${new Date().toISOString().slice(0, 10).replace(/-/g, '')}-${String(Math.floor(Math.random() * 10000)).padStart(4, '0')}`
-
-    // Add to recent invoices
-    setRecentInvoices(prev => [{
-      id: invoiceNo,
-      customer: data.customerName,
-      type: bookingModal.type.charAt(0).toUpperCase() + bookingModal.type.slice(1),
-      amount: 'EGP XXX',
-      status: 'sent',
-    }, ...prev])
-
-    // Refresh Dashboard Data
     fetchDashboardStats()
     setRefreshTrigger(prev => prev + 1)
-
-    // Show success message
-    // alert(`✅ Booking berhasil!\n\n📄 Invoice ${invoiceNo} telah dikirim ke WhatsApp ${data.customerWA}`)
   }
 
   const openBookingModal = (type: BookingType, date?: Date) => {
     setBookingModal({ isOpen: true, type, date })
   }
 
-  // Load bookings on mount
-  useEffect(() => {
-    fetchAuditoriumBookings()
-    fetchDashboardStats()
-  }, []) // Remove dependency array to only fetch once for static demo
-
+  // ═══ LOADING STATE ═══
   if (sessionLoading) {
     return (
-      <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: '#f9fafb', gap: '16px' }}>
-        <div className="loading-spinner">⏳</div>
-        <p style={{ color: '#6b7280', fontWeight: 500, fontSize: '1rem' }}>Memuat sesi pengguna...</p>
-        <style jsx>{`
-          .loading-spinner {
-            font-size: 3rem;
-            animation: spin 1s linear infinite;
-          }
-          @keyframes spin {
-            from { transform: rotate(0deg); }
-            to { transform: rotate(360deg); }
-          }
-        `}</style>
+      <div className="min-h-screen flex flex-col items-center justify-center bg-background gap-4">
+        <Loader2 className="h-10 w-10 animate-spin text-primary" />
+        <p className="text-muted-foreground font-medium text-sm">Memuat sesi pengguna...</p>
       </div>
     )
   }
 
   return (
-    <div className="dashboard-layout">
+    <div className="flex min-h-screen bg-background">
       <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
 
-      <main className="main-content">
-        <Header
-          onMenuClick={() => setSidebarOpen(true)}
-          balances={stats.balances}
-        />
+      <main className="lg:ml-[280px] min-h-screen w-full lg:w-[calc(100vw-280px)] max-w-full p-4 lg:p-6 xl:p-8 transition-all">
+        <Header onMenuClick={() => setSidebarOpen(true)} balances={stats.balances} />
 
-        {/* Premium Tab Navigation */}
-        <div className="dashboard-controls" style={{ marginBottom: '24px' }}>
-          <div className="dashboard-tabs">
-            {[
-              { key: 'overview', icon: <LayoutDashboard size={18} />, label: 'Overview', color: '#8B4513' },
-              { key: 'hotel', icon: <Hotel size={18} />, label: 'Hotel', color: '#3b82f6' },
-              { key: 'aula', icon: <Building2 size={18} />, label: 'Auditorium', color: '#8b5cf6' },
-              { key: 'visa', icon: <Plane size={18} />, label: 'Visa', color: '#f59e0b' },
-              { key: 'rental', icon: <Package size={18} />, label: 'Rental', color: '#10b981' },
-              { key: 'invoice', icon: <Receipt size={18} />, label: 'Invoice', color: '#ef4444' },
-            ].map((tab) => (
+        {/* ═══ TAB NAVIGATION ═══ */}
+        <div className="mb-6 mt-1 lg:mt-0">
+          <div className="flex gap-1.5 overflow-x-auto scrollbar-hide p-1.5 bg-card/70 dark:bg-card/50 backdrop-blur-xl border border-primary/[0.08] dark:border-border rounded-2xl shadow-sm">
+            {TAB_CONFIG.map(tab => (
               <button
                 key={tab.key}
-                className={`tab ${activeTab === tab.key ? 'active' : ''}`}
                 onClick={() => setActiveTab(tab.key as TabType)}
-                style={{
-                  '--tab-color': tab.color,
-                  '--tab-glow': `${tab.color}25`,
-                  '--tab-bg': `${tab.color}12`,
-                } as React.CSSProperties}
+                className={cn(
+                  "inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium whitespace-nowrap flex-shrink-0 relative transition-all duration-200",
+                  activeTab === tab.key
+                    ? "bg-card dark:bg-muted shadow-sm font-semibold"
+                    : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
+                )}
+                style={{ color: activeTab === tab.key ? tab.color : undefined }}
               >
-                <span className="tab-icon">{tab.icon}</span>
-                <span className="tab-label">{tab.label}</span>
-                {activeTab === tab.key && <span className="tab-indicator" />}
+                <tab.icon size={16} />
+                <span className={cn("hidden sm:inline", activeTab === tab.key && "inline")}>
+                  {tab.label}
+                </span>
+                {activeTab === tab.key && (
+                  <span
+                    className="absolute bottom-1 left-1/2 -translate-x-1/2 w-5 h-0.5 rounded-full animate-fade-in"
+                    style={{ background: tab.color }}
+                  />
+                )}
               </button>
             ))}
           </div>
         </div>
 
-        {/* Invoice Tab */}
+        {/* ═══ INVOICE TAB ═══ */}
         {activeTab === 'invoice' && (
           <InvoiceView
             refreshTrigger={refreshTrigger}
-            onUpdate={() => {
-              fetchDashboardStats()
-              setRefreshTrigger(prev => prev + 1)
-            }}
+            onUpdate={() => { fetchDashboardStats(); setRefreshTrigger(prev => prev + 1) }}
           />
         )}
 
-        {/* Overview Tab */}
+        {/* ═══ OVERVIEW TAB ═══ */}
         {activeTab === 'overview' && (
-          <div className="overview-grid">
-            {/* Realtime Weekly Overview */}
+          <div className="space-y-6 animate-fade-in">
             <WeeklyOverview refreshTrigger={refreshTrigger} />
 
+            {/* Mini Calendar Cards */}
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 lg:gap-4">
+              <MiniCalendarCard
+                icon={Hotel}
+                title="Hotel - Minggu Ini"
+                items={dashboardData.hotel}
+                emptyText="Tidak ada booking minggu ini"
+                onViewAll={() => setActiveTab('hotel')}
+                viewAllLabel="Lihat Detail →"
+                renderItem={(booking: any, idx) => {
+                  let roomNum = '?'
+                  try {
+                    if (Array.isArray(booking.assignedRooms)) roomNum = booking.assignedRooms[0]
+                    else if (typeof booking.assignedRooms === 'string') {
+                      const parsed = JSON.parse(booking.assignedRooms)
+                      if (Array.isArray(parsed)) roomNum = parsed[0]
+                      else roomNum = booking.assignedRooms
+                    }
+                  } catch { roomNum = booking.assignedRooms || '?' }
+                  const checkInDate = booking.checkIn ? new Date(booking.checkIn) : null
+                  return (
+                    <div key={idx} className="flex items-center gap-2 text-sm p-1.5 rounded-md bg-red-50/60 dark:bg-red-950/20">
+                      <span className="text-xs whitespace-nowrap min-w-[36px] text-muted-foreground">
+                        {checkInDate ? checkInDate.getDate() : '-'}{' '}
+                        <span className="text-[0.65rem]">{checkInDate ? checkInDate.toLocaleDateString('id-ID', { month: 'short' }) : ''}</span>
+                      </span>
+                      <span className="truncate text-foreground/80">
+                        {booking.guest?.fullName || 'Tamu'}{' '}
+                        <span className="text-muted-foreground text-xs">R.{roomNum}</span>
+                      </span>
+                    </div>
+                  )
+                }}
+              />
 
-            {/* Mini Calendars Grid */}
-            <div className="mini-calendars">
-              <div className="mini-calendar-card" onClick={() => setActiveTab('hotel')}>
-                <h4><Hotel className="inline-icon" size={20} /> Hotel - Minggu Ini</h4>
-                <div className="mini-events">
-                  {dashboardData.hotel && dashboardData.hotel.length === 0 ? <div className="text-muted" style={{ padding: 10, color: '#888' }}>Tidak ada booking minggu ini</div> :
-                    dashboardData.hotel?.slice(0, 5).map((booking: any, idx) => {
-                      // assignedRooms might be JSON string or array
-                      let roomNum = '?'
-                      try {
-                        if (Array.isArray(booking.assignedRooms)) roomNum = booking.assignedRooms[0]
-                        else if (typeof booking.assignedRooms === 'string') {
-                          const parsed = JSON.parse(booking.assignedRooms)
-                          if (Array.isArray(parsed)) roomNum = parsed[0]
-                          else roomNum = booking.assignedRooms
-                        }
-                      } catch (e) { roomNum = booking.assignedRooms || '?' }
+              <MiniCalendarCard
+                icon={Building2}
+                title="Auditorium - Minggu Ini"
+                items={dashboardData.aula}
+                emptyText="Tidak ada booking minggu ini"
+                onViewAll={() => setActiveTab('aula')}
+                viewAllLabel="Lihat Kalender →"
+                renderItem={(booking: any, idx) => (
+                  <div key={idx} className="flex items-center gap-2 text-sm p-1.5 rounded-md bg-red-50/60 dark:bg-red-950/20">
+                    <span className="text-xs whitespace-nowrap min-w-[36px] text-muted-foreground">
+                      {booking.event?.date ? new Date(booking.event.date).getDate() : '-'}{' '}
+                      <span className="text-[0.65rem]">{booking.event?.date ? new Date(booking.event.date).toLocaleDateString('id-ID', { month: 'short' }) : ''}</span>
+                    </span>
+                    <span className="truncate text-foreground/80">{booking.event?.name || 'Event'}</span>
+                  </div>
+                )}
+              />
 
-                      const checkInDate = booking.checkIn ? new Date(booking.checkIn) : null
-
-                      return (
-                        <div key={idx} className="mini-event booked">
-                          <span style={{ whiteSpace: 'nowrap', minWidth: '40px' }}>
-                            {checkInDate ? checkInDate.getDate() : '-'} <small>{checkInDate ? checkInDate.toLocaleDateString('id-ID', { month: 'short' }) : ''}</small>
-                          </span>
-                          <span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                            {booking.guest?.fullName || 'Tamu'} <small style={{ color: '#888' }}>R.{roomNum}</small>
-                          </span>
-                        </div>
-                      )
-                    })
-                  }
-                </div>
-                <span className="view-more">Lihat Detail →</span>
-              </div>
-
-              <div className="mini-calendar-card" onClick={() => setActiveTab('aula')}>
-                <h4><Building2 className="inline-icon" size={20} /> Auditorium - Minggu Ini</h4>
-                <div className="mini-events">
-                  {dashboardData.aula && dashboardData.aula.length === 0 ? <div className="text-muted" style={{ padding: 10, color: '#888' }}>Tidak ada booking minggu ini</div> :
-                    dashboardData.aula?.slice(0, 3).map((booking: any, idx) => (
-                      <div key={idx} className="mini-event booked">
-                        <span style={{ whiteSpace: 'nowrap', minWidth: '40px' }}>
-                          {booking.event?.date ? new Date(booking.event.date).getDate() : '-'} <small>{booking.event?.date ? new Date(booking.event.date).toLocaleDateString('id-ID', { month: 'short' }) : ''}</small>
+              <MiniCalendarCard
+                icon={Plane}
+                title="Visa Inquiries - Minggu Ini"
+                items={dashboardData.visa}
+                emptyText="Tidak ada inquiry minggu ini"
+                onViewAll={() => setActiveTab('visa')}
+                viewAllLabel="Lihat Semua →"
+                renderItem={(item: any, idx) => (
+                  <div key={idx} className="flex items-center gap-2 text-sm py-1">
+                    <span className="w-2.5 h-2.5 rounded-full bg-warning flex-shrink-0" />
+                    <div className="min-w-0">
+                      <span className="block text-[0.75rem] text-muted-foreground">
+                        {item.createdAt ? new Date(item.createdAt).toLocaleDateString('id-ID', { day: 'numeric', month: 'short' }) : '-'}
+                      </span>
+                      <span className="truncate block text-foreground/80">
+                        {item.passengerName}{' '}
+                        <span className="text-muted-foreground text-xs">
+                          ({item.visaStatus === 'pending_docs' ? 'Pending' : 'Process'})
                         </span>
-                        <span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                          {booking.event?.name || 'Event'}
-                        </span>
-                      </div>
-                    ))}
-                </div>
-                <span className="view-more">Lihat Kalender →</span>
-              </div>
+                      </span>
+                    </div>
+                  </div>
+                )}
+              />
 
-              <div className="mini-calendar-card" onClick={() => setActiveTab('visa')}>
-                <h4><Plane className="inline-icon" size={20} /> Visa Inquiries - Minggu Ini</h4>
-                <div className="mini-list">
-                  {dashboardData.visa && dashboardData.visa.length === 0 ? <div className="text-muted" style={{ padding: 10, color: '#888' }}>Tidak ada inquiry minggu ini</div> :
-                    dashboardData.visa?.map((item: any, idx) => (
-                      <div key={idx} className="mini-list-item">
-                        <span className={`dot inquiry`}></span>
-                        <div>
-                          <span style={{ display: 'block', fontSize: '0.8rem', color: '#666' }}>
-                            {item.createdAt ? new Date(item.createdAt).toLocaleDateString('id-ID', { day: 'numeric', month: 'short' }) : '-'}
-                          </span>
-                          <span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                            {item.passengerName} <small style={{ color: '#888' }}>({item.visaStatus === 'pending_docs' ? 'Pending' : 'Process'})</small>
-                          </span>
-                        </div>
-                      </div>
-                    ))}
-                </div>
-                <span className="view-more">Lihat Semua →</span>
-              </div>
+              <MiniCalendarCard
+                icon={Package}
+                title="Rental Equipment - Minggu Ini"
+                items={dashboardData.rental}
+                emptyText="Tidak ada rental minggu ini"
+                onViewAll={() => setActiveTab('rental')}
+                viewAllLabel="Lihat Semua →"
+                renderItem={(item: any, idx) => (
+                  <div key={idx} className="flex items-center gap-2 text-sm py-1">
+                    <span className="w-2.5 h-2.5 rounded-full bg-info flex-shrink-0" />
+                    <div className="min-w-0">
+                      <span className="block text-[0.75rem] text-muted-foreground">
+                        {item.createdAt ? new Date(item.createdAt).toLocaleDateString('id-ID', { day: 'numeric', month: 'short' }) : '-'}
+                      </span>
+                      <span className="truncate block text-foreground/80">
+                        {item.customerName}{' '}
+                        <span className="text-muted-foreground text-xs">({item.invoiceNo})</span>
+                      </span>
+                    </div>
+                  </div>
+                )}
+              />
+            </div>
 
-              <div className="mini-calendar-card" onClick={() => setActiveTab('rental')}>
-                <h4><Package className="inline-icon" size={20} /> Rental Equipment - Minggu Ini</h4>
-                <div className="mini-list">
-                  {dashboardData.rental && dashboardData.rental.length === 0 ? <div className="text-muted" style={{ padding: 10, color: '#888' }}>Tidak ada rental minggu ini</div> :
-                    dashboardData.rental?.slice(0, 3).map((item: any, idx) => (
-                      <div key={idx} className="mini-list-item">
-                        <span className="dot rental"></span>
-                        <div>
-                          <span style={{ display: 'block', fontSize: '0.8rem', color: '#666' }}>
-                            {item.createdAt ? new Date(item.createdAt).toLocaleDateString('id-ID', { day: 'numeric', month: 'short' }) : '-'}
-                          </span>
-                          <span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                            {item.customerName} <small style={{ color: '#888' }}>({item.invoiceNo})</small>
-                          </span>
-                        </div>
-                      </div>
-                    ))}
-                </div>
-                <span className="view-more">Lihat Semua →</span>
-              </div>
+            {/* Charts Row */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+              <RevenueChart invoices={dashboardData.recentPaidInvoices} />
+              <OccupancyBar stats={{ hotel: stats.hotel, auditorium: stats.aula, visa: stats.visa, rental: stats.rental }} />
             </div>
 
             {/* Recent Paid Invoices */}
-            <div className="card invoices-card">
-              <div className="card-header">
-                <h3><Receipt className="inline-icon" size={24} /> Recent Paid Invoices</h3>
-                <span className="badge badge-success">Verified Payment</span>
-              </div>
-              <div className="table-responsive">
-                <table className="invoices-table">
-                  <thead>
-                    <tr>
-                      <th>Invoice</th>
-                      <th>Customer</th>
-                      <th>Type</th>
-                      <th>Amount</th>
-                      <th>Status</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {dashboardData.recentPaidInvoices && dashboardData.recentPaidInvoices.length === 0 ? (
-                      <tr>
-                        <td colSpan={5} style={{ textAlign: 'center', color: '#888', padding: '20px' }}>
-                          Belum ada invoice lunas
-                        </td>
-                      </tr>
-                    ) : (
-                      dashboardData.recentPaidInvoices?.map((inv: any, idx) => (
-                        <tr key={idx}>
-                          <td data-label="Invoice"><code>{inv.invoiceNo}</code></td>
-                          <td data-label="Customer" className="customer-cell">{inv.customerName}</td>
-                          <td data-label="Type" style={{ textTransform: 'capitalize' }}>{inv.bookingType}</td>
-                          <td data-label="Amount" className="amount-cell">{inv.currency} {inv.totalAmount?.toLocaleString()}</td>
-                          <td data-label="Status">
-                            <span className="badge badge-success">
-                              ✓ Paid
-                            </span>
-                          </td>
-                        </tr>
-                      ))
-                    )}
-                  </tbody>
-                </table>
-              </div>
-            </div>
+            <RecentInvoicesCard invoices={dashboardData.recentPaidInvoices || []} />
 
             {/* Logbook */}
             <Logbook />
           </div>
         )}
 
-        {/* Hotel Tab */}
+        {/* ═══ HOTEL TAB ═══ */}
         {activeTab === 'hotel' && (
-          <div className="tab-content">
-            <div className="tab-header">
-              <h2 style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                <Hotel size={32} strokeWidth={1.5} /> Hotel Calendar
+          <div className="animate-fade-in space-y-4">
+            <div className="flex items-center justify-between">
+              <h2 className="text-xl font-semibold flex items-center gap-3 font-heading">
+                <Hotel size={28} strokeWidth={1.5} /> Hotel Calendar
               </h2>
-              <button
-                className="btn btn-primary"
-                onClick={() => openBookingModal('hotel')}
-              >
-                + New Booking
-              </button>
+              <button className="btn btn-primary" onClick={() => openBookingModal('hotel')}>+ New Booking</button>
             </div>
             <HotelCalendar
               refreshTrigger={refreshTrigger}
-              onUpdate={() => {
-                fetchDashboardStats()
-                setRefreshTrigger(prev => prev + 1)
-              }}
-              onBookRoom={(roomNumber, date) => {
-                setBookingModal({ isOpen: true, type: 'hotel', date })
-              }}
+              onUpdate={() => { fetchDashboardStats(); setRefreshTrigger(prev => prev + 1) }}
+              onBookRoom={(roomNumber, date) => setBookingModal({ isOpen: true, type: 'hotel', date })}
             />
           </div>
         )}
 
-        {/* Auditorium Tab */}
+        {/* ═══ AUDITORIUM TAB ═══ */}
         {activeTab === 'aula' && (
-          <div className="tab-content">
-            <div className="tab-header">
-              <h2 style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                <Building2 size={32} strokeWidth={1.5} /> Auditorium Schedule
-              </h2>
-            </div>
+          <div className="animate-fade-in space-y-4">
+            <h2 className="text-xl font-semibold flex items-center gap-3 font-heading">
+              <Building2 size={28} strokeWidth={1.5} /> Auditorium Schedule
+            </h2>
             <AuditoriumCalendar />
           </div>
         )}
 
-        {/* Visa Tab */}
+        {/* ═══ VISA TAB ═══ */}
         {activeTab === 'visa' && (
-          <div className="tab-content">
-            <div className="tab-header">
-              <h2 style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                <Plane size={32} strokeWidth={1.5} /> Visa Inquiries
+          <div className="animate-fade-in space-y-4">
+            <div className="flex items-center justify-between">
+              <h2 className="text-xl font-semibold flex items-center gap-3 font-heading">
+                <Plane size={28} strokeWidth={1.5} /> Visa Inquiries
               </h2>
-              <button
-                className="btn btn-primary"
-                onClick={() => openBookingModal('visa')}
-              >
-                + Add Inquiry
-              </button>
+              <button className="btn btn-primary" onClick={() => openBookingModal('visa')}>+ Add Inquiry</button>
             </div>
             <LiveCalendar
               bookings={mockVisaInquiries}
@@ -505,19 +341,14 @@ export default function DashboardPage() {
           </div>
         )}
 
-        {/* Rental Tab */}
+        {/* ═══ RENTAL TAB ═══ */}
         {activeTab === 'rental' && (
-          <div className="tab-content">
-            <div className="tab-header">
-              <h2 style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                <Package size={32} strokeWidth={1.5} /> Equipment Rentals
+          <div className="animate-fade-in space-y-4">
+            <div className="flex items-center justify-between">
+              <h2 className="text-xl font-semibold flex items-center gap-3 font-heading">
+                <Package size={28} strokeWidth={1.5} /> Equipment Rentals
               </h2>
-              <button
-                className="btn btn-primary"
-                onClick={() => openBookingModal('rental')}
-              >
-                + New Rental
-              </button>
+              <button className="btn btn-primary" onClick={() => openBookingModal('rental')}>+ New Rental</button>
             </div>
             <LiveCalendar
               bookings={mockRentalBookings}
@@ -539,585 +370,6 @@ export default function DashboardPage() {
         type={bookingModal.type}
         selectedDate={bookingModal.date}
       />
-
-      <style jsx>{`
-        .dashboard-layout {
-          display: flex;
-          min-height: 100vh;
-          background: var(--color-bg-primary);
-        }
-
-        .dashboard-tabs {
-          display: flex;
-          gap: 6px;
-          overflow-x: auto;
-          scrollbar-width: none;
-          -ms-overflow-style: none;
-          padding: 6px;
-          background: rgba(255, 255, 255, 0.7);
-          backdrop-filter: blur(20px);
-          -webkit-backdrop-filter: blur(20px);
-          border: 1px solid rgba(139, 69, 19, 0.08);
-          border-radius: 16px;
-          box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04), 0 4px 12px rgba(0, 0, 0, 0.02);
-        }
-
-        .dashboard-tabs::-webkit-scrollbar {
-          display: none;
-        }
-
-        .tab {
-          display: inline-flex;
-          align-items: center;
-          gap: 8px;
-          padding: 10px 18px;
-          background: transparent;
-          border: none;
-          border-radius: 12px;
-          cursor: pointer;
-          font-size: 0.9rem;
-          font-weight: 500;
-          color: #6b7280;
-          transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-          white-space: nowrap;
-          flex-shrink: 0;
-          position: relative;
-          overflow: hidden;
-        }
-
-        .tab-icon {
-          display: flex;
-          align-items: center;
-          transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-
-        .tab-label {
-          transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-
-        .tab-indicator {
-          position: absolute;
-          bottom: 4px;
-          left: 50%;
-          transform: translateX(-50%);
-          width: 20px;
-          height: 3px;
-          border-radius: 3px;
-          background: var(--tab-color, var(--color-primary));
-          animation: indicatorIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
-        }
-
-        @keyframes indicatorIn {
-          from { width: 0; opacity: 0; }
-          to { width: 20px; opacity: 1; }
-        }
-
-        .tab:hover {
-          color: var(--tab-color, #374151);
-          background: var(--tab-bg, rgba(139, 69, 19, 0.06));
-          transform: translateY(-1px);
-        }
-
-        .tab:hover .tab-icon {
-          transform: scale(1.15);
-        }
-
-        .tab.active {
-          color: var(--tab-color, var(--color-primary));
-          background: var(--tab-bg, rgba(139, 69, 19, 0.08));
-          font-weight: 600;
-          box-shadow: 0 2px 8px var(--tab-glow, rgba(139, 69, 19, 0.12));
-        }
-
-        .tab.active .tab-icon {
-          transform: scale(1.1);
-        }
-
-        @media (max-width: 768px) {
-          .dashboard-controls {
-            margin-top: calc(var(--spacing-xl) + 4px);
-            margin-bottom: var(--spacing-lg) !important;
-          }
-
-          .dashboard-tabs {
-            background: rgba(243, 244, 246, 0.95);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-            border-radius: 14px;
-            padding: 4px;
-            border: 1px solid rgba(0, 0, 0, 0.04);
-            gap: 2px;
-            box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.04);
-            mask-image: linear-gradient(to right, black 90%, transparent);
-            -webkit-mask-image: linear-gradient(to right, black 90%, transparent);
-          }
-
-          .tab {
-            padding: 8px 14px;
-            border-radius: 10px;
-            font-size: 0.8rem;
-            font-weight: 600;
-            gap: 5px;
-          }
-
-          .tab.active {
-            background: white;
-            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08), 0 2px 8px rgba(0, 0, 0, 0.04);
-          }
-
-          .tab-indicator {
-            display: none;
-          }
-
-          .tab-label {
-            display: none;
-          }
-
-          .tab.active .tab-label {
-            display: inline;
-          }
-        }
-
-        .overview-grid {
-          display: flex;
-          flex-direction: column;
-          gap: var(--spacing-xl);
-          animation: slideUp 0.5s var(--transition-base);
-          width: 100%;
-        }
-
-        .stats-row {
-          display: grid;
-          grid-template-columns: repeat(4, 1fr);
-          gap: var(--spacing-lg);
-          width: 100%;
-        }
-
-        @media (max-width: 1200px) {
-          .stats-row {
-            grid-template-columns: repeat(2, 1fr);
-          }
-        }
-
-        @media (max-width: 768px) {
-          .stats-row {
-            grid-template-columns: repeat(2, 1fr);
-            gap: var(--spacing-sm);
-          }
-        }
-
-        .stat-card {
-          display: flex;
-          align-items: center;
-          gap: var(--spacing-lg);
-          padding: var(--spacing-xl);
-          background: var(--color-bg-card);
-          border-radius: var(--radius-xl);
-          box-shadow: var(--shadow-sm);
-          transition: all var(--transition-base);
-          cursor: pointer;
-          border: 1px solid transparent;
-        }
-
-        .stat-card:hover {
-          transform: translateY(-4px) scale(1.02);
-          box-shadow: var(--shadow-lg);
-          border-color: var(--color-primary-light);
-        }
-
-        .stat-icon {
-          font-size: 2.5rem;
-          transition: transform var(--transition-spring);
-        }
-
-        .stat-card:hover .stat-icon {
-          transform: scale(1.2) rotate(-5deg);
-        }
-
-        .stat-info {
-          display: flex;
-          flex-direction: column;
-          gap: var(--spacing-xs);
-        }
-
-        .stat-value {
-          font-size: 2rem;
-          font-weight: 700;
-          color: var(--color-primary);
-          line-height: 1;
-        }
-
-        @media (max-width: 768px) {
-          .stat-value {
-             font-size: 1.25rem;
-          }
-          .stat-icon {
-             font-size: 1.75rem;
-          }
-          .stat-card {
-             gap: var(--spacing-sm);
-             padding: var(--spacing-md);
-          }
-        }
-
-        .stat-label {
-          font-size: 0.9375rem;
-          color: var(--color-text-muted);
-        }
-
-        .mini-calendars {
-          display: grid;
-          grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-          gap: var(--spacing-lg);
-          width: 100%;
-        }
-
-        @media (max-width: 768px) {
-          .mini-calendars {
-             grid-template-columns: repeat(2, 1fr);
-             gap: var(--spacing-sm);
-          }
-          
-          .mini-calendar-card {
-             padding: var(--spacing-sm);
-          }
-
-          .mini-rooms {
-             grid-template-columns: repeat(2, 1fr);
-             gap: 4px;
-          }
-        }
-
-        .mini-calendar-card {
-          background: var(--color-bg-card);
-          border-radius: var(--radius-xl);
-          padding: var(--spacing-lg);
-          box-shadow: var(--shadow-sm);
-          cursor: pointer;
-          transition: all var(--transition-base);
-          border: 1px solid transparent;
-          position: relative;
-          overflow: hidden;
-        }
-
-        .mini-calendar-card::after {
-          content: '';
-          position: absolute;
-          top: 0;
-          right: 0;
-          width: 100px;
-          height: 100px;
-          background: linear-gradient(135deg, var(--color-primary-light) 0%, transparent 70%);
-          opacity: 0;
-          transition: opacity var(--transition-base);
-          border-radius: 0 var(--radius-xl) 0 100%;
-        }
-
-        .mini-calendar-card:hover {
-          transform: translateY(-6px) scale(1.02);
-          box-shadow: var(--shadow-xl);
-          border-color: var(--color-primary-light);
-        }
-
-        .mini-calendar-card:hover::after {
-          opacity: 0.3;
-        }
-
-        .mini-calendar-card h4 {
-          margin-bottom: var(--spacing-lg);
-          font-size: 1rem;
-          font-weight: 600;
-        }
-
-        .mini-rooms {
-          display: grid;
-          grid-template-columns: repeat(4, 1fr);
-          gap: var(--spacing-sm);
-          margin-bottom: var(--spacing-lg);
-        }
-
-        .mini-room {
-          padding: var(--spacing-sm);
-          text-align: center;
-          border-radius: var(--radius-md);
-          font-size: 0.875rem;
-          font-weight: 600;
-          transition: all var(--transition-base);
-        }
-
-        .mini-room:hover {
-          transform: scale(1.1);
-        }
-
-        .mini-room.available {
-          background: var(--color-success-light);
-          color: #166534;
-        }
-
-        .mini-room.booked {
-          background: var(--color-error-light);
-          color: #991B1B;
-        }
-
-        .mini-events {
-          display: flex;
-          flex-direction: column;
-          gap: var(--spacing-sm);
-          margin-bottom: var(--spacing-lg);
-        }
-
-        .mini-event {
-          display: flex;
-          align-items: center;
-          gap: var(--spacing-md);
-          padding: var(--spacing-sm) var(--spacing-md);
-          border-radius: var(--radius-md);
-          font-size: 0.875rem;
-          transition: all var(--transition-fast);
-        }
-
-        .mini-event:hover {
-          transform: translateX(4px);
-        }
-
-        .mini-event.booked {
-          background: var(--color-error-light);
-        }
-
-        .mini-event.inquiry {
-          background: var(--color-warning-light);
-        }
-
-        .mini-list {
-          display: flex;
-          flex-direction: column;
-          gap: var(--spacing-sm);
-          margin-bottom: var(--spacing-lg);
-        }
-
-        .mini-list-item {
-          display: flex;
-          align-items: center;
-          gap: var(--spacing-md);
-          font-size: 0.875rem;
-          padding: var(--spacing-xs) 0;
-          transition: all var(--transition-fast);
-        }
-
-        .mini-list-item:hover {
-          transform: translateX(4px);
-          color: var(--color-primary);
-        }
-
-        .dot {
-          width: 10px;
-          height: 10px;
-          border-radius: 50%;
-          transition: transform var(--transition-spring);
-        }
-
-        .mini-list-item:hover .dot {
-          transform: scale(1.5);
-        }
-
-        .dot.booked { background: var(--color-success); }
-        .dot.inquiry { background: var(--color-warning); }
-        .dot.rental { background: var(--color-info); }
-
-        .view-more {
-          font-size: 0.875rem;
-          color: var(--color-primary);
-          font-weight: 500;
-          display: flex;
-          align-items: center;
-          gap: var(--spacing-xs);
-          transition: all var(--transition-fast);
-        }
-
-        .mini-calendar-card:hover .view-more {
-          transform: translateX(4px);
-        }
-
-        .invoices-card {
-          overflow: hidden;
-          border-radius: var(--radius-xl);
-        }
-
-        .card-header {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          margin-bottom: var(--spacing-xl);
-        }
-
-        .card-header h3 {
-          margin: 0;
-          font-size: 1.25rem;
-        }
-
-        /* Table Responsive Styles */
-        .table-responsive {
-          width: 100%;
-          overflow-x: auto;
-          -webkit-overflow-scrolling: touch;
-        }
-        
-        .invoices-table {
-          width: 100%;
-          min-width: 600px; /* Trigger scroll on screens smaller than 600px */
-          border-collapse: collapse;
-          margin-top: var(--spacing-md);
-        }
-
-        .invoices-table th,
-        .invoices-table td {
-          padding: var(--spacing-sm) var(--spacing-md);
-          text-align: left;
-          border-bottom: 1px solid rgba(139, 69, 19, 0.1);
-        }
-
-        .invoices-table tr {
-          transition: all var(--transition-fast);
-        }
-
-        .invoices-table tbody tr:hover {
-          background: var(--color-bg-secondary);
-        }
-
-        .invoices-table th {
-          font-weight: 600;
-          color: var(--color-text-secondary);
-          font-size: 0.875rem;
-          text-transform: uppercase;
-          letter-spacing: 0.05em;
-        }
-
-        .invoices-table code {
-          font-size: 0.875rem;
-          color: var(--color-primary);
-          background: rgba(139, 69, 19, 0.05);
-          padding: var(--spacing-xs) var(--spacing-sm);
-          border-radius: var(--radius-sm);
-        }
-
-        @media (max-width: 768px) {
-          .table-responsive {
-            background: transparent;
-            padding: 0;
-            border: none;
-          }
-          
-          .invoices-table {
-            min-width: 100%;
-            display: block;
-            margin-top: 0;
-          }
-
-          .invoices-table thead {
-            display: none;
-          }
-
-          .invoices-table tbody {
-            display: flex;
-            flex-direction: column;
-            gap: var(--spacing-md);
-          }
-
-          .invoices-table tr {
-            display: flex;
-            flex-direction: column;
-            background: var(--color-bg-primary);
-            border: 1px solid var(--color-bg-secondary);
-            border-radius: var(--radius-lg);
-            padding: var(--spacing-md);
-          }
-
-          .invoices-table tbody tr:hover {
-            background: var(--color-bg-primary);
-            border-color: var(--color-primary-light);
-            transform: translateY(-2px);
-          }
-
-          .invoices-table td {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: var(--spacing-xs) 0;
-            border-bottom: 1px dashed rgba(0,0,0,0.05);
-            font-size: 0.9rem;
-          }
-          
-          .invoices-table td:last-child {
-            border-bottom: none;
-            padding-bottom: 0;
-            padding-top: var(--spacing-sm);
-          }
-
-          .invoices-table td::before {
-            content: attr(data-label);
-            font-size: 0.75rem;
-            color: var(--color-text-muted);
-            text-transform: uppercase;
-            font-weight: 600;
-          }
-
-          .customer-cell {
-            font-weight: 600;
-            color: var(--color-text-primary);
-          }
-          
-          .amount-cell {
-            font-weight: 600;
-            color: var(--color-primary);
-          }
-        }
-
-        .tab-content {
-          animation: slideUp 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-
-        .tab-header {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          margin-bottom: var(--spacing-xl);
-        }
-
-        .tab-header h2 {
-          margin: 0;
-          font-size: 1.75rem;
-        }
-
-        @keyframes slideUp {
-          from {
-            opacity: 0;
-            transform: translateY(20px);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(0);
-          }
-        }
-
-        @keyframes fadeIn {
-          from { opacity: 0; }
-          to { opacity: 1; }
-        }
-
-        @keyframes pulse {
-          0%, 100% { transform: scale(1); }
-          50% { transform: scale(1.05); }
-        }
-
-        @media (max-width: 1200px) {
-          .stats-row {
-            grid-template-columns: repeat(2, 1fr);
-          }
-          .mini-calendars {
-            grid-template-columns: repeat(2, 1fr);
-          }
-        }
-      `}</style>
     </div>
   )
 }
