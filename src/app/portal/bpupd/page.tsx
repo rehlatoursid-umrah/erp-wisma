@@ -1499,7 +1499,7 @@ export default function BPUPDPortal() {
                               </td>
                               <td style={{ padding: '16px', textAlign: 'right' }}>
                                 <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
-                                  <button onClick={() => { setInvForm({ ...item, id: item.id }); setShowInvForm(true) }} style={{ background: 'transparent', border: 'none', color: '#3b82f6', cursor: 'pointer', padding: 4 }}><Eye size={18} /></button>
+                                  <button onClick={() => { setInvForm({ ...item, id: item.id, description: item.description || '' }); setShowInvForm(true) }} style={{ background: 'transparent', border: 'none', color: '#3b82f6', cursor: 'pointer', padding: 4 }}><Eye size={18} /></button>
                                   <button onClick={() => deleteInventory(item.id)} style={{ background: 'transparent', border: 'none', color: '#ef4444', cursor: 'pointer', padding: 4 }}><Trash2 size={18} /></button>
                                 </div>
                               </td>
