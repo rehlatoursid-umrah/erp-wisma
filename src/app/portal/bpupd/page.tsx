@@ -1237,6 +1237,32 @@ export default function BPUPDPortal() {
           {activeTab === 'pendapatan_unit' && (
             <div className="finance-section monitor-section animate-fadeIn">
               
+              {/* ── Month Navigator ── */}
+              <div className="cf-month-nav" style={{ marginBottom: '1.5rem' }}>
+                <div className="cf-month-nav-header">
+                  <span className="cf-fiscal-label">📅 Tahun Fiskal — {fiscalMonths[0]?.label} {fiscalMonths[0]?.year} s/d {fiscalMonths[11]?.label} {fiscalMonths[11]?.year}</span>
+                </div>
+                <div className="cf-month-pills">
+                  {fiscalMonths.map((fm) => {
+                    const isCurrent = fm.month === CURRENT_MONTH && fm.year === CURRENT_YEAR
+                    const isSelected = fm.month === cfMonth && fm.year === cfYear
+                    const isPast = new Date(fm.year, fm.month, 1) < new Date(CURRENT_YEAR, CURRENT_MONTH, 1)
+                    return (
+                      <button
+                        key={`${fm.year}-${fm.month}`}
+                        className={`cf-month-pill ${isSelected ? 'cf-mp-selected' : ''} ${isCurrent ? 'cf-mp-current' : ''} ${isPast ? 'cf-mp-past' : ''}`}
+                        onClick={() => { setCfMonth(fm.month); setCfYear(fm.year) }}
+                      >
+                        <span className="cf-mp-label">{fm.label}</span>
+                        <span className="cf-mp-year">{String(fm.year).slice(2)}</span>
+                        {isCurrent && <span className="cf-mp-dot" />}
+                        {isPast && <span className="cf-mp-check">✓</span>}
+                      </button>
+                    )
+                  })}
+                </div>
+              </div>
+
               {/* Header Card */}
               <div className="card monitor-header-card">
                 <div className="card-top-accent accent-monitor"></div>
@@ -1246,7 +1272,7 @@ export default function BPUPDPortal() {
                   </div>
                   <div>
                     <h3 className="monitor-title">Monitor Pendapatan</h3>
-                    <p className="helper-text">Data otomatis dari Invoice & Booking.</p>
+                    <p className="helper-text">Data otomatis dari Invoice & Booking untuk {new Date(cfYear, cfMonth, 1).toLocaleString('id-ID', { month: 'long', year: 'numeric' })}.</p>
                   </div>
                 </div>
 
