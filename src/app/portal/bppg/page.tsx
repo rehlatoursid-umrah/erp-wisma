@@ -9,7 +9,7 @@ import jsPDF from 'jspdf'
 
 export default function BPPGPortal() {
   const [sidebarOpen, setSidebarOpen] = useState(false)
-  const [activeTab, setActiveTab] = useState<'proker' | 'tasks' | 'dana_ops'>('proker')
+  const [activeTab, setActiveTab] = useState<'proker' | 'dana_ops'>('proker')
 
   // --- PROKER BULANAN STATE ---
   const [tasks, setTasks] = useState<any[]>([])
@@ -29,28 +29,6 @@ export default function BPPGPortal() {
     { name: 'Subhan Hadi Alhabsyi', initials: 'SH', color: '#3b82f6' },
     { name: 'Rausan Fiqri', initials: 'RF', color: '#8b5cf6' },
   ]
-
-  // --- EXISTING BPPG TASKS STATE ---
-  const housekeepingList = [
-    { room: '102', status: 'dirty', guest: 'Check-out 10:00' },
-    { room: '104', status: 'dirty', guest: 'Check-out 11:30' },
-  ]
-  const [maintenanceTickets, setMaintenanceTickets] = useState<any[]>([])
-
-  useEffect(() => {
-    const fetchTasks = async () => {
-      try {
-        const res = await fetch('/api/tasks?category=bppg')
-        if (res.ok) {
-          const data = await res.json()
-          setMaintenanceTickets(data)
-        }
-      } catch (error) {
-        console.error('Failed to fetch tasks', error)
-      }
-    }
-    fetchTasks()
-  }, [])
 
   // --- DANA OPERASIONAL STATE ---
   const CURRENT_MONTH = new Date().getMonth()
@@ -302,7 +280,6 @@ export default function BPPGPortal() {
             <div className="tabs">
               {[
                 { key: 'proker', icon: <KanbanSquare size={18} />, label: 'Proker Bulanan' },
-                { key: 'tasks', icon: <ClipboardList size={18} />, label: 'Maintenance & Tasks' },
                 { key: 'dana_ops', icon: <Wallet size={18} />, label: 'Dana Operasional' },
               ].map(t => (
                 <button key={t.key} className={`tab ${activeTab === t.key ? 'active' : ''}`} onClick={() => setActiveTab(t.key as any)}>
@@ -452,89 +429,6 @@ export default function BPPGPortal() {
               </div>
             )
           })()}
-
-          {activeTab === 'tasks' && (
-              <div className="portal-grid">
-                <div className="card">
-                <h3>🧹 Housekeeping List</h3>
-                <p className="card-desc">Kamar yang perlu dibersihkan</p>
-
-                {housekeepingList.length === 0 ? (
-                    <div className="empty-state">✨ Semua kamar sudah bersih!</div>
-                ) : (
-                    <div className="task-list">
-                    {housekeepingList.map((item) => (
-                        <div key={item.room} className="task-item dirty">
-                        <div className="task-info">
-                            <strong>Kamar {item.room}</strong>
-                            <span>{item.guest}</span>
-                        </div>
-                        <button className="btn btn-primary">✓ Selesai</button>
-                        </div>
-                    ))}
-                    </div>
-                )}
-                </div>
-
-                <div className="card">
-                <h3>🔧 Maintenance Tickets (Logbook)</h3>
-                <p className="card-desc">Laporan kerusakan dari Logbook</p>
-
-                <div className="task-list">
-                    {maintenanceTickets.length === 0 ? (
-                    <p className="text-muted">Tidak ada tiket maintenance aktif.</p>
-                    ) : (
-                    maintenanceTickets.map((ticket) => (
-                        <div key={ticket.id} className={`task-item ${ticket.status}`}>
-                        <div className="task-info">
-                            <strong>{ticket.title}</strong>
-                            <div className="task-meta">
-                            <span className={`priority ${ticket.priority}`}>
-                                {ticket.priority === 'high' ? '🔴' : ticket.priority === 'normal' ? '🟡' : '🟢'} {ticket.priority}
-                            </span>
-                            <span className={`status-badge ${ticket.status}`}>
-                                {ticket.status === 'pending' ? '📋 Pending' : ticket.status === 'in_progress' ? '🔄 In Progress' : '✅ Done'}
-                            </span>
-                            </div>
-                        </div>
-                        {ticket.status !== 'done' && (
-                            <button className="btn btn-secondary">Update</button>
-                        )}
-                        </div>
-                    ))
-                    )}
-                </div>
-
-                <button className="btn btn-primary" style={{ width: '100%', marginTop: 'var(--spacing-md)' }}>
-                    + Tambah Ticket
-                </button>
-                </div>
-
-                <div className="card">
-                <h3>📦 Inventory Check</h3>
-                <p className="card-desc">Cek stok barang di gudang</p>
-
-                <div className="inventory-grid">
-                    <div className="inventory-item">
-                    <span className="item-name">Handuk</span>
-                    <span className="item-count">24 pcs</span>
-                    </div>
-                    <div className="inventory-item">
-                    <span className="item-name">Sabun</span>
-                    <span className="item-count low">5 pcs</span>
-                    </div>
-                    <div className="inventory-item">
-                    <span className="item-name">Sprei</span>
-                    <span className="item-count">18 set</span>
-                    </div>
-                    <div className="inventory-item">
-                    <span className="item-name">Kursi Lipat</span>
-                    <span className="item-count">12 pcs</span>
-                    </div>
-                </div>
-                </div>
-              </div>
-          )}
 
           {activeTab === 'dana_ops' && (
              <div className="cashflow-dashboard">
