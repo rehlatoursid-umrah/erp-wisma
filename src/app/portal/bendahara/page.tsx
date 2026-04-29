@@ -28,7 +28,7 @@ export default function BendaharaPortal() {
         
         // Distributions history (sent by bendahara)
         const history = cashflow.filter((c: any) => c.category === 'treasurer_funding' && c.type === 'in')
-        setDistHistory(history.slice(0, 5))
+        setDistHistory(history)
 
         // Calculate Summary
         let totalIncome = 0
@@ -208,19 +208,35 @@ export default function BendaharaPortal() {
 
               <div className="dist-history">
                 <h4>Riwayat Distribusi</h4>
-                {distHistory.length === 0 ? (
-                  <p className="text-muted">Belum ada data distribusi.</p>
-                ) : (
-                  distHistory.map(h => (
-                    <div key={h.id} className="history-item">
-                      <div>
-                        <div className="hi-title">{h.description} <span className="hi-badge">{h.division}</span></div>
-                        <div className="hi-date">{h.transactionDate ? h.transactionDate.split('T')[0] : ''}</div>
+                {(() => {
+                  const groupedHistory = distHistory.reduce((acc, h) => {
+                    if (!h.transactionDate) return acc
+                    const d = new Date(h.transactionDate)
+                    const monthYear = d.toLocaleString('id-ID', { month: 'long', year: 'numeric' })
+                    if (!acc[monthYear]) acc[monthYear] = []
+                    acc[monthYear].push(h)
+                    return acc
+                  }, {} as Record<string, any[]>)
+
+                  return Object.keys(groupedHistory).length === 0 ? (
+                    <p className="text-muted">Belum ada data distribusi.</p>
+                  ) : (
+                    Object.entries(groupedHistory).map(([month, items]: [string, any]) => (
+                      <div key={month} style={{ marginBottom: '1.25rem' }}>
+                        <div style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--color-primary)', marginBottom: '0.5rem', borderBottom: '1px solid var(--color-border)', paddingBottom: '4px' }}>{month}</div>
+                        {items.map(h => (
+                          <div key={h.id} className="history-item">
+                            <div>
+                              <div className="hi-title">{h.description} <span className="hi-badge">{h.division}</span></div>
+                              <div className="hi-date">{h.transactionDate ? h.transactionDate.split('T')[0] : ''}</div>
+                            </div>
+                            <div className="hi-amount">- EGP {h.amount?.toLocaleString()}</div>
+                          </div>
+                        ))}
                       </div>
-                      <div className="hi-amount">- EGP {h.amount?.toLocaleString()}</div>
-                    </div>
-                  ))
-                )}
+                    ))
+                  )
+                })()}
               </div>
             </div>
 
