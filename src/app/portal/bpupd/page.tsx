@@ -2392,47 +2392,61 @@ export default function BPUPDPortal() {
         .inv-actions { display: flex; gap: 8px; justify-content: flex-end; }
 
         @media (max-width: 768px) {
-            .inv-table, .inv-table tbody, .inv-tr, .inv-table td {
+            .inv-table, .inv-table tbody, .inv-tr {
                 display: block; width: 100%;
             }
             .inv-table thead { display: none; }
             .inv-tr { 
+                position: relative;
                 margin-bottom: 16px; 
                 border: 1px solid var(--color-border) !important; 
                 border-radius: 16px; 
                 background: var(--color-bg-card); 
-                padding: 4px;
-                box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+                padding: 16px;
+                box-shadow: 0 4px 12px rgba(0,0,0,0.03);
+                display: flex;
+                flex-direction: column;
+                gap: 12px;
             }
             .inv-tr.inv-danger {
-                border-color: rgba(220, 38, 38, 0.2) !important;
-                background: rgba(220, 38, 38, 0.03);
+                border-color: rgba(220, 38, 38, 0.3) !important;
+                background: rgba(220, 38, 38, 0.04);
             }
             .inv-table td {
-                display: flex;
-                flex-direction: row;
-                justify-content: space-between;
-                align-items: center;
-                text-align: right;
-                padding: 12px 16px;
-                border-bottom: 1px solid rgba(0,0,0,0.04);
-            }
-            .inv-table td:last-child { border-bottom: none; }
-            .inv-table td::before {
-                content: attr(data-label);
-                font-weight: 600;
-                font-size: 0.8rem;
-                color: var(--color-text-secondary);
+                display: block;
+                padding: 0;
+                border: none;
                 text-align: left;
-                flex-shrink: 0;
-                margin-right: 12px;
             }
-            .inv-table td > div, .inv-table td > span {
-                text-align: right;
+            .inv-table td::before { display: none; }
+            
+            /* 1: Title & Description */
+            .inv-table td:nth-child(1) { padding-right: 90px; } /* Space for category badge */
+            .inv-table td:nth-child(1) > div:first-child { font-size: 1.1rem !important; color: var(--color-text-primary); margin-bottom: 4px; }
+            .inv-table td:nth-child(1) > div:last-child { font-size: 0.85rem; color: var(--color-text-muted); line-height: 1.4; }
+            
+            /* 2: Category Badge (Absolute top right) */
+            .inv-table td:nth-child(2) { position: absolute; top: 16px; right: 16px; }
+            
+            /* 3: Stock Control (Full width grey block) */
+            .inv-table td:nth-child(3) { 
+                background: var(--color-bg-secondary); 
+                border-radius: 12px; 
+                padding: 12px; 
+                margin-top: 4px;
             }
-            .inv-stock-control { justify-content: flex-end; }
-            .inv-actions-td { justify-content: space-between; }
-            .inv-actions { width: 100%; justify-content: flex-end; }
+            .inv-stock-control { justify-content: space-between; width: 100%; }
+            
+            /* 4: Status Badge (Bottom Left) */
+            .inv-table td:nth-child(4) { display: flex; align-items: center; justify-content: flex-start; padding-top: 4px; }
+            
+            /* 5: Actions (Absolute Bottom Right) */
+            .inv-table td:nth-child(5) { 
+                position: absolute; 
+                bottom: 16px; 
+                right: 16px;
+            }
+            .inv-actions { justify-content: flex-end; }
         }
 
 
