@@ -6,7 +6,7 @@ import Header from '@/components/layout/Header'
 import PortalPinGuard from '@/components/auth/PortalPinGuard'
 import jsPDF from 'jspdf'
 import autoTable from 'jspdf-autotable'
-import { Plane, ClipboardList, Wallet, BarChart3, ChevronLeft, ChevronRight, Folder, FileText, CheckCircle2, Plus, Download, Camera, Save, Eye, ArrowDownLeft, ArrowUpRight, Trash2, X, KanbanSquare, TrendingDown, GripVertical, UserCircle2, Calendar, AlertCircle, CheckCheck, MoveRight, MoveLeft, Filter } from 'lucide-react'
+import { Plane, ClipboardList, Wallet, BarChart3, ChevronLeft, ChevronRight, Folder, FileText, CheckCircle2, Plus, Download, Camera, Save, Eye, ArrowDownLeft, ArrowUpRight, Trash2, X, KanbanSquare, TrendingDown, GripVertical, UserCircle2, Calendar, AlertCircle, CheckCheck, MoveRight, MoveLeft, Filter, Package, AlertTriangle } from 'lucide-react'
 
 // Mock Data Types
 type Transaction = {
@@ -24,6 +24,17 @@ type Transaction = {
   relatedBooking?: any // Populated booking object (Hotel or Auditorium)
   customerName?: string
   items?: { itemName: string; quantity: number }[]
+}
+
+type InventoryItem = {
+  id: string
+  itemName: string
+  category: string
+  currentStock: number
+  minimumStock: number
+  unit: string
+  description?: string
+  lastRestocked?: string
 }
 
 type Task = {
@@ -47,7 +58,7 @@ type ChartBar = {
 
 export default function BPUPDPortal() {
   const [sidebarOpen, setSidebarOpen] = useState(false)
-  const [activeTab, setActiveTab] = useState<'proker' | 'dana_ops' | 'pendapatan_unit'>('proker')
+  const [activeTab, setActiveTab] = useState<'proker' | 'dana_ops' | 'pendapatan_unit' | 'inventory'>('proker')
   const [financeTab, setFinanceTab] = useState<'income' | 'expense'>('income')
 
   // Financial State
@@ -56,6 +67,12 @@ export default function BPUPDPortal() {
 
   // Trello Board State
   const [tasks, setTasks] = useState<Task[]>([])
+  
+  // Inventory State
+  const [inventory, setInventory] = useState<InventoryItem[]>([])
+  const [inventoryLoading, setInventoryLoading] = useState(false)
+  const [showInvForm, setShowInvForm] = useState(false)
+  const [invForm, setInvForm] = useState({ id: '', itemName: '', category: 'toiletries', currentStock: 0, minimumStock: 10, unit: 'pcs', description: '' })
   const [prokerMonth, setProkerMonth] = useState(new Date().getMonth())
   const [prokerYear, setProkerYear] = useState(new Date().getFullYear())
   const [showAddTask, setShowAddTask] = useState<string | null>(null) // column status
@@ -348,6 +365,20 @@ export default function BPUPDPortal() {
       }
     }
     fetchTasks()
+
+    // Fetch Inventory
+    const fetchInventory = async () => {
+      try {
+        setInventoryLoading(true)
+        const res = await fetch('/api/inventory?limit=100')
+        if (res.ok) {
+          const data = await res.json()
+          setInventory(data.docs || [])
+        }
+      } catch (e) { console.error('Failed to fetch inventory', e) }
+      finally { setInventoryLoading(false) }
+    }
+    fetchInventory()
   }, [])
 
   // Re-fetch when cfMonth/cfYear changes
@@ -617,6 +648,57 @@ export default function BPUPDPortal() {
     }
   }
 
+  // --- Inventory Functions ---
+  const handleSaveInventory = async (e: React.FormEvent) => {
+    e.preventDefault()
+    try {
+      const isUpdate = !!invForm.id
+      const url = isUpdate ? `/api/inventory/${invForm.id}` : '/api/inventory'
+      const method = isUpdate ? 'PATCH' : 'POST'
+      const payload = { ...invForm }
+      delete (payload as any).id
+
+      const res = await fetch(url, {
+        method,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      })
+
+      if (res.ok) {
+        const saved = await res.json()
+        const newItem = saved.doc || saved
+        if (isUpdate) {
+          setInventory(prev => prev.map(i => i.id === newItem.id ? newItem : i))
+        } else {
+          setInventory(prev => [newItem, ...prev])
+        }
+        setShowInvForm(false)
+        setInvForm({ id: '', itemName: '', category: 'toiletries', currentStock: 0, minimumStock: 10, unit: 'pcs', description: '' })
+      }
+    } catch (e) { console.error(e) }
+  }
+
+  const updateStock = async (id: string, newStock: number) => {
+    if (newStock < 0) return
+    // Optimistic update
+    setInventory(prev => prev.map(i => i.id === id ? { ...i, currentStock: newStock } : i))
+    try {
+      await fetch(`/api/inventory/${id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ currentStock: newStock })
+      })
+    } catch (e) { console.error(e) }
+  }
+  
+  const deleteInventory = async (id: string) => {
+    if(!confirm('Hapus item inventory ini?')) return
+    try {
+        await fetch(`/api/inventory/${id}`, { method: 'DELETE' })
+        setInventory(prev => prev.filter(i => i.id !== id))
+    } catch (e) { console.error(e) }
+  }
+
   // Fetch tasks when month/year changes
   useEffect(() => {
     const fetchTasksByMonth = async () => {
@@ -741,6 +823,7 @@ export default function BPUPDPortal() {
             <div className="tabs">
               {[
                 { key: 'proker', icon: <KanbanSquare size={18} />, label: 'Proker Bulanan' },
+                { key: 'inventory', icon: <Package size={18} />, label: 'Inventory Amenities' },
                 { key: 'dana_ops', icon: <Wallet size={18} />, label: 'Dana Operasional' },
                 { key: 'pendapatan_unit', icon: <BarChart3 size={18} />, label: 'Monitor Pendapatan' },
               ].map(t => (
@@ -1328,6 +1411,164 @@ export default function BPUPDPortal() {
                 </div>
               </div>
 
+            </div>
+          )}
+
+          {/* ═══════════════════════════════════════════
+              INVENTORY AMENITIES
+          ═══════════════════════════════════════════ */}
+          {activeTab === 'inventory' && (
+            <div className="inventory-wrapper animate-fade">
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24, flexWrap: 'wrap', gap: 16 }}>
+                <div>
+                  <h2 style={{ fontSize: '1.4rem', fontWeight: 700, margin: '0 0 4px 0', color: 'var(--color-text-primary)' }}>Inventory Amenities Hotel</h2>
+                  <p style={{ margin: 0, color: 'var(--color-text-muted)', fontSize: '0.9rem' }}>Manajemen stok amenities (Toiletries, Linen, F&B, dll) untuk keperluan Wisma Nusantara.</p>
+                </div>
+                <button onClick={() => { setInvForm({ id: '', itemName: '', category: 'toiletries', currentStock: 0, minimumStock: 10, unit: 'pcs', description: '' }); setShowInvForm(true) }} className="btn-primary" style={{ display: 'flex', gap: 8, alignItems: 'center', padding: '10px 16px', borderRadius: 10 }}>
+                  <Plus size={18} /> Tambah Item
+                </button>
+              </div>
+
+              {/* Summary Cards */}
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 16, marginBottom: 24 }}>
+                <div style={{ background: 'var(--color-bg-secondary)', padding: 20, borderRadius: 16, border: '1px solid var(--color-border)' }}>
+                  <div style={{ fontSize: '0.85rem', color: 'var(--color-text-muted)', fontWeight: 600, marginBottom: 8 }}>Total Item Tersimpan</div>
+                  <div style={{ fontSize: '2rem', fontWeight: 800, color: 'var(--color-primary)' }}>{inventory.length}</div>
+                </div>
+                <div style={{ background: 'rgba(22, 163, 74, 0.05)', padding: 20, borderRadius: 16, border: '1px solid rgba(22, 163, 74, 0.2)' }}>
+                  <div style={{ fontSize: '0.85rem', color: '#16a34a', fontWeight: 600, marginBottom: 8, display: 'flex', gap: 6, alignItems: 'center' }}><CheckCircle2 size={16} /> Stok Aman (Safe)</div>
+                  <div style={{ fontSize: '2rem', fontWeight: 800, color: '#15803d' }}>{inventory.filter(i => i.currentStock > i.minimumStock).length}</div>
+                </div>
+                <div style={{ background: 'rgba(220, 38, 38, 0.05)', padding: 20, borderRadius: 16, border: '1px solid rgba(220, 38, 38, 0.2)' }}>
+                  <div style={{ fontSize: '0.85rem', color: '#dc2626', fontWeight: 600, marginBottom: 8, display: 'flex', gap: 6, alignItems: 'center' }}><AlertTriangle size={16} /> Stok Kritis (Need Restock)</div>
+                  <div style={{ fontSize: '2rem', fontWeight: 800, color: '#b91c1c' }}>{inventory.filter(i => i.currentStock <= i.minimumStock).length}</div>
+                </div>
+              </div>
+
+              {/* Inventory Table/Grid */}
+              <div style={{ background: 'var(--color-bg-secondary)', borderRadius: 16, border: '1px solid var(--color-border)', overflow: 'hidden' }}>
+                {inventoryLoading ? (
+                  <div style={{ padding: 40, textAlign: 'center', color: 'var(--color-text-muted)' }}>Memuat data inventory...</div>
+                ) : inventory.length === 0 ? (
+                  <div style={{ padding: 40, textAlign: 'center', color: 'var(--color-text-muted)' }}>Belum ada data inventory. Silakan tambah item baru.</div>
+                ) : (
+                  <div style={{ overflowX: 'auto' }}>
+                    <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
+                      <thead style={{ background: 'rgba(0,0,0,0.02)' }}>
+                        <tr>
+                          <th style={{ padding: '16px', fontSize: '0.85rem', fontWeight: 600, color: 'var(--color-text-secondary)', borderBottom: '1px solid var(--color-border)' }}>Item Amenities</th>
+                          <th style={{ padding: '16px', fontSize: '0.85rem', fontWeight: 600, color: 'var(--color-text-secondary)', borderBottom: '1px solid var(--color-border)' }}>Kategori</th>
+                          <th style={{ padding: '16px', fontSize: '0.85rem', fontWeight: 600, color: 'var(--color-text-secondary)', borderBottom: '1px solid var(--color-border)' }}>Stok Tersedia</th>
+                          <th style={{ padding: '16px', fontSize: '0.85rem', fontWeight: 600, color: 'var(--color-text-secondary)', borderBottom: '1px solid var(--color-border)' }}>Status</th>
+                          <th style={{ padding: '16px', fontSize: '0.85rem', fontWeight: 600, color: 'var(--color-text-secondary)', borderBottom: '1px solid var(--color-border)', textAlign: 'right' }}>Aksi</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {inventory.map(item => {
+                          const isDangerous = item.currentStock <= item.minimumStock
+                          return (
+                            <tr key={item.id} style={{ borderBottom: '1px solid var(--color-border)', background: isDangerous ? 'rgba(220, 38, 38, 0.03)' : 'transparent', transition: 'all 0.2s' }}>
+                              <td style={{ padding: '16px' }}>
+                                <div style={{ fontWeight: 600, color: 'var(--color-text-primary)' }}>{item.itemName}</div>
+                                <div style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)', marginTop: 4 }}>{item.description || '-'}</div>
+                              </td>
+                              <td style={{ padding: '16px' }}>
+                                <span style={{ background: 'var(--color-border)', padding: '4px 8px', borderRadius: 6, fontSize: '0.75rem', fontWeight: 600, color: 'var(--color-text-secondary)', textTransform: 'capitalize' }}>
+                                  {item.category}
+                                </span>
+                              </td>
+                              <td style={{ padding: '16px' }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                                  <button onClick={() => updateStock(item.id, item.currentStock - 1)} style={{ width: 28, height: 28, borderRadius: '50%', border: '1px solid var(--color-border)', background: 'var(--color-bg-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: 'var(--color-text-secondary)' }}>-</button>
+                                  <div style={{ fontWeight: 700, fontSize: '1.1rem', color: isDangerous ? '#dc2626' : 'var(--color-text-primary)', minWidth: 40, textAlign: 'center' }}>
+                                    {item.currentStock} <span style={{ fontSize: '0.8rem', fontWeight: 500, color: 'var(--color-text-muted)' }}>{item.unit}</span>
+                                  </div>
+                                  <button onClick={() => updateStock(item.id, item.currentStock + 1)} style={{ width: 28, height: 28, borderRadius: '50%', border: '1px solid var(--color-border)', background: 'var(--color-bg-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: 'var(--color-text-secondary)' }}>+</button>
+                                </div>
+                              </td>
+                              <td style={{ padding: '16px' }}>
+                                {isDangerous ? (
+                                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: 'rgba(220, 38, 38, 0.1)', color: '#dc2626', padding: '6px 10px', borderRadius: 8, fontSize: '0.75rem', fontWeight: 700 }}>
+                                    <AlertTriangle size={14} /> DANGEROUS (Min: {item.minimumStock})
+                                  </span>
+                                ) : (
+                                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: 'rgba(22, 163, 74, 0.1)', color: '#16a34a', padding: '6px 10px', borderRadius: 8, fontSize: '0.75rem', fontWeight: 700 }}>
+                                    <CheckCircle2 size={14} /> SAFE
+                                  </span>
+                                )}
+                              </td>
+                              <td style={{ padding: '16px', textAlign: 'right' }}>
+                                <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
+                                  <button onClick={() => { setInvForm({ ...item, id: item.id }); setShowInvForm(true) }} style={{ background: 'transparent', border: 'none', color: '#3b82f6', cursor: 'pointer', padding: 4 }}><Eye size={18} /></button>
+                                  <button onClick={() => deleteInventory(item.id)} style={{ background: 'transparent', border: 'none', color: '#ef4444', cursor: 'pointer', padding: 4 }}><Trash2 size={18} /></button>
+                                </div>
+                              </td>
+                            </tr>
+                          )
+                        })}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+              </div>
+
+              {/* Add/Edit Modal */}
+              {showInvForm && (
+                <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(4px)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }}>
+                  <div style={{ background: 'var(--color-bg-primary)', width: '100%', maxWidth: 500, borderRadius: 24, padding: 32, animation: 'slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1)', border: '1px solid var(--color-border)' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
+                      <h3 style={{ margin: 0, fontSize: '1.25rem', color: 'var(--color-text-primary)' }}>{invForm.id ? 'Edit Item' : 'Tambah Item Inventory'}</h3>
+                      <button onClick={() => setShowInvForm(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-text-muted)' }}><X size={24} /></button>
+                    </div>
+                    <form onSubmit={handleSaveInventory}>
+                      <div style={{ marginBottom: 16 }}>
+                        <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: 'var(--color-text-secondary)', marginBottom: 8 }}>Nama Barang</label>
+                        <input type="text" required value={invForm.itemName} onChange={e => setInvForm({ ...invForm, itemName: e.target.value })} style={{ width: '100%', padding: '10px 14px', borderRadius: 10, border: '1px solid var(--color-border)', background: 'var(--color-bg-secondary)', color: 'var(--color-text-primary)' }} placeholder="Contoh: Sikat Gigi, Handuk, dll" />
+                      </div>
+                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: 16 }}>
+                        <div>
+                          <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: 'var(--color-text-secondary)', marginBottom: 8 }}>Kategori</label>
+                          <select value={invForm.category} onChange={e => setInvForm({ ...invForm, category: e.target.value })} style={{ width: '100%', padding: '10px 14px', borderRadius: 10, border: '1px solid var(--color-border)', background: 'var(--color-bg-secondary)', color: 'var(--color-text-primary)' }}>
+                            <option value="toiletries">Toiletries</option>
+                            <option value="linen">Linen</option>
+                            <option value="cleaning">Cleaning Supplies</option>
+                            <option value="fnb">F&B</option>
+                            <option value="others">Lainnya</option>
+                          </select>
+                        </div>
+                        <div>
+                          <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: 'var(--color-text-secondary)', marginBottom: 8 }}>Satuan (Unit)</label>
+                          <select value={invForm.unit} onChange={e => setInvForm({ ...invForm, unit: e.target.value })} style={{ width: '100%', padding: '10px 14px', borderRadius: 10, border: '1px solid var(--color-border)', background: 'var(--color-bg-secondary)', color: 'var(--color-text-primary)' }}>
+                            <option value="pcs">Pcs</option>
+                            <option value="botol">Botol</option>
+                            <option value="box">Box</option>
+                            <option value="roll">Roll</option>
+                            <option value="pack">Pack</option>
+                            <option value="set">Set</option>
+                          </select>
+                        </div>
+                      </div>
+                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: 16 }}>
+                        <div>
+                          <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: 'var(--color-text-secondary)', marginBottom: 8 }}>Stok Saat Ini</label>
+                          <input type="number" min="0" required value={invForm.currentStock} onChange={e => setInvForm({ ...invForm, currentStock: parseInt(e.target.value) || 0 })} style={{ width: '100%', padding: '10px 14px', borderRadius: 10, border: '1px solid var(--color-border)', background: 'var(--color-bg-secondary)', color: 'var(--color-text-primary)' }} />
+                        </div>
+                        <div>
+                          <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: 'var(--color-text-secondary)', marginBottom: 8 }}>Minimum Stok (Warning)</label>
+                          <input type="number" min="1" required value={invForm.minimumStock} onChange={e => setInvForm({ ...invForm, minimumStock: parseInt(e.target.value) || 0 })} style={{ width: '100%', padding: '10px 14px', borderRadius: 10, border: '1px solid var(--color-border)', background: 'var(--color-bg-secondary)', color: 'var(--color-text-primary)' }} />
+                        </div>
+                      </div>
+                      <div style={{ marginBottom: 24 }}>
+                        <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: 'var(--color-text-secondary)', marginBottom: 8 }}>Detail Kustom / Keterangan Tambahan</label>
+                        <textarea rows={3} value={invForm.description} onChange={e => setInvForm({ ...invForm, description: e.target.value })} style={{ width: '100%', padding: '10px 14px', borderRadius: 10, border: '1px solid var(--color-border)', background: 'var(--color-bg-secondary)', color: 'var(--color-text-primary)', resize: 'vertical' }} placeholder="Contoh: Harus merk X, supplier dari toko Y" />
+                      </div>
+                      <button type="submit" className="btn-primary" style={{ width: '100%', padding: 14, borderRadius: 12, display: 'flex', justifyContent: 'center', gap: 8 }}>
+                        <Save size={20} /> Simpan Item
+                      </button>
+                    </form>
+                  </div>
+                </div>
+              )}
             </div>
           )}
 

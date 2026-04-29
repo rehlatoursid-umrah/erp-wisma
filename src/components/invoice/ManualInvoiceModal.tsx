@@ -1,7 +1,15 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { createPortal } from 'react-dom'
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Checkbox } from '@/components/ui/checkbox'
+import { Badge } from '@/components/ui/badge'
+import { toast } from 'sonner'
+import { Loader2, Trash2, Plus, Printer, Save } from 'lucide-react'
+import './manual-invoice-modal.css'
 
 interface ManualInvoiceModalProps {
     isOpen: boolean
@@ -211,7 +219,7 @@ export default function ManualInvoiceModal({ isOpen, onClose, onSuccess, initial
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
         if (!paymentReceived) {
-            alert('❌ Mohon konfirmasi penerimaan pembayaran.')
+            toast.warning('Mohon konfirmasi penerimaan pembayaran.')
             return
         }
         setIsLoading(true)
@@ -249,17 +257,17 @@ export default function ManualInvoiceModal({ isOpen, onClose, onSuccess, initial
             })
 
             if (res.ok) {
-                alert('✅ Invoice berhasil disimpan!')
+                toast.success('Invoice berhasil disimpan!')
                 onSuccess()
                 onClose()
             } else {
                 const errData = await res.json();
                 console.error('Save Error:', errData);
-                alert('❌ Error: ' + (errData.details || errData.error || 'Unknown error'))
+                toast.error('Error: ' + (errData.details || errData.error || 'Unknown error'))
             }
         } catch (error: any) {
             console.error(error)
-            alert('❌ System Error: ' + error.message)
+            toast.error('System Error: ' + error.message)
         } finally {
             setIsLoading(false)
         }
@@ -267,32 +275,18 @@ export default function ManualInvoiceModal({ isOpen, onClose, onSuccess, initial
 
     if (!mounted || !isOpen) return null
 
-    return createPortal(
-        <div style={{
-            position: 'fixed',
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            backgroundColor: 'rgba(0,0,0,0.5)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            zIndex: 999999, // Super high z-index
-            backdropFilter: 'blur(4px)',
-            visibility: 'visible', // Ensure visibility overrides any global css
-            opacity: 1 // Ensure opacity
-        }} className="manual-invoice-overlay">
-            <div className="manual-invoice-modal">
-                <div className="modal-header">
-                    <h3>🧾 New Invoice</h3>
-                    <div className="header-actions">
-                        <span className="order-number">{orderNumber}</span>
-                        <button onClick={onClose} className="close-btn">✕</button>
+    return (
+        <Dialog open={isOpen} onOpenChange={open => !open && onClose()}>
+            <DialogContent className="manual-invoice-modal max-w-3xl max-h-[90vh] p-0 overflow-hidden">
+                <DialogHeader className="modal-header px-6 pt-5 pb-3 border-b">
+                    <div className="flex items-center justify-between w-full">
+                        <DialogTitle className="text-lg font-semibold">🧾 {initialData ? 'Edit Invoice' : 'New Invoice'}</DialogTitle>
+                        <Badge variant="secondary" className="text-xs font-mono">{orderNumber}</Badge>
                     </div>
-                </div>
+                    <DialogDescription className="sr-only">Create or edit an invoice</DialogDescription>
+                </DialogHeader>
 
-                <form onSubmit={handleSubmit} className="modal-body">
+                <form onSubmit={handleSubmit} className="modal-body overflow-y-auto max-h-[70vh] px-6 py-4">
                     {/* Top Definition Section */}
                     <div className="form-grid">
                         <div className="form-group">
@@ -529,7 +523,7 @@ export default function ManualInvoiceModal({ isOpen, onClose, onSuccess, initial
                                     if (initialData?.id) {
                                         window.open(`/api/finance/invoice/pdf?id=${initialData.id}`, '_blank');
                                     } else {
-                                        alert('Silakan save/simpan invoice terlebih dahulu sebelum mencetak PDF.');
+                                        toast.warning('Simpan invoice terlebih dahulu sebelum mencetak PDF.');
                                     }
                                 }}
                             >
@@ -541,320 +535,8 @@ export default function ManualInvoiceModal({ isOpen, onClose, onSuccess, initial
                         </div>
                     </div>
                 </form>
-            </div>
-
-            <style jsx>{`
-                .manual-invoice-modal {
-                    background: white;
-                    width: 95%;
-                    max-width: 800px;
-                    max-height: 90vh;
-                    overflow-y: auto;
-                    border-radius: 12px;
-                    box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-                    display: flex;
-                    flex-direction: column;
-                    position: relative; 
-                    z-index: 1000000;
-                }
-                .modal-header {
-                    padding: 20px;
-                    border-bottom: 1px solid #eee;
-                    display: flex;
-                    justify-content: space-between;
-                    align-items: center;
-                    background: #f8fafc;
-                    border-radius: 12px 12px 0 0;
-                }
-                .header-actions {
-                    display: flex;
-                    align-items: center;
-                    gap: 15px;
-                }
-                .order-number {
-                    background: #e2e8f0;
-                    padding: 4px 8px;
-                    border-radius: 4px;
-                    font-size: 0.9rem;
-                    font-weight: 600;
-                    color: #475569;
-                }
-                .close-btn {
-                    background: none; border: none; font-size: 1.5rem; cursor: pointer; color: #64748b;
-                }
-                
-                .modal-body {
-                    padding: 20px;
-                }
-
-                .form-grid {
-                    display: grid;
-                    grid-template-columns: 1fr 1fr 1fr 1fr;
-                    gap: 15px;
-                    margin-bottom: 25px;
-                }
-                .form-grid.two-cols {
-                    grid-template-columns: 1fr 1fr;
-                }
-                .form-group label {
-                    display: block; font-size: 0.85rem; color: #64748b; margin-bottom: 5px;
-                }
-                .form-input {
-                    width: 100%; padding: 8px; border: 1px solid #cbd5e1; border-radius: 6px;
-                }
-
-                .items-table {
-                    width: 100%; border-collapse: collapse; margin-bottom: 15px;
-                }
-                .items-table th {
-                    text-align: left; padding: 8px; background: #f1f5f9; font-size: 0.85rem; color: #475569;
-                }
-                .items-table td {
-                    padding: 8px; border-bottom: 1px solid #f1f5f9;
-                }
-                .table-input {
-                    width: 100%; padding: 6px; border: 1px solid #cbd5e1; border-radius: 4px;
-                }
-                .item-dropdown {
-                    position: absolute;
-                    top: 100%; left: 0; right: 0;
-                    background: white;
-                    border: 1px solid #cbd5e1;
-                    border-radius: 6px;
-                    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-                    max-height: 200px;
-                    overflow-y: auto;
-                    z-index: 50;
-                    margin-top: 4px;
-                }
-                .dropdown-item {
-                    display: flex;
-                    justify-content: space-between;
-                    padding: 8px 12px;
-                    cursor: pointer;
-                    border-bottom: 1px solid #f1f5f9;
-                    font-size: 0.85rem;
-                }
-                .dropdown-item:last-child { border-bottom: none; }
-                .dropdown-item:hover { background: #f8fafc; }
-                .dropdown-name { color: #1e293b; font-weight: 500; }
-                .dropdown-price { color: #2563eb; font-weight: 600; }
-                .amount-display {
-                    padding: 6px; background: #f8fafc; text-align: right; border-radius: 4px; font-weight: 500;
-                }
-                .delete-row-btn {
-                    color: #ef4444; background: none; border: none; font-size: 1.2rem; cursor: pointer;
-                }
-                .add-item-btn {
-                    background: #f1f5f9; color: #475569; border: 1px dashed #cbd5e1;
-                    width: 100%; padding: 8px; border-radius: 6px; cursor: pointer;
-                    font-size: 0.9rem; transition: all 0.2s;
-                }
-                .add-item-btn:hover { background: #e2e8f0; color: #1e293b; }
-
-                .footer-grid {
-                    display: grid; grid-template-columns: 2fr 1fr; gap: 30px; margin-top: 20px;
-                }
-                .form-textarea {
-                    width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 6px; resize: vertical;
-                }
-                .total-row {
-                    display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;
-                    font-size: 0.9rem; color: #64748b;
-                }
-                .grand-total {
-                    font-size: 1.2rem; font-weight: 700; color: #1e293b; border-top: 2px solid #e2e8f0; padding-top: 10px;
-                }
-                .discount-input-group {
-                    display: flex; gap: 5px;
-                }
-                .tiny-input { width: 60px; padding: 4px; border: 1px solid #cbd5e1; border-radius: 4px; text-align: right; }
-                .tiny-select { padding: 4px; border: 1px solid #cbd5e1; border-radius: 4px; }
-
-                .final-actions {
-                    margin-top: 30px; border-top: 1px solid #eee; padding-top: 20px;
-                    display: flex; justify-content: space-between; align-items: center;
-                }
-                .checkbox-label {
-                    display: flex; align-items: center; gap: 10px; font-weight: 500; color: #1e293b; cursor: pointer;
-                }
-                .checkbox-label input { width: 18px; height: 18px; accent-color: #2563eb; }
-                
-                .buttons { display: flex; gap: 10px; }
-                .action-btn {
-                    padding: 10px 24px; border-radius: 8px; font-weight: 600; cursor: pointer; border: none;
-                }
-                .preview { background: #f1f5f9; color: #475569; }
-                .save { background: #2563eb; color: white; }
-                .save:disabled { background: #94a3b8; cursor: not-allowed; }
-
-                @media print {
-                    .manual-invoice-overlay {
-                        background: white !important;
-                        position: fixed;
-                        inset: 0;
-                        z-index: 9999999;
-                        visibility: visible !important;
-                    }
-                    .manual-invoice-modal {
-                        position: absolute;
-                        left: 0;
-                        top: 0;
-                        width: 100%;
-                        max-width: none;
-                        box-shadow: none;
-                        border: none;
-                        visibility: visible !important;
-                    }
-                     /* Hide everything else */
-                    :global(body > *:not(.manual-invoice-overlay)) {
-                        display: none !important;
-                    }
-                    .close-btn, .final-actions, .add-item-btn, .delete-row-btn {
-                        display: none !important;
-                    }
-                    .form-input, .tiny-input, .tiny-select, select, textarea {
-                        border: none !important;
-                        background: transparent !important;
-                        padding: 0 !important;
-                        appearance: none;
-                    }
-                     .items-table th {
-                        background-color: #f1f5f9 !important;
-                        -webkit-print-color-adjust: exact;
-                    }
-                }
-
-                @media (max-width: 768px) {
-                   .manual-invoice-modal {
-                       width: 95%;
-                       max-height: 90vh; /* Restored popup feel */
-                       height: auto;
-                       margin: auto;
-                       border-radius: 16px; /* Restored popup corners */
-                       display: flex;
-                       flex-direction: column;
-                       overflow: hidden; /* Contains the scrollable body & absolute footer */
-                       position: relative; /* For the absolute footer */
-                   }
-                   .modal-body {
-                       flex: 1;
-                       overflow-y: auto;
-                       padding-bottom: 200px; /* Extra space to ensure we can scroll past sticky footer */
-                       -webkit-overflow-scrolling: touch;
-                   }
-                   .form-grid {
-                       grid-template-columns: 1fr;
-                   }
-                   .form-grid.two-cols {
-                       grid-template-columns: 1fr 1fr;
-                   }
-                   .form-input, .table-input, .form-textarea, .tiny-input, .tiny-select {
-                       padding: 12px;
-                       font-size: 16px; /* prevent iOS zoom */
-                   }
-
-                   /* Convert Items Table into Stacked Native Cards */
-                   .items-table thead {
-                       display: none;
-                   }
-                   .items-table tbody tr {
-                       display: grid;
-                       grid-template-columns: 1fr 1fr;
-                       gap: 12px;
-                       background: #f8fafc;
-                       padding: 16px;
-                       border-radius: 12px;
-                       margin-bottom: 16px;
-                       border: 1px solid #e2e8f0;
-                       position: relative;
-                   }
-                   .items-table td {
-                       padding: 0;
-                       border: none;
-                   }
-                   /* Item Details Input */
-                   .items-table td:nth-child(1) { grid-column: 1 / -1; }
-                   /* Qty Input */
-                   .items-table td:nth-child(2) { grid-column: 1; }
-                   .items-table td:nth-child(2)::before {
-                       content: "Qty";
-                       display: block; font-size: 0.75rem; color: #64748b; margin-bottom: 4px; font-weight: 500;
-                   }
-                   /* Price Input */
-                   .items-table td:nth-child(3) { grid-column: 2; }
-                   .items-table td:nth-child(3)::before {
-                       content: "Price";
-                       display: block; font-size: 0.75rem; color: #64748b; margin-bottom: 4px; font-weight: 500;
-                   }
-                   /* Amount Total */
-                   .items-table td:nth-child(4) { grid-column: 1 / -1; }
-                   .items-table td:nth-child(4)::before {
-                       content: "Amount";
-                       display: block; font-size: 0.75rem; color: #64748b; margin-bottom: 4px; font-weight: 500;
-                   }
-                   .amount-display {
-                       background: #eff6ff;
-                       color: #1e3a8a;
-                       font-size: 1.1rem;
-                       font-weight: 700;
-                       padding: 12px;
-                       border-radius: 8px;
-                   }
-                   /* Delete Trash Button Floating */
-                   .items-table td:nth-child(5) { 
-                       position: absolute;
-                       top: -10px; right: -10px;
-                   }
-                   .delete-row-btn {
-                       background: #fee2e2;
-                       color: #ef4444;
-                       width: 32px; height: 32px;
-                       border-radius: 50%;
-                       display: flex; align-items: center; justify-content: center;
-                       box-shadow: 0 4px 10px rgba(239, 68, 68, 0.2);
-                   }
-
-                   .add-item-btn {
-                       padding: 14px; font-weight: 600; font-size: 1rem;
-                   }
-
-                   .footer-grid {
-                       grid-template-columns: 1fr;
-                   }
-
-                   /* Floating Sticky Footer Inside Popup */
-                   .final-actions {
-                       position: absolute;
-                       bottom: 0; left: 0; right: 0;
-                       background: rgba(255, 255, 255, 0.98);
-                       backdrop-filter: blur(10px);
-                       flex-direction: column;
-                       align-items: stretch;
-                       padding: 16px;
-                       padding-bottom: max(16px, env(safe-area-inset-bottom));
-                       box-shadow: 0 -4px 20px rgba(0,0,0,0.1);
-                       border-top: 1px solid #e2e8f0;
-                       margin-top: 0;
-                       gap: 12px;
-                       border-radius: 0 0 16px 16px; /* Matches the popup bottom corners */
-                       z-index: 50; /* Ensure it stays above scrolling body content */
-                   }
-                   .final-actions .checkbox-label {
-                       align-self: flex-start; margin-bottom: 4px;
-                   }
-                   .final-actions select {
-                       width: 100% !important; margin-left: 0 !important;
-                   }
-                   .final-actions .buttons {
-                       display: flex; width: 100%; gap: 10px;
-                   }
-                   .final-actions .action-btn {
-                       flex: 1; padding: 14px; font-size: 1rem;
-                   }
-                }
-            `}</style>
-        </div >,
-        document.body
+            </DialogContent>
+        </Dialog>
     )
 }
+
