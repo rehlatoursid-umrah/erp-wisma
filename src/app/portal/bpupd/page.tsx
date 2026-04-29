@@ -1279,7 +1279,10 @@ export default function BPUPDPortal() {
                 {/* Revenue Grid */}
                 <div className="monitor-grid">
                   {['hotel', 'visa_arrival', 'auditorium', 'rental', 'cancellation'].map(category => {
-                    const relevant = invoices.filter(t => t.category === category)
+                    const relevant = invoices.filter(t => {
+                      const d = new Date(t.date)
+                      return t.category === category && d.getMonth() === cfMonth && d.getFullYear() === cfYear
+                    })
                     const totals: Record<string, number> = {}
                     relevant.forEach(t => {
                       const curr = t.currency || 'USD'
@@ -1329,7 +1332,10 @@ export default function BPUPDPortal() {
                   <div className="gt-values">
                     {(() => {
                       const grandTotals: Record<string, number> = {}
-                      invoices.forEach(t => {
+                      invoices.filter(t => {
+                        const d = new Date(t.date)
+                        return d.getMonth() === cfMonth && d.getFullYear() === cfYear
+                      }).forEach(t => {
                         const curr = t.currency || 'USD'
                         grandTotals[curr] = (grandTotals[curr] || 0) + (t.amount || 0)
                       })
@@ -1414,7 +1420,10 @@ export default function BPUPDPortal() {
                   <h3>Riwayat Transaksi</h3>
                 </div>
                 <div className="transaction-list" style={{ padding: 0 }}>
-                  {invoices.map(t => (
+                  {invoices.filter(t => {
+                    const d = new Date(t.date)
+                    return d.getMonth() === cfMonth && d.getFullYear() === cfYear
+                  }).map(t => (
                     <div key={t.id} className="transaction-item income-item">
                       <div className="item-main">
                         <div className="item-info">
@@ -1431,8 +1440,11 @@ export default function BPUPDPortal() {
                       </div>
                     </div>
                   ))}
-                  {invoices.length === 0 && (
-                    <div className="empty-state">Belum ada data pendapatan unit usaha.</div>
+                  {invoices.filter(t => {
+                    const d = new Date(t.date)
+                    return d.getMonth() === cfMonth && d.getFullYear() === cfYear
+                  }).length === 0 && (
+                    <div className="empty-state">Belum ada data pendapatan unit usaha di periode ini.</div>
                   )}
                 </div>
               </div>
