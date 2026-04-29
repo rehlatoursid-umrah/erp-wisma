@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import Sidebar from '@/components/layout/Sidebar'
 import Header from '@/components/layout/Header'
 import PortalPinGuard from '@/components/auth/PortalPinGuard'
+import { Pencil, Trash2, X } from 'lucide-react'
 
 export default function SekretarisPortal() {
   const [sidebarOpen, setSidebarOpen] = useState(false)
@@ -17,6 +18,7 @@ export default function SekretarisPortal() {
   const [piketLoading, setPiketLoading] = useState(false)
   const [piketDetailIdx, setPiketDetailIdx] = useState<number | null>(null)
   const [pdfGenerating, setPdfGenerating] = useState(false)
+  const [editingPiket, setEditingPiket] = useState<any | null>(null)
 
   // Arsip Bulanan State
   const [arsipYear, setArsipYear] = useState(new Date().getFullYear())
@@ -43,6 +45,48 @@ export default function SekretarisPortal() {
       setPiketData(Array.isArray(data) ? data : [])
     } catch { setPiketData([]) }
     finally { setPiketLoading(false) }
+  }
+
+  const handleDeletePiket = async (id: string) => {
+    if (!confirm('Apakah Anda yakin ingin menghapus laporan piket ini?')) return
+    try {
+      const res = await fetch('/api/laporan-piket', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id })
+      })
+      if (res.ok) {
+        alert('Laporan berhasil dihapus')
+        fetchPiketData()
+      } else {
+        alert('Gagal menghapus laporan')
+      }
+    } catch (error) {
+      alert('Terjadi kesalahan saat menghapus laporan')
+    }
+  }
+
+  const handleUpdatePiket = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!editingPiket) return
+    
+    try {
+      const res = await fetch('/api/laporan-piket', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(editingPiket)
+      })
+      
+      if (res.ok) {
+        alert('Laporan berhasil diperbarui')
+        setEditingPiket(null)
+        fetchPiketData()
+      } else {
+        alert('Gagal memperbarui laporan')
+      }
+    } catch (error) {
+      alert('Terjadi kesalahan saat memperbarui laporan')
+    }
   }
 
   // Fetch arsip overview for selected year + optional petugas
@@ -443,6 +487,21 @@ export default function SekretarisPortal() {
                                     <strong>📝 Kegiatan Hari Ini:</strong> {d.kegiatanHariIni || '-'}<br />
                                     <strong>📅 Kegiatan Esok:</strong> {d.kegiatanEsokHari || '-'}<br />
                                     <strong>💧 Meteran Air:</strong> {d.meteranAir || '-'} | <strong>⚡ Listrik:</strong> {d.meteranListrik || '-'}
+                                    
+                                    <div style={{ marginTop: '16px', display: 'flex', gap: '8px' }}>
+                                      <button 
+                                        onClick={(e) => { e.stopPropagation(); setEditingPiket(d) }}
+                                        style={{ display: 'flex', alignItems: 'center', gap: '6px', background: '#3b82f6', color: 'white', padding: '6px 12px', borderRadius: '6px', border: 'none', cursor: 'pointer', fontSize: '0.8rem' }}
+                                      >
+                                        <Pencil size={14} /> Edit
+                                      </button>
+                                      <button 
+                                        onClick={(e) => { e.stopPropagation(); handleDeletePiket(d.id) }}
+                                        style={{ display: 'flex', alignItems: 'center', gap: '6px', background: '#ef4444', color: 'white', padding: '6px 12px', borderRadius: '6px', border: 'none', cursor: 'pointer', fontSize: '0.8rem' }}
+                                      >
+                                        <Trash2 size={14} /> Hapus
+                                      </button>
+                                    </div>
                                   </div>
                                   <div>
                                     <strong>🏨 Kamar Terisi:</strong> {Array.isArray(d.kamarTerisi) ? d.kamarTerisi.join(', ') : '-'}<br />
@@ -525,6 +584,60 @@ export default function SekretarisPortal() {
           )}
 
         </main>
+
+        {/* Edit Modal */}
+        {editingPiket && (
+          <div style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 1000, padding: '20px' }}>
+            <div style={{ background: 'white', width: '100%', maxWidth: '600px', borderRadius: '12px', padding: '24px', maxHeight: '90vh', overflowY: 'auto', position: 'relative' }}>
+              <button 
+                onClick={() => setEditingPiket(null)}
+                style={{ position: 'absolute', top: '16px', right: '16px', background: 'none', border: 'none', cursor: 'pointer' }}
+              >
+                <X size={20} />
+              </button>
+              <h3 style={{ marginTop: 0, marginBottom: '20px', fontSize: '1.25rem', color: '#111827' }}>Edit Laporan Piket</h3>
+              
+              <form onSubmit={handleUpdatePiket} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+                  <div>
+                    <label style={{ display: 'block', marginBottom: '6px', fontSize: '0.85rem', fontWeight: 500 }}>Jam Masuk</label>
+                    <input type="time" required value={editingPiket.jamMasuk || ''} onChange={e => setEditingPiket({ ...editingPiket, jamMasuk: e.target.value })} style={{ width: '100%', padding: '8px 12px', borderRadius: '6px', border: '1px solid #d1d5db' }} />
+                  </div>
+                  <div>
+                    <label style={{ display: 'block', marginBottom: '6px', fontSize: '0.85rem', fontWeight: 500 }}>Jam Keluar</label>
+                    <input type="time" required value={editingPiket.jamKeluar || ''} onChange={e => setEditingPiket({ ...editingPiket, jamKeluar: e.target.value })} style={{ width: '100%', padding: '8px 12px', borderRadius: '6px', border: '1px solid #d1d5db' }} />
+                  </div>
+                </div>
+
+                <div>
+                  <label style={{ display: 'block', marginBottom: '6px', fontSize: '0.85rem', fontWeight: 500 }}>Kegiatan Hari Ini</label>
+                  <textarea rows={3} value={editingPiket.kegiatanHariIni || ''} onChange={e => setEditingPiket({ ...editingPiket, kegiatanHariIni: e.target.value })} style={{ width: '100%', padding: '8px 12px', borderRadius: '6px', border: '1px solid #d1d5db' }} />
+                </div>
+
+                <div>
+                  <label style={{ display: 'block', marginBottom: '6px', fontSize: '0.85rem', fontWeight: 500 }}>Kegiatan Esok Hari</label>
+                  <textarea rows={2} value={editingPiket.kegiatanEsokHari || ''} onChange={e => setEditingPiket({ ...editingPiket, kegiatanEsokHari: e.target.value })} style={{ width: '100%', padding: '8px 12px', borderRadius: '6px', border: '1px solid #d1d5db' }} />
+                </div>
+
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+                  <div>
+                    <label style={{ display: 'block', marginBottom: '6px', fontSize: '0.85rem', fontWeight: 500 }}>Meteran Air</label>
+                    <input type="text" value={editingPiket.meteranAir || ''} onChange={e => setEditingPiket({ ...editingPiket, meteranAir: e.target.value })} style={{ width: '100%', padding: '8px 12px', borderRadius: '6px', border: '1px solid #d1d5db' }} />
+                  </div>
+                  <div>
+                    <label style={{ display: 'block', marginBottom: '6px', fontSize: '0.85rem', fontWeight: 500 }}>Meteran Listrik</label>
+                    <input type="text" value={editingPiket.meteranListrik || ''} onChange={e => setEditingPiket({ ...editingPiket, meteranListrik: e.target.value })} style={{ width: '100%', padding: '8px 12px', borderRadius: '6px', border: '1px solid #d1d5db' }} />
+                  </div>
+                </div>
+
+                <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px', marginTop: '16px' }}>
+                  <button type="button" onClick={() => setEditingPiket(null)} style={{ padding: '8px 16px', borderRadius: '6px', border: '1px solid #d1d5db', background: 'white', cursor: 'pointer' }}>Batal</button>
+                  <button type="submit" style={{ padding: '8px 16px', borderRadius: '6px', border: 'none', background: '#b45309', color: 'white', fontWeight: 500, cursor: 'pointer' }}>Simpan Perubahan</button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
 
         <style jsx global>{`
         .dashboard-layout { display: flex; min-height: 100vh; background: var(--color-bg-primary); }

@@ -66,3 +66,42 @@ export async function GET(req: Request) {
         return NextResponse.json({ error: 'Failed to fetch laporan piket' }, { status: 500 })
     }
 }
+
+export async function PUT(req: Request) {
+    const payload = await getPayload({ config })
+    try {
+        const body = await req.json()
+        const { id, ...data } = body
+
+        if (!id) return NextResponse.json({ error: 'ID is required' }, { status: 400 })
+
+        const updated = await payload.update({
+            collection: 'laporan-piket',
+            id,
+            data,
+        })
+        return NextResponse.json(updated)
+    } catch (error) {
+        console.error('Error updating laporan piket:', error)
+        return NextResponse.json({ error: 'Failed to update laporan piket' }, { status: 500 })
+    }
+}
+
+export async function DELETE(req: Request) {
+    const payload = await getPayload({ config })
+    try {
+        const body = await req.json()
+        const { id } = body
+
+        if (!id) return NextResponse.json({ error: 'ID is required' }, { status: 400 })
+
+        await payload.delete({
+            collection: 'laporan-piket',
+            id,
+        })
+        return NextResponse.json({ success: true })
+    } catch (error) {
+        console.error('Error deleting laporan piket:', error)
+        return NextResponse.json({ error: 'Failed to delete laporan piket' }, { status: 500 })
+    }
+}
