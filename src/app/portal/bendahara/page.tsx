@@ -16,7 +16,7 @@ export default function BendaharaPortal() {
     setExpandedMonths(prev => ({ ...prev, [month]: !prev[month] }))
   }
 
-  const [distForm, setDistForm] = useState({ division: 'bpupd', amount: '', description: '' })
+  const [distForm, setDistForm] = useState({ division: 'bpupd', amount: '', description: '', date: new Date().toISOString().split('T')[0] })
   const [distHistory, setDistHistory] = useState<any[]>([])
   const [summary, setSummary] = useState({ income: 0, expense: 0, balance: 0 })
   const [pendingFunds, setPendingFunds] = useState<any[]>([])
@@ -77,11 +77,11 @@ export default function BendaharaPortal() {
           amount: distForm.amount,
           currency: 'EGP',
           description: distForm.description,
-          transactionDate: new Date().toISOString().split('T')[0]
+          transactionDate: distForm.date || new Date().toISOString().split('T')[0]
         })
       })
       if (res.ok) {
-        setDistForm({ division: 'bpupd', amount: '', description: '' })
+        setDistForm({ division: 'bpupd', amount: '', description: '', date: new Date().toISOString().split('T')[0] })
         fetchData()
       }
     } catch (error) {
@@ -205,6 +205,10 @@ export default function BendaharaPortal() {
                   </select>
                 </div>
                 <div className="dist-row">
+                  <div className="dist-group">
+                    <label>Tanggal *</label>
+                    <input type="date" required className="dist-input" value={distForm.date} onChange={e => setDistForm({...distForm, date: e.target.value})} />
+                  </div>
                   <div className="dist-group">
                     <label>Jumlah (EGP) *</label>
                     <input type="number" required className="dist-input" placeholder="0" value={distForm.amount} onChange={e => setDistForm({...distForm, amount: e.target.value})} />
