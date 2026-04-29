@@ -1453,40 +1453,40 @@ export default function BPUPDPortal() {
                   <div style={{ padding: 40, textAlign: 'center', color: 'var(--color-text-muted)' }}>Belum ada data inventory. Silakan tambah item baru.</div>
                 ) : (
                   <div style={{ overflowX: 'auto' }}>
-                    <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
-                      <thead style={{ background: 'rgba(0,0,0,0.02)' }}>
+                    <table className="inv-table">
+                      <thead>
                         <tr>
-                          <th style={{ padding: '16px', fontSize: '0.85rem', fontWeight: 600, color: 'var(--color-text-secondary)', borderBottom: '1px solid var(--color-border)' }}>Item Amenities</th>
-                          <th style={{ padding: '16px', fontSize: '0.85rem', fontWeight: 600, color: 'var(--color-text-secondary)', borderBottom: '1px solid var(--color-border)' }}>Kategori</th>
-                          <th style={{ padding: '16px', fontSize: '0.85rem', fontWeight: 600, color: 'var(--color-text-secondary)', borderBottom: '1px solid var(--color-border)' }}>Stok Tersedia</th>
-                          <th style={{ padding: '16px', fontSize: '0.85rem', fontWeight: 600, color: 'var(--color-text-secondary)', borderBottom: '1px solid var(--color-border)' }}>Status</th>
-                          <th style={{ padding: '16px', fontSize: '0.85rem', fontWeight: 600, color: 'var(--color-text-secondary)', borderBottom: '1px solid var(--color-border)', textAlign: 'right' }}>Aksi</th>
+                          <th>Item Amenities</th>
+                          <th>Kategori</th>
+                          <th>Stok Tersedia</th>
+                          <th>Status</th>
+                          <th style={{ textAlign: 'right' }}>Aksi</th>
                         </tr>
                       </thead>
                       <tbody>
                         {inventory.map(item => {
                           const isDangerous = item.currentStock <= item.minimumStock
                           return (
-                            <tr key={item.id} style={{ borderBottom: '1px solid var(--color-border)', background: isDangerous ? 'rgba(220, 38, 38, 0.03)' : 'transparent', transition: 'all 0.2s' }}>
-                              <td style={{ padding: '16px' }}>
+                            <tr key={item.id} className={`inv-tr ${isDangerous ? 'inv-danger' : ''}`}>
+                              <td data-label="Item Amenities">
                                 <div style={{ fontWeight: 600, color: 'var(--color-text-primary)' }}>{item.itemName}</div>
                                 <div style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)', marginTop: 4 }}>{item.description || '-'}</div>
                               </td>
-                              <td style={{ padding: '16px' }}>
+                              <td data-label="Kategori">
                                 <span style={{ background: 'var(--color-border)', padding: '4px 8px', borderRadius: 6, fontSize: '0.75rem', fontWeight: 600, color: 'var(--color-text-secondary)', textTransform: 'capitalize' }}>
                                   {item.category}
                                 </span>
                               </td>
-                              <td style={{ padding: '16px' }}>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                                  <button onClick={() => updateStock(item.id, item.currentStock - 1)} style={{ width: 28, height: 28, borderRadius: '50%', border: '1px solid var(--color-border)', background: 'var(--color-bg-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: 'var(--color-text-secondary)' }}>-</button>
-                                  <div style={{ fontWeight: 700, fontSize: '1.1rem', color: isDangerous ? '#dc2626' : 'var(--color-text-primary)', minWidth: 40, textAlign: 'center' }}>
-                                    {item.currentStock} <span style={{ fontSize: '0.8rem', fontWeight: 500, color: 'var(--color-text-muted)' }}>{item.unit}</span>
+                              <td data-label="Stok Tersedia">
+                                <div className="inv-stock-control">
+                                  <button onClick={() => updateStock(item.id, item.currentStock - 1)}>-</button>
+                                  <div className="stock-value" style={{ color: isDangerous ? '#dc2626' : 'var(--color-text-primary)' }}>
+                                    {item.currentStock} <span>{item.unit}</span>
                                   </div>
-                                  <button onClick={() => updateStock(item.id, item.currentStock + 1)} style={{ width: 28, height: 28, borderRadius: '50%', border: '1px solid var(--color-border)', background: 'var(--color-bg-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: 'var(--color-text-secondary)' }}>+</button>
+                                  <button onClick={() => updateStock(item.id, item.currentStock + 1)}>+</button>
                                 </div>
                               </td>
-                              <td style={{ padding: '16px' }}>
+                              <td data-label="Status">
                                 {isDangerous ? (
                                   <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: 'rgba(220, 38, 38, 0.1)', color: '#dc2626', padding: '6px 10px', borderRadius: 8, fontSize: '0.75rem', fontWeight: 700 }}>
                                     <AlertTriangle size={14} /> DANGEROUS (Min: {item.minimumStock})
@@ -1497,8 +1497,8 @@ export default function BPUPDPortal() {
                                   </span>
                                 )}
                               </td>
-                              <td style={{ padding: '16px', textAlign: 'right' }}>
-                                <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
+                              <td data-label="Aksi" className="inv-actions-td">
+                                <div className="inv-actions">
                                   <button onClick={() => { setInvForm({ ...item, id: item.id, description: item.description || '' }); setShowInvForm(true) }} style={{ background: 'transparent', border: 'none', color: '#3b82f6', cursor: 'pointer', padding: 4 }}><Eye size={18} /></button>
                                   <button onClick={() => deleteInventory(item.id)} style={{ background: 'transparent', border: 'none', color: '#ef4444', cursor: 'pointer', padding: 4 }}><Trash2 size={18} /></button>
                                 </div>
@@ -1627,7 +1627,8 @@ export default function BPUPDPortal() {
 
         /* Navigasi Tab (Wisma Brown Aesthetic) */
         .tabs-container { 
-            margin: var(--spacing-lg) 0 var(--spacing-lg) var(--spacing-lg); 
+            margin: var(--spacing-md) 0 var(--spacing-lg) 0; 
+            padding: 0 var(--spacing-lg);
             overflow-x: auto; 
             scrollbar-width: none; 
             -webkit-overflow-scrolling: touch; 
@@ -2355,6 +2356,84 @@ export default function BPUPDPortal() {
         .fy-bar:hover .fy-bar-tooltip { opacity: 1; top: -30px; }
         
         .fy-bar-label { font-size: 0.65rem; font-weight: 600; color: var(--color-text-muted); text-transform: uppercase; }
+
+        /* ── Mobile Responsive Overrides ── */
+        @media (max-width: 768px) {
+            .tabs-container {
+                margin: 0 0 1rem 0;
+                padding: 0 1rem;
+            }
+            .tab {
+                padding: 0.6rem 1rem;
+                font-size: 0.85rem;
+            }
+            .inventory-wrapper {
+                padding: 0 1rem;
+            }
+            .proker-board-wrapper, .cashflow-dashboard {
+                padding: 1rem;
+            }
+        }
+
+        /* ── Inventory Table (Responsive) ── */
+        .inv-table { width: 100%; border-collapse: collapse; text-align: left; font-size: 0.9rem; }
+        .inv-table thead { background: rgba(0,0,0,0.02); }
+        .inv-table th { padding: 16px; font-size: 0.85rem; font-weight: 600; color: var(--color-text-secondary); border-bottom: 1px solid var(--color-border); }
+        .inv-table td { padding: 16px; border-bottom: 1px solid var(--color-border); }
+        .inv-tr { transition: all 0.2s; background: transparent; }
+        .inv-tr.inv-danger { background: rgba(220, 38, 38, 0.03); }
+        
+        .inv-stock-control { display: flex; align-items: center; gap: 12px; }
+        .inv-stock-control button { width: 28px; height: 28px; border-radius: 50%; border: 1px solid var(--color-border); background: var(--color-bg-primary); display: flex; align-items: center; justify-content: center; cursor: pointer; color: var(--color-text-secondary); font-size: 1rem; transition: all 0.2s; }
+        .inv-stock-control button:active { background: var(--color-border); transform: scale(0.95); }
+        .stock-value { font-weight: 700; font-size: 1.1rem; min-width: 40px; text-align: center; }
+        .stock-value span { font-size: 0.8rem; font-weight: 500; color: var(--color-text-muted); }
+
+        .inv-actions { display: flex; gap: 8px; justify-content: flex-end; }
+
+        @media (max-width: 768px) {
+            .inv-table, .inv-table tbody, .inv-tr, .inv-table td {
+                display: block; width: 100%;
+            }
+            .inv-table thead { display: none; }
+            .inv-tr { 
+                margin-bottom: 16px; 
+                border: 1px solid var(--color-border) !important; 
+                border-radius: 16px; 
+                background: var(--color-bg-card); 
+                padding: 4px;
+                box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+            }
+            .inv-tr.inv-danger {
+                border-color: rgba(220, 38, 38, 0.2) !important;
+                background: rgba(220, 38, 38, 0.03);
+            }
+            .inv-table td {
+                display: flex;
+                flex-direction: row;
+                justify-content: space-between;
+                align-items: center;
+                text-align: right;
+                padding: 12px 16px;
+                border-bottom: 1px solid rgba(0,0,0,0.04);
+            }
+            .inv-table td:last-child { border-bottom: none; }
+            .inv-table td::before {
+                content: attr(data-label);
+                font-weight: 600;
+                font-size: 0.8rem;
+                color: var(--color-text-secondary);
+                text-align: left;
+                flex-shrink: 0;
+                margin-right: 12px;
+            }
+            .inv-table td > div, .inv-table td > span {
+                text-align: right;
+            }
+            .inv-stock-control { justify-content: flex-end; }
+            .inv-actions-td { justify-content: space-between; }
+            .inv-actions { width: 100%; justify-content: flex-end; }
+        }
 
 
       `}</style>
