@@ -224,7 +224,7 @@ export default function BendaharaPortal() {
                     Object.entries(groupedHistory).map(([month, items]: [string, any]) => (
                       <div key={month} style={{ marginBottom: '1.25rem' }}>
                         <div style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--color-primary)', marginBottom: '0.5rem', borderBottom: '1px solid var(--color-border)', paddingBottom: '4px' }}>{month}</div>
-                        {items.map(h => (
+                        {items.map((h: any) => (
                           <div key={h.id} className="history-item">
                             <div>
                               <div className="hi-title">{h.description} <span className="hi-badge">{h.division}</span></div>
