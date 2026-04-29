@@ -408,7 +408,7 @@ export default function BPUPDPortal() {
 
         const mappedInvoices = (data.invoices || []).map((inv: any) => ({
           id: inv.id,
-          date: inv.invoiceDate ? inv.invoiceDate.split('T')[0] : (inv.createdAt ? inv.createdAt.split('T')[0] : ''),
+          date: inv.createdAt ? inv.createdAt.split('T')[0] : '',
           category: inv.bookingType || 'manual',
           amount: inv.totalAmount,
           currency: inv.currency,

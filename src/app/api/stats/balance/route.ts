@@ -34,11 +34,10 @@ export async function GET(req: Request) {
                 {
                     $match: {
                         paymentStatus: 'paid',
-                        $or: [
-                            { invoiceDate: { $gte: startOfMonth.toISOString(), $lte: endOfMonth.toISOString() } },
-                            { invoiceDate: { $exists: false }, createdAt: { $gte: startOfMonth, $lte: endOfMonth } },
-                            { invoiceDate: null, createdAt: { $gte: startOfMonth, $lte: endOfMonth } }
-                        ]
+                        createdAt: {
+                            $gte: startOfMonth,
+                            $lte: endOfMonth
+                        }
                     }
                 },
                 { $group: { _id: '$currency', total: { $sum: '$totalAmount' } } }
@@ -56,13 +55,8 @@ export async function GET(req: Request) {
                 where: {
                     and: [
                         { paymentStatus: { equals: 'paid' } },
-                        {
-                            or: [
-                                { invoiceDate: { greater_than_equal: startOfMonth.toISOString(), less_than_equal: endOfMonth.toISOString() } },
-                                { and: [{ invoiceDate: { exists: false } }, { createdAt: { greater_than_equal: startOfMonth.toISOString(), less_than_equal: endOfMonth.toISOString() } }] },
-                                { and: [{ invoiceDate: { equals: null } }, { createdAt: { greater_than_equal: startOfMonth.toISOString(), less_than_equal: endOfMonth.toISOString() } }] }
-                            ]
-                        }
+                        { createdAt: { greater_than_equal: startOfMonth.toISOString() } },
+                        { createdAt: { less_than_equal: endOfMonth.toISOString() } },
                     ]
                 },
                 pagination: false,
