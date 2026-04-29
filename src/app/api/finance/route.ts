@@ -9,18 +9,40 @@ export async function GET(req: Request) {
     const year  = searchParams.get('year')
 
     try {
+        const division = searchParams.get('division')
+
         // Build cashflow query with optional month/year filter
         const cashflowWhere: any = {}
+        const andConditions: any[] = []
 
         if (month !== null && year !== null) {
             const m = Number(month)
             const y = Number(year)
             const startOfMonth = new Date(y, m, 1).toISOString()
             const endOfMonth   = new Date(y, m + 1, 0, 23, 59, 59, 999).toISOString()
-            cashflowWhere.and = [
+            andConditions.push(
                 { transactionDate: { greater_than_equal: startOfMonth } },
-                { transactionDate: { less_than_equal: endOfMonth } },
-            ]
+                { transactionDate: { less_than_equal: endOfMonth } }
+            )
+        }
+
+        if (division) {
+            if (division === 'bpupd') {
+                // Support legacy data which has no division set
+                andConditions.push({
+                    or: [
+                        { division: { equals: 'bpupd' } },
+                        { division: { exists: false } },
+                        { division: { equals: null } }
+                    ]
+                })
+            } else {
+                andConditions.push({ division: { equals: division } })
+            }
+        }
+
+        if (andConditions.length > 0) {
+            cashflowWhere.and = andConditions
         }
 
         const cashflow = await payload.find({
@@ -55,7 +77,7 @@ export async function POST(req: Request) {
 
     try {
         const body = await req.json()
-        const { transactionDate, category, amount, currency, type, description, quantity, unitPrice, proofImage } = body
+        const { transactionDate, category, amount, currency, type, description, quantity, unitPrice, proofImage, division } = body
 
         if (!transactionDate || !category || !amount || !currency || !type) {
             return NextResponse.json({ error: 'Missing required fields' }, { status: 400 })
@@ -67,6 +89,7 @@ export async function POST(req: Request) {
                 transactionDate,
                 type,
                 category,
+                division: division || undefined,
                 amount: Number(amount),
                 currency,
                 description,

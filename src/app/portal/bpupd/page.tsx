@@ -320,7 +320,7 @@ export default function BPUPDPortal() {
     // Fetch ALL cashflow (no filter) for fiscal year chart
     const fetchFiscalChart = async () => {
       try {
-        const res = await fetch('/api/finance')
+        const res = await fetch('/api/finance?division=bpupd')
         if (res.ok) {
           const data = await res.json()
           const allCf = data.cashflow || []
@@ -388,7 +388,7 @@ export default function BPUPDPortal() {
 
   const fetchCashflow = async (month: number, year: number) => {
     try {
-      const res = await fetch(`/api/finance?month=${month}&year=${year}`)
+      const res = await fetch(`/api/finance?month=${month}&year=${year}&division=bpupd`)
       if (res.ok) {
         const data = await res.json()
         const mapped = (data.cashflow || []).map((item: any) => ({

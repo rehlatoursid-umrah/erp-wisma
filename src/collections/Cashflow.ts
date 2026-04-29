@@ -23,6 +23,20 @@ export const Cashflow: CollectionConfig = {
     },
     fields: [
         {
+            name: 'division',
+            type: 'select',
+            options: [
+                { label: 'Bendahara Umum', value: 'bendahara' },
+                { label: 'BPUPD', value: 'bpupd' },
+                { label: 'BPPG', value: 'bppg' },
+                { label: 'Sekretaris', value: 'sekretaris' },
+                { label: 'Direktur', value: 'direktur' },
+            ],
+            admin: {
+                description: 'Divisi pengelola dana',
+            },
+        },
+        {
             name: 'type',
             type: 'select',
             required: true,

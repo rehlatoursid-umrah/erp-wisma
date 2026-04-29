@@ -9,6 +9,52 @@ import SlipGajiWidget from '@/components/bendahara/SlipGajiWidget'
 export default function BendaharaPortal() {
   const [sidebarOpen, setSidebarOpen] = useState(false)
 
+  const [distForm, setDistForm] = useState({ division: 'bpupd', amount: '', description: '' })
+  const [distHistory, setDistHistory] = useState<any[]>([])
+
+  const fetchDistHistory = async () => {
+    try {
+      const res = await fetch('/api/finance')
+      if (res.ok) {
+        const data = await res.json()
+        const history = (data.cashflow || []).filter((c: any) => c.category === 'treasurer_funding' && c.type === 'in')
+        setDistHistory(history.slice(0, 5)) // Top 5 recent
+      }
+    } catch (e) { console.error(e) }
+  }
+
+  useEffect(() => {
+    fetchDistHistory()
+  }, [])
+
+  const submitDistribusi = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!distForm.amount || !distForm.description) return
+    try {
+      const res = await fetch('/api/finance', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          type: 'in', // Income for the receiving division
+          category: 'treasurer_funding',
+          division: distForm.division,
+          amount: distForm.amount,
+          currency: 'EGP',
+          description: distForm.description,
+          transactionDate: new Date().toISOString().split('T')[0]
+        })
+      })
+      if (res.ok) {
+        setDistForm({ division: 'bpupd', amount: '', description: '' })
+        fetchDistHistory()
+        alert(`Dana operasional berhasil dikirim ke ${distForm.division.toUpperCase()}`)
+      }
+    } catch (error) {
+      console.error('Failed to distribute funds', error)
+      alert('Gagal mengirim dana')
+    }
+  }
+
   const LogbookTasks = ({ category }: { category: string }) => {
     const [tasks, setTasks] = useState<any[]>([])
 
@@ -79,9 +125,46 @@ export default function BendaharaPortal() {
             </div>
 
             <div className="card">
-              <h3>💸 Petty Cash Requests</h3>
-              <p className="card-desc">Permintaan pencairan dana</p>
-              {/* Logic for petty cash */}
+              <h3>💸 Distribusi Uang Operasional</h3>
+              <p className="card-desc">Transfer dana operasional ke tiap divisi</p>
+              
+              <form className="dist-form" onSubmit={submitDistribusi}>
+                <div className="dist-group">
+                  <label>Pilih Divisi Penerima</label>
+                  <select className="dist-input" value={distForm.division} onChange={e => setDistForm({...distForm, division: e.target.value})}>
+                    <option value="bpupd">BPUPD (Travel & Sales)</option>
+                    <option value="bppg">BPPG (Maintenance & HK)</option>
+                  </select>
+                </div>
+                <div className="dist-row">
+                  <div className="dist-group">
+                    <label>Jumlah (EGP)</label>
+                    <input type="number" required className="dist-input" placeholder="0" value={distForm.amount} onChange={e => setDistForm({...distForm, amount: e.target.value})} />
+                  </div>
+                </div>
+                <div className="dist-group">
+                  <label>Keterangan / Tujuan Dana</label>
+                  <input type="text" required className="dist-input" placeholder="Contoh: Dana Operasional April" value={distForm.description} onChange={e => setDistForm({...distForm, description: e.target.value})} />
+                </div>
+                <button type="submit" className="btn btn-primary" style={{ marginTop: '0.5rem' }}>Kirim Dana</button>
+              </form>
+
+              <div className="dist-history">
+                <h4 style={{ fontSize: '0.85rem', color: 'var(--color-text-muted)', marginTop: '1.5rem', marginBottom: '0.75rem', fontWeight: 600, textTransform: 'uppercase' }}>Riwayat Distribusi</h4>
+                {distHistory.length === 0 ? (
+                  <p style={{ fontSize: '0.85rem', color: 'var(--color-text-muted)' }}>Belum ada data distribusi.</p>
+                ) : (
+                  distHistory.map(h => (
+                    <div key={h.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.75rem', background: 'var(--color-bg-secondary)', borderRadius: '8px', marginBottom: '8px' }}>
+                      <div>
+                        <div style={{ fontWeight: 600, fontSize: '0.9rem' }}>{h.description} <span style={{ background: 'var(--color-primary-light)', color: 'var(--color-primary-dark)', fontSize: '0.65rem', padding: '2px 6px', borderRadius: '4px', marginLeft: '4px', textTransform: 'uppercase' }}>{h.division}</span></div>
+                        <div style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', marginTop: '2px' }}>{h.transactionDate ? h.transactionDate.split('T')[0] : ''}</div>
+                      </div>
+                      <div style={{ fontWeight: 700, color: 'var(--color-success)' }}>+ EGP {h.amount?.toLocaleString()}</div>
+                    </div>
+                  ))
+                )}
+              </div>
             </div>
 
             <div className="card">
@@ -281,6 +364,15 @@ export default function BendaharaPortal() {
           .summary-item .value.expense {
             color: var(--color-danger);
           }
+
+          /* Distribusi Form Styles */
+          .dist-form { display: flex; flex-direction: column; gap: 1rem; }
+          .dist-group { display: flex; flex-direction: column; gap: 0.4rem; }
+          .dist-group label { font-size: 0.8rem; font-weight: 600; color: var(--color-text-secondary); }
+          .dist-row { display: flex; gap: 1rem; }
+          .dist-row .dist-group { flex: 1; }
+          .dist-input { padding: 0.75rem 1rem; border: 1px solid var(--color-border); border-radius: 8px; background: var(--color-bg-primary); font-size: 0.9rem; outline: none; transition: border-color 0.2s; }
+          .dist-input:focus { border-color: var(--color-primary); box-shadow: 0 0 0 3px rgba(139, 69, 19, 0.1); }
 
           @keyframes fadeIn {
             from { opacity: 0; }
