@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import Sidebar from '@/components/layout/Sidebar'
 import Header from '@/components/layout/Header'
 import PortalPinGuard from '@/components/auth/PortalPinGuard'
-import { ChevronLeft, ChevronRight, CheckCircle2, AlertTriangle, Plus, Trash2, Eye, Wallet, BarChart3, Download, ArrowDownLeft, TrendingDown, ClipboardList } from 'lucide-react'
+import { ChevronLeft, ChevronRight, CheckCircle2, AlertTriangle, Plus, Trash2, Eye, Wallet, BarChart3, Download, ArrowDownLeft, TrendingDown, ClipboardList, Camera, Save } from 'lucide-react'
 import jsPDF from 'jspdf'
 
 export default function BPPGPortal() {
@@ -41,7 +41,9 @@ export default function BPPGPortal() {
   const [cfYear, setCfYear] = useState(CURRENT_YEAR)
   const [transactions, setTransactions] = useState<any[]>([])
   const [fiscalChartData, setFiscalChartData] = useState<any[]>([])
-  const [financeForm, setFinanceForm] = useState({ description: '', amount: '', transactionDate: new Date().toISOString().split('T')[0] })
+  const [expenseForm, setExpenseForm] = useState<{ itemName: string, quantity: string, unitPrice: string, amount: string, date: string, file: File | null }>({
+    itemName: '', quantity: '', unitPrice: '', amount: '0', date: new Date().toISOString().split('T')[0], file: null
+  })
 
   // Build fiscal year months: Feb of start year → Jan of next year
   const buildFiscalMonths = () => {
@@ -95,6 +97,9 @@ export default function BPPGPortal() {
           type: item.type,
           description: item.description,
           status: item.approvalStatus,
+          proofImage: item.proofImage,
+          quantity: item.quantity,
+          unitPrice: item.unitPrice,
         }))
         setTransactions(mapped)
       }
@@ -111,23 +116,42 @@ export default function BPPGPortal() {
     fetchCashflow(cfMonth, cfYear)
   }, [cfMonth, cfYear])
 
-  const submitFinanceForm = async (e: React.FormEvent) => {
+  const handleExpenseSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!financeForm.description || !financeForm.amount) return
+    if (!expenseForm.itemName || !expenseForm.amount) return
+
+    let mediaId = null
+    if (expenseForm.file) {
+      const fd = new FormData()
+      fd.append('file', expenseForm.file)
+      try {
+        const resFile = await fetch('/api/upload', { method: 'POST', body: fd })
+        if (resFile.ok) {
+          const fileData = await resFile.json()
+          mediaId = fileData.doc.id
+        }
+      } catch (err) { console.error('Upload failed', err) }
+    }
+
     try {
       const res = await fetch('/api/finance', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          ...financeForm,
+          description: expenseForm.itemName,
+          amount: Number(expenseForm.amount),
+          quantity: expenseForm.quantity ? Number(expenseForm.quantity) : undefined,
+          unitPrice: expenseForm.unitPrice ? Number(expenseForm.unitPrice) : undefined,
+          transactionDate: expenseForm.date,
           type: 'out',
           category: 'operational',
           currency: 'EGP',
-          division: 'bppg'
+          division: 'bppg',
+          proofImage: mediaId
         }),
       })
       if (res.ok) {
-        setFinanceForm({ description: '', amount: '', transactionDate: new Date().toISOString().split('T')[0] })
+        setExpenseForm({ itemName: '', quantity: '', unitPrice: '', amount: '0', date: new Date().toISOString().split('T')[0], file: null })
         fetchCashflow(cfMonth, cfYear)
         fetchFiscalChart()
       }
@@ -184,6 +208,8 @@ export default function BPPGPortal() {
   const totalIncome = transactions.filter(t => t.type === 'in' && t.category === 'treasurer_funding').reduce((sum, t) => sum + t.amount, 0)
   const totalExpense = transactions.filter(t => t.type === 'out').reduce((sum, t) => sum + t.amount, 0)
   const remainingBalance = totalIncome - totalExpense
+  const isArchive = cfMonth !== CURRENT_MONTH || cfYear !== CURRENT_YEAR
+  const viewLabel = new Date(cfYear, cfMonth, 1).toLocaleString('id-ID', { month: 'long', year: 'numeric' })
 
   return (
     <PortalPinGuard portalName="BPPG" expectedPin={process.env.NEXT_PUBLIC_BPPG_PIN}>
@@ -457,27 +483,45 @@ export default function BPPGPortal() {
                <div className="cf-section">
                  <div className="cf-section-header expense-header">
                    <div className="cf-section-title"><TrendingDown size={18} /> Catat Belanja</div>
-                   <button className="cf-pdf-btn" onClick={() => generateCashflowPDF(cfMonth, cfYear, transactions)}><Download size={14} /> PDF</button>
+                   <button onClick={() => generateCashflowPDF(cfMonth, cfYear, transactions)} className="cf-pdf-btn"><Download size={14} /> PDF</button>
                  </div>
 
-                 <form className="cf-form" onSubmit={submitFinanceForm}>
-                   <input required type="text" placeholder="Nama barang / keperluan *" className="cf-input" value={financeForm.description} onChange={e => setFinanceForm({ ...financeForm, description: e.target.value })} />
-                   <div className="cf-form-row">
-                     <div className="cf-input-group">
-                       <label>Total Belanja (EGP) *</label>
-                       <input required type="number" className="cf-input" value={financeForm.amount} onChange={e => setFinanceForm({ ...financeForm, amount: e.target.value })} />
-                     </div>
-                     <div className="cf-input-group">
-                       <label>Tanggal *</label>
-                       <input required type="date" className="cf-input" value={financeForm.transactionDate} onChange={e => setFinanceForm({ ...financeForm, transactionDate: e.target.value })} />
-                     </div>
+                 {isArchive ? (
+                   <div className="cf-archive-expense-note">
+                     <span>🔒 Periode ini sudah ditutup. Data di bawah adalah arsip belanja.</span>
                    </div>
-                   <button type="submit" className="cf-submit-btn"><Wallet size={16} /> Simpan Belanja</button>
-                 </form>
+                 ) : (
+                   <form onSubmit={handleExpenseSubmit} className="cf-expense-form">
+                     <input type="text" className="cf-input" placeholder="Nama barang / keperluan *" value={expenseForm.itemName} onChange={e => setExpenseForm({ ...expenseForm, itemName: e.target.value })} required />
+                     <div className="cf-input-row">
+                       <div className="cf-input-group">
+                         <label>Qty</label>
+                         <input type="number" className="cf-input" placeholder="1" value={expenseForm.quantity} onChange={e => { const qty = Number(e.target.value); const price = Number(expenseForm.unitPrice); setExpenseForm({ ...expenseForm, quantity: e.target.value, amount: (qty * price).toString() }) }} />
+                       </div>
+                       <div className="cf-input-group">
+                         <label>Harga Satuan</label>
+                         <input type="number" className="cf-input" placeholder="0" value={expenseForm.unitPrice} onChange={e => { const price = Number(e.target.value); const qty = Number(expenseForm.quantity); setExpenseForm({ ...expenseForm, unitPrice: e.target.value, amount: (qty * price).toString() }) }} />
+                       </div>
+                     </div>
+                     <div className="cf-total-display">
+                       <span>Total</span>
+                       <span className="cf-total-value">EGP {Number(expenseForm.amount).toLocaleString() || '0'}</span>
+                     </div>
+                     <input type="date" className="cf-input" value={expenseForm.date} onChange={e => setExpenseForm({ ...expenseForm, date: e.target.value })} required />
+                     <div className="cf-upload-area">
+                       <input type="file" accept="image/*,application/pdf" id="exp-file" className="hidden-file-input" onChange={e => { if (e.target.files?.[0]) setExpenseForm({ ...expenseForm, file: e.target.files[0] }) }} />
+                       <label htmlFor="exp-file" className="cf-upload-label">
+                         <Camera size={18} />
+                         <span>{expenseForm.file ? expenseForm.file.name : 'Upload Struk / Kwitansi'}</span>
+                       </label>
+                     </div>
+                     <button type="submit" className="cf-submit-btn"><Save size={16} /> Simpan Belanja</button>
+                   </form>
+                 )}
 
-                 <div className="cf-timeline">
+                 <div className="cf-timeline" style={{ marginTop: '12px' }}>
                    {transactions.filter(t => t.type === 'out').length === 0 ? (
-                     <div className="cf-empty"><ClipboardList size={32} /><p>Belum ada catatan belanja</p></div>
+                     <div className="cf-empty"><TrendingDown size={32} /><p>{isArchive ? 'Tidak ada belanja di periode ini' : 'Belum ada catatan belanja'}</p></div>
                    ) : (
                      transactions.filter(t => t.type === 'out').map(t => (
                        <div key={t.id} className="cf-timeline-item expense-item">
@@ -485,11 +529,14 @@ export default function BPPGPortal() {
                          <div className="cf-tl-body">
                            <div className="cf-tl-top">
                              <span className="cf-tl-title">{t.description}</span>
-                             <span className="cf-tl-amount">- EGP {t.amount.toLocaleString()}</span>
+                             <span className="cf-tl-amount expense-amount">-{t.amount.toLocaleString()} EGP</span>
                            </div>
-                           <div className="cf-tl-bot">
-                             <span className="cf-tl-date">{t.date}</span>
-                             <button onClick={() => deleteTransaction(t.id)} className="cf-tl-del"><Trash2 size={14} /></button>
+                           <div className="cf-tl-meta">
+                             <span>{t.date}{t.quantity ? ` · ${t.quantity}x @ ${t.unitPrice}` : ''}</span>
+                             <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
+                               {t.proofImage && <a href={`/api/media/file/${typeof t.proofImage === 'string' ? t.proofImage : t.proofImage.filename}`} target="_blank" className="cf-proof-link"><Eye size={11} /> Struk</a>}
+                               {!isArchive && <button onClick={() => deleteTransaction(t.id)} className="cf-del-btn"><Trash2 size={12} /></button>}
+                             </div>
                            </div>
                          </div>
                        </div>
@@ -607,37 +654,49 @@ export default function BPPGPortal() {
         .cf-section-title { font-weight: 700; font-size: 1rem; color: var(--color-text-primary); display: flex; align-items: center; gap: 0.5rem; }
         .cf-readonly-badge { font-size: 0.7rem; font-weight: 700; background: var(--color-bg-secondary); padding: 4px 8px; border-radius: 6px; color: var(--color-text-muted); }
         
-        .cf-form { padding: 1.5rem; border-bottom: 1px solid var(--color-border); background: var(--color-bg-primary); }
-        .cf-input-group { display: flex; flex-direction: column; gap: 0.5rem; flex: 1; }
-        .cf-input-group label { font-size: 0.8rem; font-weight: 600; color: var(--color-text-secondary); }
-        .cf-input { padding: 0.75rem 1rem; border: 1px solid var(--color-border); border-radius: 10px; background: var(--color-bg-card); font-size: 0.95rem; outline: none; width: 100%; transition: border-color 0.2s; }
-        .cf-input:focus { border-color: var(--color-primary); box-shadow: 0 0 0 3px rgba(139, 69, 19, 0.1); }
-        .cf-form-row { display: flex; gap: 1rem; margin-top: 1rem; margin-bottom: 1.25rem; }
-        .cf-submit-btn { width: 100%; padding: 0.875rem; background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%); color: white; border: none; border-radius: 10px; font-weight: 700; font-size: 0.95rem; cursor: pointer; display: flex; justify-content: center; align-items: center; gap: 0.5rem; box-shadow: 0 4px 10px rgba(139, 69, 19, 0.2); transition: transform 0.2s; }
-        .cf-submit-btn:hover { transform: translateY(-1px); box-shadow: 0 6px 14px rgba(139, 69, 19, 0.3); }
-
-        .cf-timeline { padding: 1.5rem; display: flex; flex-direction: column; gap: 1.25rem; }
-        .cf-timeline-item { display: flex; gap: 1rem; position: relative; }
-        .cf-timeline-item::before { content: ''; position: absolute; left: 6px; top: 20px; bottom: -20px; width: 2px; background: var(--color-border); }
-        .cf-timeline-item:last-child::before { display: none; }
-        .cf-tl-dot { width: 14px; height: 14px; border-radius: 50%; border: 3px solid var(--color-bg-card); box-shadow: 0 0 0 1px var(--color-border); z-index: 1; margin-top: 4px; }
+        /* Timeline */
+        .cf-timeline { display: flex; flex-direction: column; gap: 0; }
+        .cf-timeline-item { display: flex; gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--color-bg-secondary); }
+        .cf-timeline-item:last-child { border-bottom: none; }
+        .cf-tl-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; margin-top: 5px; }
         .income-dot { background: #10b981; }
         .expense-dot { background: #ef4444; }
-        
-        .cf-tl-body { flex: 1; background: var(--color-bg-secondary); padding: 1rem; border-radius: 12px; border: 1px solid transparent; transition: border-color 0.2s; }
-        .cf-tl-body:hover { border-color: var(--color-border); background: var(--color-bg-card); }
-        .cf-tl-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.5rem; }
-        .cf-tl-title { font-weight: 600; color: var(--color-text-primary); font-size: 0.95rem; }
-        .cf-tl-amount { font-weight: 800; font-size: 1rem; }
-        .income-item .cf-tl-amount { color: #10b981; }
-        .expense-item .cf-tl-amount { color: #ef4444; }
-        .cf-tl-bot { display: flex; justify-content: space-between; align-items: center; }
-        .cf-tl-date { font-size: 0.8rem; color: var(--color-text-muted); }
-        .cf-tl-del { background: transparent; border: none; color: var(--color-text-muted); cursor: pointer; padding: 4px; border-radius: 6px; transition: all 0.2s; }
-        .cf-tl-del:hover { color: #ef4444; background: rgba(239, 68, 68, 0.1); }
+        .cf-tl-body { flex: 1; min-width: 0; }
+        .cf-tl-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; margin-bottom: 3px; }
+        .cf-tl-title { font-size: 0.84rem; font-weight: 600; color: var(--color-text-primary); }
+        .cf-tl-amount { font-size: 0.84rem; font-weight: 800; white-space: nowrap; font-family: var(--font-heading); }
+        .income-amount { color: #10b981; }
+        .expense-amount { color: #ef4444; }
+        .cf-tl-meta { display: flex; align-items: center; gap: 10px; font-size: 0.72rem; color: var(--color-text-muted); }
+        .cf-proof-link { display: inline-flex; align-items: center; gap: 3px; color: var(--color-primary); font-weight: 600; text-decoration: none; font-size: 0.72rem; }
+        .cf-del-btn { background: none; border: none; padding: 2px 4px; cursor: pointer; color: var(--color-text-muted); display: flex; align-items: center; border-radius: 4px; transition: all 0.15s; }
+        .cf-del-btn:hover { background: rgba(239,68,68,0.08); color: #ef4444; }
+        .cf-empty { display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 28px; color: var(--color-text-muted); text-align: center; }
+        .cf-empty p { font-size: 0.82rem; }
 
-        .cf-empty { text-align: center; padding: 3rem 1rem; color: var(--color-text-muted); display: flex; flex-direction: column; align-items: center; gap: 0.75rem; }
-        .cf-empty p { margin: 0; font-size: 0.9rem; font-weight: 500; }
+        /* Expense Form */
+        .cf-expense-form { display: flex; flex-direction: column; gap: 10px; }
+        .cf-input { width: 100%; padding: 10px 12px; border: 1.5px solid var(--color-bg-secondary); border-radius: 10px; font-size: 0.85rem; background: var(--color-bg-primary); color: var(--color-text-primary); font-family: var(--font-sans); transition: border 0.2s; box-sizing: border-box; }
+        .cf-input:focus { outline: none; border-color: var(--color-primary); }
+        .cf-input-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+        .cf-input-group { display: flex; flex-direction: column; gap: 4px; }
+        .cf-input-group label { font-size: 0.75rem; font-weight: 600; color: var(--color-text-muted); }
+        .cf-total-display { background: var(--color-bg-secondary); border-radius: 10px; padding: 10px 14px; display: flex; justify-content: space-between; align-items: center; }
+        .cf-total-value { font-size: 1.05rem; font-weight: 800; color: #ef4444; font-family: var(--font-heading); }
+        .cf-upload-area { border: 1.5px dashed var(--color-bg-secondary); border-radius: 10px; overflow: hidden; }
+        .cf-upload-label { display: flex; align-items: center; gap: 10px; padding: 12px 14px; cursor: pointer; color: var(--color-text-muted); font-size: 0.82rem; transition: background 0.2s; }
+        .cf-upload-label:hover { background: var(--color-bg-secondary); }
+        .cf-submit-btn { background: linear-gradient(135deg, #8B4513, #A0522D); color: white; border: none; border-radius: 10px; padding: 12px; font-weight: 700; font-size: 0.88rem; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; transition: opacity 0.2s, transform 0.15s; }
+        .cf-submit-btn:hover { opacity: 0.9; transform: translateY(-1px); }
+
+        .cf-archive-banner { display: flex; align-items: center; gap: 1rem; padding: 1rem 1.25rem; background: rgba(59, 130, 246, 0.05); border: 1px solid rgba(59, 130, 246, 0.2); border-radius: 16px; margin-bottom: 0.5rem; }
+        .cf-archive-icon { font-size: 1.5rem; background: white; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; border-radius: 10px; box-shadow: var(--shadow-sm); }
+        .cf-archive-info { flex: 1; display: flex; flex-direction: column; }
+        .cf-archive-title { font-weight: 700; color: #1e40af; font-size: 0.95rem; }
+        .cf-archive-sub { font-size: 0.75rem; color: #3b82f6; }
+        .cf-archive-pdf-btn { background: #3b82f6; color: white; border: none; padding: 8px 14px; border-radius: 8px; font-weight: 600; font-size: 0.8rem; cursor: pointer; display: flex; align-items: center; gap: 6px; transition: opacity 0.2s; }
+        .cf-archive-pdf-btn:hover { opacity: 0.9; }
+        .cf-archive-expense-note { background: var(--color-bg-secondary); padding: 12px; border-radius: 10px; border: 1px dashed var(--color-border); text-align: center; font-size: 0.8rem; color: var(--color-text-muted); font-weight: 600; display: flex; justify-content: center; align-items: center; gap: 6px; }
 
         @media (max-width: 1024px) {
           .cf-summary-row { grid-template-columns: 1fr; }
