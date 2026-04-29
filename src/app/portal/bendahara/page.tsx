@@ -189,8 +189,8 @@ export default function BendaharaPortal() {
                 <div className="dist-group">
                   <label>Pilih Divisi Penerima</label>
                   <select className="dist-input" value={distForm.division} onChange={e => setDistForm({...distForm, division: e.target.value})}>
-                    <option value="bpupd">BPUPD (Biro Perjalanan Umrah)</option>
-                    <option value="bppg">BPPG (Biro Pemeliharaan & HK)</option>
+                    <option value="bpupd">BPUPD (Badan Pengembangan Usaha dan Pengelolaan Dana)</option>
+                    <option value="bppg">BPPG (Badan Perbaikan dan Pemeliharaan Gedung)</option>
                   </select>
                 </div>
                 <div className="dist-row">
