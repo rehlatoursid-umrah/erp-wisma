@@ -6,6 +6,12 @@ export const Inventory: CollectionConfig = {
         useAsTitle: 'itemName',
         group: 'BPUPD',
     },
+    access: {
+        read: () => true,
+        create: () => true,
+        update: () => true,
+        delete: () => true,
+    },
     fields: [
         {
             name: 'itemName',
