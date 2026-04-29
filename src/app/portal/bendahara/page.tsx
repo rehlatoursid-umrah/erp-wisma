@@ -6,7 +6,7 @@ import Header from '@/components/layout/Header'
 import PortalPinGuard from '@/components/auth/PortalPinGuard'
 import SlipGajiWidget from '@/components/bendahara/SlipGajiWidget'
 
-import { Wallet, ArrowDownLeft, TrendingDown, ClipboardCheck, ArrowRight, Activity, PlusCircle, Folder, FolderOpen, ChevronDown, ChevronRight } from 'lucide-react'
+import { Wallet, ArrowDownLeft, TrendingDown, ClipboardCheck, ArrowRight, Activity, PlusCircle, Folder, FolderOpen, ChevronDown, ChevronRight, Trash2 } from 'lucide-react'
 
 export default function BendaharaPortal() {
   const [sidebarOpen, setSidebarOpen] = useState(false)
@@ -87,6 +87,20 @@ export default function BendaharaPortal() {
     } catch (error) {
       console.error('Failed to distribute funds', error)
       alert('Gagal mengirim dana')
+    }
+  }
+
+  const deleteDistribusi = async (id: string) => {
+    if (!confirm('Apakah Anda yakin ingin menghapus data distribusi ini? Saldo divisi terkait akan kembali seperti semula.')) return
+    try {
+      const res = await fetch(`/api/finance?id=${id}`, { method: 'DELETE' })
+      if (res.ok) {
+        fetchData()
+      } else {
+        alert('Gagal menghapus data')
+      }
+    } catch (e) {
+      console.error(e)
     }
   }
 
@@ -257,7 +271,12 @@ export default function BendaharaPortal() {
                                     <div className="hi-title">{h.description} <span className="hi-badge">{h.division}</span></div>
                                     <div className="hi-date">{h.transactionDate ? h.transactionDate.split('T')[0] : ''}</div>
                                   </div>
-                                  <div className="hi-amount">- EGP {h.amount?.toLocaleString()}</div>
+                                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                                    <div className="hi-amount">- EGP {h.amount?.toLocaleString()}</div>
+                                    <button type="button" onClick={() => deleteDistribusi(h.id)} style={{ background: 'rgba(239, 68, 68, 0.1)', border: 'none', color: 'var(--color-danger)', cursor: 'pointer', padding: '6px', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '6px', transition: 'all 0.2s' }} title="Hapus transaksi" className="delete-btn">
+                                      <Trash2 size={16} />
+                                    </button>
+                                  </div>
                                 </div>
                               ))}
                             </div>
@@ -351,6 +370,7 @@ export default function BendaharaPortal() {
           .hi-badge { background: var(--color-primary-light); color: var(--color-primary-dark); font-size: 0.65rem; padding: 2px 6px; border-radius: 4px; font-weight: 700; text-transform: uppercase; }
           .hi-date { font-size: 0.75rem; color: var(--color-text-muted); margin-top: 4px; font-weight: 500; }
           .hi-amount { font-weight: 700; color: #ef4444; font-size: 0.95rem; }
+          .delete-btn:hover { background: #ef4444 !important; color: white !important; }
           
           /* Folder Styles */
           .month-folder { margin-bottom: 0.75rem; background: var(--color-bg-secondary); border-radius: 12px; border: 1px solid var(--color-border); overflow: hidden; transition: all 0.2s; }
