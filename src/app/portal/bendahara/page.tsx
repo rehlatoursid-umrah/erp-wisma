@@ -6,10 +6,15 @@ import Header from '@/components/layout/Header'
 import PortalPinGuard from '@/components/auth/PortalPinGuard'
 import SlipGajiWidget from '@/components/bendahara/SlipGajiWidget'
 
-import { Wallet, ArrowDownLeft, TrendingDown, ClipboardCheck, ArrowRight, Activity, PlusCircle } from 'lucide-react'
+import { Wallet, ArrowDownLeft, TrendingDown, ClipboardCheck, ArrowRight, Activity, PlusCircle, Folder, FolderOpen, ChevronDown, ChevronRight } from 'lucide-react'
 
 export default function BendaharaPortal() {
   const [sidebarOpen, setSidebarOpen] = useState(false)
+  const [expandedMonths, setExpandedMonths] = useState<Record<string, boolean>>({})
+
+  const toggleMonth = (month: string) => {
+    setExpandedMonths(prev => ({ ...prev, [month]: !prev[month] }))
+  }
 
   const [distForm, setDistForm] = useState({ division: 'bpupd', amount: '', description: '' })
   const [distHistory, setDistHistory] = useState<any[]>([])
@@ -29,6 +34,12 @@ export default function BendaharaPortal() {
         // Distributions history (sent by bendahara)
         const history = cashflow.filter((c: any) => c.category === 'treasurer_funding' && c.type === 'in')
         setDistHistory(history)
+
+        if (history.length > 0) {
+           const d = new Date(history[0].transactionDate || new Date())
+           const monthYear = d.toLocaleString('id-ID', { month: 'long', year: 'numeric' })
+           setExpandedMonths(prev => ({ ...prev, [monthYear]: true }))
+        }
 
         // Calculate Summary
         let totalIncome = 0
@@ -221,20 +232,35 @@ export default function BendaharaPortal() {
                   return Object.keys(groupedHistory).length === 0 ? (
                     <p className="text-muted">Belum ada data distribusi.</p>
                   ) : (
-                    Object.entries(groupedHistory).map(([month, items]: [string, any]) => (
-                      <div key={month} style={{ marginBottom: '1.25rem' }}>
-                        <div style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--color-primary)', marginBottom: '0.5rem', borderBottom: '1px solid var(--color-border)', paddingBottom: '4px' }}>{month}</div>
-                        {items.map((h: any) => (
-                          <div key={h.id} className="history-item">
-                            <div>
-                              <div className="hi-title">{h.description} <span className="hi-badge">{h.division}</span></div>
-                              <div className="hi-date">{h.transactionDate ? h.transactionDate.split('T')[0] : ''}</div>
+                    Object.entries(groupedHistory).map(([month, items]: [string, any]) => {
+                      const isExpanded = !!expandedMonths[month]
+                      return (
+                        <div key={month} className="month-folder">
+                          <button type="button" className="folder-header" onClick={() => toggleMonth(month)}>
+                            <div className="folder-title">
+                              {isExpanded ? <FolderOpen size={18} className="folder-icon" /> : <Folder size={18} className="folder-icon" />}
+                              <span>{month}</span>
+                              <span className="folder-count">{items.length} transaksi</span>
                             </div>
-                            <div className="hi-amount">- EGP {h.amount?.toLocaleString()}</div>
-                          </div>
-                        ))}
-                      </div>
-                    ))
+                            {isExpanded ? <ChevronDown size={18} className="text-muted" /> : <ChevronRight size={18} className="text-muted" />}
+                          </button>
+                          
+                          {isExpanded && (
+                            <div className="folder-content">
+                              {items.map((h: any) => (
+                                <div key={h.id} className="history-item">
+                                  <div>
+                                    <div className="hi-title">{h.description} <span className="hi-badge">{h.division}</span></div>
+                                    <div className="hi-date">{h.transactionDate ? h.transactionDate.split('T')[0] : ''}</div>
+                                  </div>
+                                  <div className="hi-amount">- EGP {h.amount?.toLocaleString()}</div>
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      )
+                    })
                   )
                 })()}
               </div>
@@ -315,13 +341,23 @@ export default function BendaharaPortal() {
           .cf-submit-btn:hover { transform: translateY(-1px); box-shadow: 0 6px 14px rgba(139, 69, 19, 0.3); }
 
           .dist-history h4 { font-size: 0.8rem; color: var(--color-text-muted); margin: 1.5rem 0 1rem 0; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; }
-          .history-item { display: flex; justify-content: space-between; align-items: center; padding: 1rem; background: var(--color-bg-secondary); border-radius: 12px; margin-bottom: 0.5rem; border: 1px solid transparent; transition: all 0.2s; }
-          .history-item:hover { border-color: var(--color-border); background: var(--color-bg-card); }
+          .history-item { display: flex; justify-content: space-between; align-items: center; padding: 1rem; background: var(--color-bg-primary); border-radius: 10px; margin-bottom: 0.5rem; border: 1px solid var(--color-border); transition: all 0.2s; }
+          .history-item:hover { border-color: var(--color-primary-light); box-shadow: 0 2px 4px rgba(0,0,0,0.02); }
           .hi-title { font-weight: 600; font-size: 0.9rem; color: var(--color-text-primary); display: flex; align-items: center; gap: 0.5rem; }
           .hi-badge { background: var(--color-primary-light); color: var(--color-primary-dark); font-size: 0.65rem; padding: 2px 6px; border-radius: 4px; font-weight: 700; text-transform: uppercase; }
           .hi-date { font-size: 0.75rem; color: var(--color-text-muted); margin-top: 4px; font-weight: 500; }
           .hi-amount { font-weight: 700; color: #ef4444; font-size: 0.95rem; }
           
+          /* Folder Styles */
+          .month-folder { margin-bottom: 0.75rem; background: var(--color-bg-secondary); border-radius: 12px; border: 1px solid var(--color-border); overflow: hidden; transition: all 0.2s; }
+          .month-folder:hover { border-color: var(--color-primary-light); }
+          .folder-header { width: 100%; display: flex; justify-content: space-between; align-items: center; padding: 1rem; background: transparent; border: none; cursor: pointer; color: var(--color-text); transition: background 0.2s; }
+          .folder-header:hover { background: var(--color-bg-highlight); }
+          .folder-title { display: flex; align-items: center; gap: 0.75rem; font-weight: 600; font-size: 0.95rem; }
+          .folder-icon { color: var(--color-primary); }
+          .folder-count { font-size: 0.75rem; color: var(--color-text-muted); font-weight: 500; background: var(--color-bg-primary); padding: 2px 8px; border-radius: 10px; margin-left: 0.25rem; border: 1px solid var(--color-border); }
+          .folder-content { padding: 0 1rem 1rem 1rem; animation: fadeIn 0.3s ease; }
+
           .text-muted { color: var(--color-text-muted); font-size: 0.85rem; }
 
           /* Logbook Styles */
