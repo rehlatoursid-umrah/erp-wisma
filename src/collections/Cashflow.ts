@@ -14,7 +14,7 @@ export const Cashflow: CollectionConfig = {
         },
         create: ({ req: { user } }) => {
             if (!user) return false
-            return ['bendahara', 'sekretaris', 'bppg'].includes(user.role as string)
+            return ['bendahara', 'sekretaris', 'bppg', 'pmik'].includes(user.role as string)
         },
         update: ({ req: { user } }) => {
             if (!user) return false
@@ -29,6 +29,7 @@ export const Cashflow: CollectionConfig = {
                 { label: 'Bendahara Umum', value: 'bendahara' },
                 { label: 'BPUPD', value: 'bpupd' },
                 { label: 'BPPG', value: 'bppg' },
+                { label: 'PMIK', value: 'pmik' },
                 { label: 'Sekretaris', value: 'sekretaris' },
                 { label: 'Direktur', value: 'direktur' },
             ],

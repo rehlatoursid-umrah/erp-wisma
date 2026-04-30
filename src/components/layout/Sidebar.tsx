@@ -18,7 +18,8 @@ import {
     LogOut,
     Lock,
     X,
-    KanbanSquare
+    KanbanSquare,
+    BookOpen
 } from 'lucide-react'
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet'
 import { Button } from '@/components/ui/button'
@@ -43,6 +44,7 @@ const navItems = [
             { href: '/portal/bendahara', icon: Shield, label: 'Bendahara', locked: true },
             { href: '/portal/bpupd', icon: Plane, label: 'BPUPD' },
             { href: '/portal/bppg', icon: Wrench, label: 'BPPG' },
+            { href: '/portal/pmik', icon: BookOpen, label: 'PMIK' },
             { href: '/portal/sekretaris', icon: FileText, label: 'Sekretaris' },
             { href: '/portal/direktur', icon: Briefcase, label: 'Direktur' },
         ]

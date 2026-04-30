@@ -30,6 +30,7 @@ export const Tasks: CollectionConfig = {
                 { label: '🔧 Maintenance', value: 'maintenance' },
                 { label: '📦 Inventory', value: 'inventory' },
                 { label: '📝 Admin', value: 'admin' },
+                { label: '📚 PMIK', value: 'pmik' },
             ],
             defaultValue: 'general',
         },
