@@ -4,12 +4,12 @@ import { useState, useEffect } from 'react'
 import Sidebar from '@/components/layout/Sidebar'
 import Header from '@/components/layout/Header'
 import PortalPinGuard from '@/components/auth/PortalPinGuard'
-import { ChevronLeft, ChevronRight, CheckCircle2, AlertTriangle, Plus, Trash2, Eye, Wallet, BarChart3, Download, ArrowDownLeft, TrendingDown, ClipboardList, Camera, Save, KanbanSquare, MoveRight, MoveLeft, X } from 'lucide-react'
+import { ChevronLeft, ChevronRight, CheckCircle2, AlertTriangle, Plus, Trash2, Eye, Wallet, BarChart3, Download, ArrowDownLeft, TrendingDown, ClipboardList, Camera, Save, KanbanSquare, MoveRight, MoveLeft, X, Package } from 'lucide-react'
 import jsPDF from 'jspdf'
 
 export default function BPPGPortal() {
   const [sidebarOpen, setSidebarOpen] = useState(false)
-  const [activeTab, setActiveTab] = useState<'proker' | 'dana_ops'>('proker')
+  const [activeTab, setActiveTab] = useState<'proker' | 'dana_ops' | 'inventaris'>('proker')
 
   // --- PROKER BULANAN STATE ---
   const [tasks, setTasks] = useState<any[]>([])
@@ -29,6 +29,61 @@ export default function BPPGPortal() {
     { name: 'Subhan Hadi Alhabsyi', initials: 'SH', color: '#3b82f6' },
     { name: 'Rausan Fiqri', initials: 'RF', color: '#8b5cf6' },
   ]
+
+  // --- INVENTARIS STATE ---
+  const [inventoryList, setInventoryList] = useState<any[]>([])
+  const [showInvForm, setShowInvForm] = useState(false)
+  const [invForm, setInvForm] = useState<any>({
+    itemName: '', category: 'tools', inventoryType: 'asset', currentStock: 1, minimumStock: 1, unit: 'pcs',
+    condition: { good: 1, broken: 0, lost: 0 }, setDetails: []
+  })
+
+  const fetchInv = async () => {
+    try {
+      const res = await fetch('/api/inventory?division=bppg')
+      if (res.ok) setInventoryList(await res.json())
+    } catch (e) { console.error(e) }
+  }
+
+  useEffect(() => {
+    fetchInv()
+  }, [])
+
+  const handleInvSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    try {
+      const res = await fetch('/api/inventory', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ...invForm, division: 'bppg' })
+      })
+      if (res.ok) {
+        fetchInv()
+        setShowInvForm(false)
+        setInvForm({ itemName: '', category: 'tools', inventoryType: 'asset', currentStock: 1, minimumStock: 1, unit: 'pcs', condition: { good: 1, broken: 0, lost: 0 }, setDetails: [] })
+      }
+    } catch (e) { console.error(e) }
+  }
+
+  const deleteInv = async (id: string) => {
+    if (!confirm('Hapus item inventaris ini?')) return
+    try {
+      const res = await fetch(`/api/inventory?id=${id}`, { method: 'DELETE' })
+      if (res.ok) fetchInv()
+    } catch (e) { console.error(e) }
+  }
+
+  const addSetDetail = () => {
+    setInvForm({ ...invForm, setDetails: [...invForm.setDetails, { itemName: '', quantity: 1, status: 'good' }] })
+  }
+  const removeSetDetail = (idx: number) => {
+    setInvForm({ ...invForm, setDetails: invForm.setDetails.filter((_: any, i: number) => i !== idx) })
+  }
+  const updateSetDetail = (idx: number, field: string, val: any) => {
+    const newDetails = [...invForm.setDetails]
+    newDetails[idx][field] = val
+    setInvForm({ ...invForm, setDetails: newDetails })
+  }
 
   // --- DANA OPERASIONAL STATE ---
   const CURRENT_MONTH = new Date().getMonth()
@@ -280,6 +335,7 @@ export default function BPPGPortal() {
             <div className="tabs">
               {[
                 { key: 'proker', icon: <KanbanSquare size={18} />, label: 'Proker Bulanan' },
+                { key: 'inventaris', icon: <Package size={18} />, label: 'Inventaris BPPG' },
                 { key: 'dana_ops', icon: <Wallet size={18} />, label: 'Dana Operasional' },
               ].map(t => (
                 <button key={t.key} className={`tab ${activeTab === t.key ? 'active' : ''}`} onClick={() => setActiveTab(t.key as any)}>
@@ -429,6 +485,171 @@ export default function BPPGPortal() {
               </div>
             )
           })()}
+
+          {/* ═══════════════════════════════════════════
+              INVENTARIS BPPG
+          ═══════════════════════════════════════════ */}
+          {activeTab === 'inventaris' && (
+            <div className="inv-dashboard">
+              <div className="inv-header">
+                <div>
+                  <h2>📦 Inventaris BPPG</h2>
+                  <p className="text-muted" style={{ margin: 0, fontSize: '0.85rem' }}>Pencatatan aset tetap, alat kerja, dan material operasional.</p>
+                </div>
+                <button className="btn btn-primary" onClick={() => setShowInvForm(true)}>+ Tambah Barang</button>
+              </div>
+
+              {showInvForm && (
+                <div className="modal-overlay">
+                  <div className="modal-content inv-modal">
+                    <h3>Tambah Barang Inventaris</h3>
+                    <form onSubmit={handleInvSubmit} className="inv-form">
+                      <div className="form-row">
+                        <div className="form-group">
+                          <label>Nama Barang / Alat</label>
+                          <input type="text" className="trello-input" value={invForm.itemName} onChange={e => setInvForm({ ...invForm, itemName: e.target.value })} required />
+                        </div>
+                        <div className="form-group">
+                          <label>Kategori</label>
+                          <select className="trello-select" value={invForm.category} onChange={e => setInvForm({ ...invForm, category: e.target.value })}>
+                            <option value="tools">Alat Tukang (Tools)</option>
+                            <option value="materials">Material Bangunan</option>
+                            <option value="electrical">Elektronik & Kelistrikan</option>
+                            <option value="plumbing">Pipa & Saluran</option>
+                            <option value="cleaning">Alat Kebersihan</option>
+                            <option value="others">Lainnya</option>
+                          </select>
+                        </div>
+                      </div>
+
+                      <div className="form-row">
+                        <div className="form-group">
+                          <label>Tipe Barang</label>
+                          <select className="trello-select" value={invForm.inventoryType} onChange={e => setInvForm({ ...invForm, inventoryType: e.target.value })}>
+                            <option value="asset">Aset Tetap (Palu, Bor, Kunci)</option>
+                            <option value="consumable">Habis Pakai (Paku, Lem, Pipa)</option>
+                          </select>
+                        </div>
+                        <div className="form-group">
+                          <label>Satuan</label>
+                          <select className="trello-select" value={invForm.unit} onChange={e => setInvForm({ ...invForm, unit: e.target.value })}>
+                            <option value="pcs">Pcs</option>
+                            <option value="set">Set</option>
+                            <option value="roll">Roll</option>
+                            <option value="meter">Meter</option>
+                            <option value="kg">Kg</option>
+                            <option value="box">Box</option>
+                          </select>
+                        </div>
+                      </div>
+
+                      <div className="form-row">
+                        <div className="form-group">
+                          <label>Total Stok Keseluruhan</label>
+                          <input type="number" className="trello-input" min="1" value={invForm.currentStock} onChange={e => setInvForm({ ...invForm, currentStock: Number(e.target.value) })} required />
+                        </div>
+                        <div className="form-group">
+                          <label>Minimum Stok (Warning)</label>
+                          <input type="number" className="trello-input" min="0" value={invForm.minimumStock} onChange={e => setInvForm({ ...invForm, minimumStock: Number(e.target.value) })} />
+                        </div>
+                      </div>
+
+                      {invForm.inventoryType === 'asset' && (
+                        <div className="form-group condition-box">
+                          <label>Rincian Kondisi Aset (Total = {invForm.currentStock})</label>
+                          <div className="condition-row">
+                            <div className="cond-item"><label>🟢 Bagus</label><input type="number" className="trello-input" min="0" value={invForm.condition.good} onChange={e => setInvForm({ ...invForm, condition: { ...invForm.condition, good: Number(e.target.value) } })} /></div>
+                            <div className="cond-item"><label>🟡 Rusak</label><input type="number" className="trello-input" min="0" value={invForm.condition.broken} onChange={e => setInvForm({ ...invForm, condition: { ...invForm.condition, broken: Number(e.target.value) } })} /></div>
+                            <div className="cond-item"><label>🔴 Hilang</label><input type="number" className="trello-input" min="0" value={invForm.condition.lost} onChange={e => setInvForm({ ...invForm, condition: { ...invForm.condition, lost: Number(e.target.value) } })} /></div>
+                          </div>
+                        </div>
+                      )}
+
+                      {invForm.unit === 'set' && (
+                        <div className="form-group set-details-box">
+                          <div className="set-box-header">
+                            <label style={{ fontSize: '0.8rem', fontWeight: 600 }}>Rincian Isi Set (Opsional)</label>
+                            <button type="button" className="btn-mini" onClick={addSetDetail}>+ Tambah Isi Set</button>
+                          </div>
+                          {invForm.setDetails.map((det: any, idx: number) => (
+                            <div key={idx} className="set-detail-row">
+                              <input type="text" className="trello-input" placeholder="Nama item (misal: Kunci Pas 10mm)" value={det.itemName} onChange={e => updateSetDetail(idx, 'itemName', e.target.value)} required />
+                              <input type="number" className="trello-input qty-input" placeholder="Qty" value={det.quantity} onChange={e => updateSetDetail(idx, 'quantity', Number(e.target.value))} min="1" required />
+                              <select className="trello-select status-sel" value={det.status} onChange={e => updateSetDetail(idx, 'status', e.target.value)}>
+                                <option value="good">🟢 Bagus</option>
+                                <option value="broken">🟡 Rusak</option>
+                                <option value="missing">🔴 Hilang</option>
+                              </select>
+                              <button type="button" className="btn-icon text-danger" onClick={() => removeSetDetail(idx)}><Trash2 size={16} /></button>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+
+                      <div className="modal-actions" style={{ marginTop: '16px', display: 'flex', gap: '10px', justifyContent: 'flex-end' }}>
+                        <button type="button" className="btn btn-secondary" onClick={() => setShowInvForm(false)}>Batal</button>
+                        <button type="submit" className="btn btn-primary">Simpan Barang</button>
+                      </div>
+                    </form>
+                  </div>
+                </div>
+              )}
+
+              <div className="inv-grid">
+                {inventoryList.map(item => {
+                  const isLow = item.currentStock <= item.minimumStock
+                  return (
+                    <div key={item.id} className={`inv-card ${isLow ? 'low-stock' : ''}`}>
+                      <div className="inv-card-header">
+                        <div>
+                          <h3 className="inv-title">{item.itemName}</h3>
+                          <span className="inv-cat-badge">{item.category}</span>
+                        </div>
+                        <button onClick={() => deleteInv(item.id)} className="btn-icon text-danger" style={{ color: '#ef4444' }}><Trash2 size={16} /></button>
+                      </div>
+
+                      <div className="inv-stock-main">
+                        <span className="inv-stock-num">{item.currentStock}</span>
+                        <span className="inv-stock-unit">{item.unit}</span>
+                        {item.inventoryType === 'asset' && <span className="inv-type-badge">Aset</span>}
+                        {item.inventoryType === 'consumable' && <span className="inv-type-badge cons">Habis Pakai</span>}
+                      </div>
+
+                      {item.inventoryType === 'asset' && item.condition && (
+                        <div className="inv-condition-bar">
+                          <div className="cond-stat good">Bagus: <strong>{item.condition.good || 0}</strong></div>
+                          {(item.condition.broken > 0 || item.condition.lost > 0) && (
+                             <div className="cond-stat bad">
+                                {item.condition.broken > 0 ? `Rusak: ${item.condition.broken} ` : ''}
+                                {item.condition.lost > 0 ? `Hilang: ${item.condition.lost}` : ''}
+                             </div>
+                          )}
+                        </div>
+                      )}
+
+                      {item.unit === 'set' && item.setDetails && item.setDetails.length > 0 && (
+                        <div className="inv-set-details">
+                          <p className="set-det-title">Isi dalam Set:</p>
+                          <ul className="set-det-list">
+                            {item.setDetails.map((sd: any, i: number) => (
+                              <li key={i} className={`sd-item ${sd.status}`}>
+                                <span className="sd-name">{sd.quantity}x {sd.itemName}</span>
+                                {sd.status === 'broken' && <span className="sd-status-badge broken">Rusak</span>}
+                                {sd.status === 'missing' && <span className="sd-status-badge missing">Hilang</span>}
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
+                    </div>
+                  )
+                })}
+                {inventoryList.length === 0 && (
+                  <div className="empty-state">Belum ada inventaris yang dicatat.</div>
+                )}
+              </div>
+            </div>
+          )}
 
           {activeTab === 'dana_ops' && (
              <div className="cashflow-dashboard">
@@ -763,6 +984,63 @@ export default function BPPGPortal() {
         .staff-progress-bar { height: 6px; background: var(--color-bg-secondary); border-radius: 10px; overflow: hidden; }
         .staff-progress-fill { height: 100%; border-radius: 10px; transition: width 0.5s ease; }
         .staff-stat { font-size: 0.72rem; color: var(--color-text-muted); }
+
+        /* ═══════════════════════════════════
+           INVENTARIS BPPG
+        ═══════════════════════════════════ */
+        .inv-dashboard { display: flex; flex-direction: column; gap: 20px; animation: fadeIn 0.4s ease-out; }
+        .inv-header { display: flex; justify-content: space-between; align-items: center; background: var(--color-bg-card); padding: 16px 24px; border-radius: var(--radius-xl); box-shadow: var(--shadow-sm); border: 1px solid var(--color-bg-secondary); }
+        .inv-header h2 { font-size: 1.4rem; font-weight: 700; margin: 0 0 4px 0; color: var(--color-text-primary); }
+        .inv-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 16px; }
+        .inv-card { background: var(--color-bg-card); border-radius: var(--radius-xl); padding: 18px; border: 1px solid var(--color-bg-secondary); box-shadow: var(--shadow-sm); transition: transform 0.2s; display: flex; flex-direction: column; gap: 12px; }
+        .inv-card:hover { transform: translateY(-3px); box-shadow: var(--shadow-md); border-color: var(--color-primary-light); }
+        .inv-card.low-stock { border-left: 4px solid #ef4444; }
+        .inv-card-header { display: flex; justify-content: space-between; align-items: flex-start; }
+        .inv-title { font-size: 1.1rem; font-weight: 700; margin: 0 0 6px 0; color: var(--color-text-primary); }
+        .inv-cat-badge { font-size: 0.7rem; font-weight: 600; padding: 3px 8px; border-radius: 20px; background: var(--color-bg-secondary); color: var(--color-text-muted); text-transform: uppercase; letter-spacing: 0.05em; }
+        .inv-stock-main { display: flex; align-items: baseline; gap: 8px; margin-top: 8px; }
+        .inv-stock-num { font-size: 2rem; font-weight: 800; color: var(--color-primary); line-height: 1; }
+        .inv-stock-unit { font-size: 1rem; font-weight: 600; color: var(--color-text-secondary); text-transform: capitalize; }
+        .inv-type-badge { font-size: 0.65rem; font-weight: 700; padding: 3px 8px; border-radius: 6px; background: rgba(59, 130, 246, 0.1); color: #2563eb; margin-left: auto; }
+        .inv-type-badge.cons { background: rgba(16, 185, 129, 0.1); color: #059669; }
+        
+        .inv-condition-bar { display: flex; gap: 8px; font-size: 0.75rem; padding-top: 10px; border-top: 1px dashed var(--color-bg-secondary); }
+        .cond-stat { font-weight: 600; }
+        .cond-stat.good { color: #10b981; }
+        .cond-stat.bad { color: #ef4444; }
+
+        .inv-set-details { background: rgba(139, 69, 19, 0.03); border-radius: 8px; padding: 12px; margin-top: 4px; border: 1px solid rgba(139, 69, 19, 0.08); }
+        .set-det-title { font-size: 0.75rem; font-weight: 700; color: var(--color-text-secondary); margin: 0 0 8px 0; }
+        .set-det-list { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 6px; }
+        .sd-item { display: flex; justify-content: space-between; align-items: center; font-size: 0.8rem; }
+        .sd-name { font-weight: 600; color: var(--color-text-primary); }
+        .sd-status-badge { font-size: 0.65rem; font-weight: 700; padding: 2px 6px; border-radius: 4px; }
+        .sd-status-badge.broken { background: #fef3c7; color: #b45309; }
+        .sd-status-badge.missing { background: #fee2e2; color: #dc2626; }
+        .sd-item.missing .sd-name { text-decoration: line-through; opacity: 0.6; }
+
+        /* Form Modal */
+        .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 1000; padding: 20px; backdrop-filter: blur(4px); }
+        .modal-content.inv-modal { background: var(--color-bg-primary); border-radius: var(--radius-xl); width: 100%; max-width: 600px; padding: 24px; max-height: 90vh; overflow-y: auto; box-shadow: var(--shadow-xl); border: 1px solid var(--color-bg-secondary); }
+        .modal-content h3 { font-size: 1.4rem; font-weight: 700; margin: 0 0 20px 0; color: var(--color-text-primary); border-bottom: 2px solid var(--color-bg-secondary); padding-bottom: 12px; }
+        .inv-form { display: flex; flex-direction: column; gap: 16px; }
+        .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+        .form-group { display: flex; flex-direction: column; gap: 6px; }
+        .form-group label { font-size: 0.8rem; font-weight: 600; color: var(--color-text-secondary); }
+        
+        .condition-box { background: var(--color-bg-card); border-radius: var(--radius-lg); padding: 14px; border: 1px solid var(--color-bg-secondary); }
+        .condition-row { display: flex; gap: 12px; }
+        .cond-item { display: flex; flex-direction: column; gap: 4px; flex: 1; }
+        
+        .set-details-box { background: rgba(139, 69, 19, 0.02); border-radius: var(--radius-lg); padding: 14px; border: 1px dashed rgba(139, 69, 19, 0.2); }
+        .set-box-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+        .btn-mini { background: rgba(139, 69, 19, 0.1); color: var(--color-primary); border: none; font-size: 0.7rem; font-weight: 700; padding: 4px 10px; border-radius: 6px; cursor: pointer; transition: background 0.2s; }
+        .btn-mini:hover { background: rgba(139, 69, 19, 0.15); }
+        .set-detail-row { display: flex; gap: 8px; align-items: center; margin-bottom: 8px; }
+        .qty-input { width: 70px; }
+        .status-sel { width: 110px; }
+        .btn-icon { background: none; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; padding: 4px; border-radius: 4px; transition: background 0.2s; }
+        .btn-icon:hover { background: var(--color-bg-secondary); }
 
         /* TABS */
         .tabs-container { margin: var(--spacing-md) 0 var(--spacing-lg) 0; overflow-x: auto; scrollbar-width: none; -webkit-overflow-scrolling: touch; }
