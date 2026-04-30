@@ -77,7 +77,7 @@ export async function POST(req: Request) {
 
     try {
         const body = await req.json()
-        const { transactionDate, category, amount, currency, type, description, quantity, unitPrice, proofImage, division } = body
+        const { transactionDate, category, amount, currency, type, description, quantity, unitPrice, proofImage, division, approvalStatus } = body
 
         if (!transactionDate || !category || !amount || !currency || !type) {
             return NextResponse.json({ error: 'Missing required fields' }, { status: 400 })
@@ -96,7 +96,7 @@ export async function POST(req: Request) {
                 quantity:   quantity   ? Number(quantity)   : undefined,
                 unitPrice:  unitPrice  ? Number(unitPrice)  : undefined,
                 proofImage: proofImage || undefined,
-                approvalStatus: 'approved',
+                approvalStatus: approvalStatus || 'approved',
             },
         })
 
@@ -104,6 +104,38 @@ export async function POST(req: Request) {
     } catch (error) {
         console.error('Error creating transaction:', error)
         return NextResponse.json({ error: 'Failed to create transaction' }, { status: 500 })
+    }
+}
+
+export async function PATCH(req: Request) {
+    const payload = await getPayload({ config })
+
+    try {
+        const body = await req.json()
+        const { id, approvalStatus } = body
+
+        if (!id || !approvalStatus) {
+            return NextResponse.json({ error: 'Missing id or approvalStatus' }, { status: 400 })
+        }
+
+        const updateData: any = {
+            approvalStatus
+        }
+
+        if (approvalStatus === 'approved') {
+            updateData.approvedAt = new Date().toISOString()
+        }
+
+        const updatedTx = await payload.update({
+            collection: 'cashflow',
+            id,
+            data: updateData,
+        })
+
+        return NextResponse.json(updatedTx)
+    } catch (error) {
+        console.error('Error updating transaction:', error)
+        return NextResponse.json({ error: 'Failed to update transaction' }, { status: 500 })
     }
 }
 

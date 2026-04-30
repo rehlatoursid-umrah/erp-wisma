@@ -125,6 +125,25 @@ export default function BendaharaPortal() {
     )
   }
 
+  const handleApproval = async (id: string, status: 'approved' | 'rejected') => {
+    try {
+      const res = await fetch('/api/finance', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id, approvalStatus: status })
+      })
+      if (res.ok) {
+        fetchData()
+        alert(status === 'approved' ? 'Dana berhasil disetujui!' : 'Setoran ditolak.')
+      } else {
+        alert('Gagal memproses persetujuan.')
+      }
+    } catch (error) {
+      console.error(error)
+      alert('Terjadi kesalahan saat menghubungi server.')
+    }
+  }
+
   return (
     <PortalPinGuard portalName="Bendahara" expectedPin={process.env.NEXT_PUBLIC_BENDAHARA_PIN}>
       <div className="dashboard-layout">
@@ -192,10 +211,12 @@ export default function BendaharaPortal() {
                     <div key={p.id} className="pending-item">
                       <div>
                         <strong>{p.description}</strong>
+                        <div className="text-xs text-gray-500 mt-1 uppercase tracking-wider">{p.division}</div>
                         <span className="amount">EGP {p.amount?.toLocaleString()}</span>
                       </div>
-                      <div className="actions">
-                        <button className="btn btn-primary" onClick={() => alert('Fitur approval dalam pengembangan')}>Approve</button>
+                      <div className="actions flex gap-2">
+                        <button className="btn btn-primary bg-emerald-600 hover:bg-emerald-700 border-none text-white px-3 py-1 text-sm rounded-md shadow-sm" onClick={() => handleApproval(p.id, 'approved')}>Approve</button>
+                        <button className="btn btn-primary bg-red-600 hover:bg-red-700 border-none text-white px-3 py-1 text-sm rounded-md shadow-sm" onClick={() => handleApproval(p.id, 'rejected')}>Reject</button>
                       </div>
                     </div>
                    ))

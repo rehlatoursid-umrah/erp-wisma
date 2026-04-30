@@ -99,6 +99,14 @@ export default function BPUPDPortal() {
     file: null as File | null,
   })
 
+  // Setor Pendapatan Form State
+  const [setorForm, setSetorForm] = useState({
+    date: new Date().toISOString().split('T')[0],
+    amount: '',
+    description: '',
+    file: null as File | null,
+  })
+
   // Expense Form State
   const [expenseForm, setExpenseForm] = useState({
     date: new Date().toISOString().split('T')[0],
@@ -629,6 +637,63 @@ export default function BPUPDPortal() {
     } catch (error) {
       console.error('Error saving expense', error)
       alert('Gagal menyimpan pengeluaran')
+    }
+  }
+
+  const handleSetorSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    try {
+      let proofImageId = null
+
+      if (setorForm.file) {
+        const formData = new FormData()
+        formData.append('file', setorForm.file)
+
+        const uploadRes = await fetch('/api/upload', {
+          method: 'POST',
+          body: formData
+        })
+
+        if (uploadRes.ok) {
+          const media = await uploadRes.json()
+          proofImageId = media.id
+        } else {
+          alert('Gagal upload gambar, tapi data transaksi akan tetap disimpan.')
+        }
+      }
+
+      const payload = {
+        type: 'in', // IN for Bendahara means Income. BPUPD is submitting it.
+        category: 'hotel', // Or any string, Bendahara will see it as Incoming Funds
+        transactionDate: setorForm.date,
+        description: setorForm.description,
+        amount: setorForm.amount,
+        currency: 'EGP',
+        proofImage: proofImageId,
+        division: 'bpupd',
+        approvalStatus: 'pending' // Important for Bendahara Approval
+      }
+
+      const res = await fetch('/api/finance', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      })
+
+      if (res.ok) {
+        alert('Setoran berhasil dikirim ke Bendahara! Menunggu persetujuan.')
+        setSetorForm({
+          date: new Date().toISOString().split('T')[0],
+          amount: '',
+          description: '',
+          file: null
+        })
+      } else {
+        alert('Gagal mengirim setoran.')
+      }
+    } catch (error) {
+      console.error('Error saving setoran', error)
+      alert('Terjadi kesalahan jaringan saat mengirim setoran.')
     }
   }
 
@@ -1354,6 +1419,74 @@ export default function BPUPDPortal() {
                     })()}
                   </div>
                 </div>
+              </div>
+
+              {/* Setor Pendapatan Manual */}
+              <div className="card mt-6" style={{ borderColor: '#8b4513', borderWidth: '2px' }}>
+                <div className="card-header-icon">
+                  <ArrowRight size={20} className="icon-primary" />
+                  <h3>Setor Pendapatan ke Bendahara</h3>
+                </div>
+                <p className="card-desc">Laporkan dan setor total pendapatan bulanan secara manual ke Bendahara Pusat agar dapat disetujui.</p>
+
+                <form className="dist-form" onSubmit={handleSetorSubmit}>
+                  <div className="dist-row">
+                    <div className="dist-group">
+                      <label>Tanggal Setoran *</label>
+                      <input 
+                        type="date" 
+                        required 
+                        className="dist-input" 
+                        value={setorForm.date} 
+                        onChange={e => setSetorForm({...setorForm, date: e.target.value})} 
+                      />
+                    </div>
+                    <div className="dist-group">
+                      <label>Jumlah Setoran (EGP) *</label>
+                      <input 
+                        type="number" 
+                        required 
+                        className="dist-input" 
+                        placeholder="Contoh: 15000" 
+                        value={setorForm.amount} 
+                        onChange={e => setSetorForm({...setorForm, amount: e.target.value})} 
+                      />
+                    </div>
+                  </div>
+                  <div className="dist-group">
+                    <label>Keterangan Setoran *</label>
+                    <input 
+                      type="text" 
+                      required 
+                      className="dist-input" 
+                      placeholder="Contoh: Total Pendapatan Hotel & Aula Bulan April" 
+                      value={setorForm.description} 
+                      onChange={e => setSetorForm({...setorForm, description: e.target.value})} 
+                    />
+                  </div>
+                  <div className="dist-group">
+                    <label>Bukti Setoran (Opsional)</label>
+                    <label className="file-drop-area">
+                      <Camera size={20} className="file-drop-icon" />
+                      <span className="file-drop-text">
+                        {setorForm.file ? setorForm.file.name : 'Upload Foto/Kwitansi'}
+                      </span>
+                      <input 
+                        type="file" 
+                        className="hidden" 
+                        accept="image/*" 
+                        onChange={e => {
+                          if (e.target.files && e.target.files.length > 0) {
+                            setSetorForm({ ...setorForm, file: e.target.files[0] })
+                          }
+                        }}
+                      />
+                    </label>
+                  </div>
+                  <button type="submit" className="cf-submit-btn" style={{ background: '#8b4513', color: 'white' }}>
+                    <ArrowRight size={16} /> Kirim Setoran ke Bendahara
+                  </button>
+                </form>
               </div>
 
               {/* Archive Card */}
