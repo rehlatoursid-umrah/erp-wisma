@@ -516,7 +516,7 @@ export default function BPPGPortal() {
               <div className="inv-header">
                 <div>
                   <h2>📦 Inventaris BPPG</h2>
-                  <p className="text-muted" style={{ margin: 0, fontSize: '0.85rem' }}>Pencatatan aset tetap, alat kerja, dan material operasional.</p>
+                  <p style={{ margin: '4px 0 0 0', fontSize: '0.85rem', color: 'var(--color-text-secondary)', fontWeight: 500 }}>Pencatatan aset tetap, alat kerja, dan material operasional.</p>
                 </div>
                 <button className="btn btn-primary" onClick={() => setShowInvForm(true)}>+ Tambah Barang</button>
               </div>
