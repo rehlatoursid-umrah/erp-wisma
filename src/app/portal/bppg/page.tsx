@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import Sidebar from '@/components/layout/Sidebar'
 import Header from '@/components/layout/Header'
 import PortalPinGuard from '@/components/auth/PortalPinGuard'
-import { ChevronLeft, ChevronRight, CheckCircle2, AlertTriangle, Plus, Trash2, Eye, Wallet, BarChart3, Download, ArrowDownLeft, TrendingDown, ClipboardList, Camera, Save, KanbanSquare, MoveRight, MoveLeft, X, Package, Wrench, Layers, Zap, Droplets, Sparkles, Box } from 'lucide-react'
+import { ChevronLeft, ChevronRight, ChevronDown, CheckCircle2, AlertTriangle, Plus, Trash2, Eye, Wallet, BarChart3, Download, ArrowDownLeft, TrendingDown, ClipboardList, Camera, Save, KanbanSquare, MoveRight, MoveLeft, X, Package, Wrench, Layers, Zap, Droplets, Sparkles, Box } from 'lucide-react'
 import jsPDF from 'jspdf'
 
 export default function BPPGPortal() {
