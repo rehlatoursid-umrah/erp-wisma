@@ -51,9 +51,14 @@ const navItems = [
         items: [
             { href: '/transactions', icon: BarChart3, label: 'Transaksi' },
             { href: '/reports', icon: LineChart, label: 'Laporan' },
-            { href: '/dashboard/proker-rapat', icon: KanbanSquare, label: 'Rapat Proker' },
             { href: '/laporan-piket', icon: ClipboardList, label: 'Laporan Piket' },
             { href: '/daily-reminder', icon: MessageSquare, label: 'Daily Reminder' },
+        ]
+    },
+    {
+        section: 'Manajemen',
+        items: [
+            { href: '/dashboard/proker-rapat', icon: KanbanSquare, label: 'Rapat Proker' },
         ]
     },
 ]
