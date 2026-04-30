@@ -524,15 +524,26 @@ export default function BPPGPortal() {
 
           {activeTab === 'inventaris' && (
             <div className="inv-dashboard">
-              <div className="inv-header" style={{ position: 'relative', zIndex: 10 }}>
+              <div className="inv-header">
                 <div>
                   <h2>📦 Inventaris BPPG</h2>
                   <p style={{ margin: '4px 0 0 0', fontSize: '0.85rem', color: 'var(--color-text-secondary)', fontWeight: 500 }}>Pencatatan aset tetap, alat kerja, dan material operasional.</p>
                 </div>
-                <button className="btn btn-primary" style={{ position: 'relative', zIndex: 50, cursor: 'pointer', pointerEvents: 'auto' }} onClick={(e) => { e.preventDefault(); setShowInvForm(true); }}>+ Tambah Barang</button>
+                <button 
+                  type="button"
+                  style={{
+                    backgroundColor: '#8b4513', color: 'white', border: 'none', padding: '10px 18px', 
+                    borderRadius: '8px', fontWeight: 'bold', cursor: 'pointer', display: 'flex', 
+                    alignItems: 'center', gap: '8px', zIndex: 99999, position: 'relative'
+                  }}
+                  onClick={() => setShowInvForm(true)}
+                >
+                  <Plus size={18} /> Tambah Barang
+                </button>
               </div>
 
-              {showInvForm && (
+              {/* DELETED INNER MODAL DUE TO BUG */}
+              {false && (
                 <div className="modal-overlay">
                   <div className="modal-content inv-modal">
                     <h3>Tambah Barang Inventaris</h3>
