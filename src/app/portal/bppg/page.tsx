@@ -527,12 +527,12 @@ export default function BPPGPortal() {
           ═══════════════════════════════════════════ */}
           {activeTab === 'inventaris' && (
             <div className="inv-dashboard">
-              <div className="inv-header">
+              <div className="inv-header" style={{ position: 'relative', zIndex: 10 }}>
                 <div>
                   <h2>📦 Inventaris BPPG</h2>
                   <p style={{ margin: '4px 0 0 0', fontSize: '0.85rem', color: 'var(--color-text-secondary)', fontWeight: 500 }}>Pencatatan aset tetap, alat kerja, dan material operasional.</p>
                 </div>
-                <button className="btn btn-primary" onClick={() => setShowInvForm(true)}>+ Tambah Barang</button>
+                <button className="btn btn-primary" style={{ position: 'relative', zIndex: 50, cursor: 'pointer', pointerEvents: 'auto' }} onClick={() => setShowInvForm(true)}>+ Tambah Barang</button>
               </div>
 
               {showInvForm && (
@@ -1124,8 +1124,8 @@ export default function BPPGPortal() {
         .sd-badge.missing { background: #fef2f2; color: #dc2626; }
 
         /* Form Modal - Upgraded */
-        .modal-overlay { position: fixed; inset: 0; background: rgba(15, 23, 42, 0.4); display: flex; align-items: center; justify-content: center; z-index: 1000; padding: 20px; backdrop-filter: blur(8px); animation: fadeIn 0.2s ease-out; }
-        .modal-content.inv-modal { background: var(--color-bg-primary); border-radius: var(--radius-2xl); width: 100%; max-width: 650px; padding: 32px; max-height: 90vh; overflow-y: auto; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25); border: 1px solid rgba(255,255,255,0.1); }
+        .modal-overlay { position: fixed; inset: 0; background: rgba(15, 23, 42, 0.6); display: flex; align-items: center; justify-content: center; z-index: 99999; padding: 20px; backdrop-filter: blur(8px); animation: fadeIn 0.2s ease-out; }
+        .modal-content.inv-modal { background: var(--color-bg-primary); border-radius: var(--radius-2xl); width: 100%; max-width: 650px; padding: 32px; max-height: 90vh; overflow-y: auto; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.4); border: 1px solid rgba(255,255,255,0.1); position: relative; z-index: 100000; }
         .modal-content h3 { font-size: 1.5rem; font-weight: 800; margin: 0 0 24px 0; color: var(--color-text-primary); border-bottom: 2px solid var(--color-bg-secondary); padding-bottom: 16px; letter-spacing: -0.02em; }
         .inv-form { display: flex; flex-direction: column; gap: 20px; }
         .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
