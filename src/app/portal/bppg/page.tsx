@@ -702,7 +702,10 @@ export default function BPPGPortal() {
                   )
                 })}
                 {inventoryList.length === 0 && (
-                  <div className="empty-state">Belum ada inventaris yang dicatat.</div>
+                  <div className="inv-empty-state">
+                    <Box size={40} />
+                    Belum ada inventaris yang dicatat.
+                  </div>
                 )}
               </div>
             </div>
@@ -1130,6 +1133,9 @@ export default function BPPGPortal() {
         .status-sel { width: 130px; font-weight: 600; }
         .btn-icon { background: none; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; padding: 6px; border-radius: 8px; transition: all 0.2s; color: var(--color-text-muted); }
         .btn-icon:hover { background: #fee2e2; color: #ef4444; }
+
+        .inv-empty-state { grid-column: 1 / -1; text-align: center; padding: 60px 20px; background: rgba(0,0,0,0.015); border: 2px dashed rgba(0,0,0,0.05); border-radius: var(--radius-2xl); color: var(--color-text-muted); font-size: 0.95rem; font-weight: 600; display: flex; flex-direction: column; align-items: center; gap: 12px; }
+        .inv-empty-state svg { color: var(--color-text-secondary); opacity: 0.5; }
 
         /* TABS */
         .tabs-container { margin: var(--spacing-md) 0 var(--spacing-lg) 0; overflow-x: auto; scrollbar-width: none; -webkit-overflow-scrolling: touch; }
