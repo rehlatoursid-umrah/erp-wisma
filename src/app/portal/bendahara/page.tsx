@@ -23,16 +23,29 @@ export default function BendaharaPortal() {
   const [approvedFunds, setApprovedFunds] = useState<any[]>([])
   const [isRefreshing, setIsRefreshing] = useState(true)
 
+  // Current month constants
+  const NOW = new Date()
+  const CURRENT_MONTH = NOW.getMonth()
+  const CURRENT_YEAR = NOW.getFullYear()
+  const currentMonthLabel = NOW.toLocaleString('id-ID', { month: 'long', year: 'numeric' })
+
+  // Helper: is this cashflow within current month?
+  const isCurrentMonth = (dateStr: string) => {
+    if (!dateStr) return false
+    const d = new Date(dateStr)
+    return d.getMonth() === CURRENT_MONTH && d.getFullYear() === CURRENT_YEAR
+  }
+
   const fetchData = async () => {
     setIsRefreshing(true)
     try {
+      // Fetch ALL cashflow (no month filter) for history/archive
       const res = await fetch('/api/finance')
       if (res.ok) {
         const data = await res.json()
         const cashflow = data.cashflow || []
-        const invoices = data.invoices || []
         
-        // Distributions history (sent by bendahara)
+        // Distributions history (sent by bendahara) — ALL months
         const history = cashflow.filter((c: any) => c.category === 'treasurer_funding' && c.type === 'in')
         setDistHistory(history)
 
@@ -42,9 +55,11 @@ export default function BendaharaPortal() {
            setExpandedMonths(prev => ({ ...prev, [monthYear]: true }))
         }
 
-        // Calculate Summary
+        // ── Summary: ONLY current month ──
+        const currentCashflow = cashflow.filter((c: any) => isCurrentMonth(c.transactionDate))
+
         let totalIncome = 0
-        cashflow.filter((c: any) => 
+        currentCashflow.filter((c: any) => 
             c.type === 'in' && 
             c.category !== 'treasurer_funding' && 
             c.approvalStatus === 'approved' &&
@@ -52,14 +67,14 @@ export default function BendaharaPortal() {
         ).forEach((c: any) => totalIncome += c.amount)
         
         let totalDistribusi = 0
-        cashflow.filter((c: any) => 
+        currentCashflow.filter((c: any) => 
             c.type === 'in' && 
             c.category === 'treasurer_funding' && 
             c.currency === 'EGP'
         ).forEach((c: any) => totalDistribusi += c.amount)
 
         let totalOperasional = 0
-        cashflow.filter((c: any) => 
+        currentCashflow.filter((c: any) => 
             c.type === 'out' && 
             c.currency === 'EGP'
         ).forEach((c: any) => totalOperasional += c.amount)
@@ -72,7 +87,7 @@ export default function BendaharaPortal() {
 
         setSummary({ income: totalIncome, expense: totalExpense, balance: totalBalance })
 
-        // Pending Funds
+        // Pending Funds — show ALL pending (regardless of month)
         const pending = cashflow.filter((c: any) => 
           c.type === 'in' && 
           c.approvalStatus === 'pending' &&
@@ -80,7 +95,7 @@ export default function BendaharaPortal() {
         )
         setPendingFunds(pending)
 
-        // Approved Funds (Riwayat Setoran)
+        // Approved Funds (Riwayat Setoran) — ALL months for archive
         const approved = cashflow.filter((c: any) => 
           c.type === 'in' && 
           c.approvalStatus === 'approved' &&
@@ -170,7 +185,7 @@ export default function BendaharaPortal() {
           <div className="portal-header">
             <div>
               <h1>🛡️ Bendahara Umum</h1>
-              <p className="portal-subtitle">Sistem Manajemen Keuangan Pusat</p>
+              <p className="portal-subtitle">Sistem Manajemen Keuangan Pusat — <strong>{currentMonthLabel}</strong></p>
             </div>
             {isRefreshing ? (
                <span className="badge badge-info shrink-0"><Activity size={14} className="animate-spin" /> Syncing...</span>
@@ -185,7 +200,7 @@ export default function BendaharaPortal() {
                <div className="cf-card-body">
                  <span className="cf-card-label">Total Pemasukan</span>
                  <span className="cf-card-value">EGP {summary.income.toLocaleString()}</span>
-                 <span className="cf-card-sub">Dari Laporan BPUPD</span>
+                 <span className="cf-card-sub">{currentMonthLabel}</span>
                </div>
              </div>
              <div className="cf-card cf-expense-card">
@@ -193,7 +208,7 @@ export default function BendaharaPortal() {
                <div className="cf-card-body">
                  <span className="cf-card-label">Total Pengeluaran</span>
                  <span className="cf-card-value">EGP {summary.expense.toLocaleString()}</span>
-                 <span className="cf-card-sub">Operasional Bulanan</span>
+                 <span className="cf-card-sub">{currentMonthLabel}</span>
                </div>
              </div>
              <div className={`cf-card cf-balance-card ${summary.balance < 0 ? 'cf-negative' : ''}`}>
@@ -201,7 +216,7 @@ export default function BendaharaPortal() {
                <div className="cf-card-body">
                  <span className="cf-card-label">Total Saldo Aktif</span>
                  <span className="cf-card-value">EGP {summary.balance.toLocaleString()}</span>
-                 <span className="cf-card-sub">Sisa Operasional Divisi</span>
+                 <span className="cf-card-sub">{currentMonthLabel}</span>
                </div>
              </div>
            </div>
