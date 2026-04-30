@@ -1295,6 +1295,84 @@ export default function BPPGPortal() {
         }
       `}</style>
       </div>
+
+      {/* FAIL-SAFE GLOBAL MODAL */}
+      {showInvForm && (
+        <div style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.6)', zIndex: 999999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px', backdropFilter: 'blur(5px)' }}>
+          <div style={{ backgroundColor: 'white', width: '100%', maxWidth: '650px', maxHeight: '90vh', overflowY: 'auto', borderRadius: '16px', padding: '32px', position: 'relative', boxShadow: '0 25px 50px -12px rgba(0,0,0,0.5)' }}>
+            <h3 style={{ fontSize: '1.5rem', fontWeight: 800, margin: '0 0 24px 0', borderBottom: '2px solid #f1f5f9', paddingBottom: '16px', color: '#1e293b' }}>Tambah Barang Inventaris</h3>
+            <form onSubmit={handleInvSubmit} className="inv-form">
+              <div className="form-row">
+                <div className="form-group">
+                  <label>Nama Barang / Alat</label>
+                  <input type="text" className="trello-input" value={invForm.itemName} onChange={e => setInvForm({ ...invForm, itemName: e.target.value })} required />
+                </div>
+                <div className="form-group">
+                  <label>Kategori</label>
+                  <select className="trello-select" value={invForm.category} onChange={e => setInvForm({ ...invForm, category: e.target.value })}>
+                    <option value="tools">Alat Tukang (Tools)</option>
+                    <option value="materials">Material Bangunan</option>
+                    <option value="electrical">Elektronik & Kelistrikan</option>
+                    <option value="plumbing">Pipa & Saluran</option>
+                    <option value="cleaning">Alat Kebersihan</option>
+                    <option value="others">Lainnya</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="form-row">
+                <div className="form-group">
+                  <label>Tipe Barang</label>
+                  <select className="trello-select" value={invForm.inventoryType} onChange={e => setInvForm({ ...invForm, inventoryType: e.target.value })}>
+                    <option value="asset">Aset Tetap (Palu, Bor, Kunci)</option>
+                    <option value="consumable">Habis Pakai (Paku, Lem, Pipa)</option>
+                  </select>
+                </div>
+                <div className="form-group">
+                  <label>Satuan</label>
+                  <select className="trello-select" value={invForm.unit} onChange={e => setInvForm({ ...invForm, unit: e.target.value })}>
+                    <option value="pcs">Pcs</option>
+                    <option value="set">Set</option>
+                    <option value="roll">Roll</option>
+                    <option value="meter">Meter</option>
+                    <option value="kg">Kg</option>
+                    <option value="box">Box</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="form-row">
+                <div className="form-group">
+                  <label>Total Stok Keseluruhan</label>
+                  <input type="number" className="trello-input" min="1" value={invForm.currentStock} onChange={e => setInvForm({ ...invForm, currentStock: Number(e.target.value) })} required />
+                </div>
+                <div className="form-group">
+                  <label>Minimum Stok (Warning)</label>
+                  <input type="number" className="trello-input" min="0" value={invForm.minimumStock} onChange={e => setInvForm({ ...invForm, minimumStock: Number(e.target.value) })} />
+                </div>
+              </div>
+
+              {invForm.inventoryType === 'asset' && (
+                <div className="form-group condition-box" style={{ background: '#f8fafc', padding: '16px', borderRadius: '12px', marginTop: '16px' }}>
+                  <label style={{ fontWeight: 700 }}>Rincian Kondisi Aset (Total = {invForm.currentStock})</label>
+                  <div className="condition-row" style={{ display: 'flex', gap: '12px', marginTop: '8px' }}>
+                    <div className="cond-item" style={{ flex: 1 }}><label>🟢 Bagus</label><input type="number" className="trello-input" min="0" value={invForm.condition.good} onChange={e => setInvForm({ ...invForm, condition: { ...invForm.condition, good: Number(e.target.value) } })} /></div>
+                    <div className="cond-item" style={{ flex: 1 }}><label>🟡 Rusak</label><input type="number" className="trello-input" min="0" value={invForm.condition.broken} onChange={e => setInvForm({ ...invForm, condition: { ...invForm.condition, broken: Number(e.target.value) } })} /></div>
+                    <div className="cond-item" style={{ flex: 1 }}><label>🔴 Hilang</label><input type="number" className="trello-input" min="0" value={invForm.condition.lost} onChange={e => setInvForm({ ...invForm, condition: { ...invForm.condition, lost: Number(e.target.value) } })} /></div>
+                  </div>
+                </div>
+              )}
+
+              <div className="modal-actions" style={{ marginTop: '24px', display: 'flex', gap: '12px', justifyContent: 'flex-end', borderTop: '1px solid #e2e8f0', paddingTop: '16px' }}>
+                <button type="button" style={{ padding: '10px 20px', borderRadius: '8px', border: '1px solid #cbd5e1', background: 'white', fontWeight: 600, cursor: 'pointer' }} onClick={() => setShowInvForm(false)}>Batal</button>
+                <button type="submit" style={{ padding: '10px 20px', borderRadius: '8px', border: 'none', background: '#8b4513', color: 'white', fontWeight: 600, cursor: 'pointer' }} disabled={isSubmittingInv}>
+                  {isSubmittingInv ? 'Menyimpan...' : 'Simpan Barang'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </PortalPinGuard>
   )
 }
