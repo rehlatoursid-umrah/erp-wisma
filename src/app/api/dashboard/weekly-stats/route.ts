@@ -24,6 +24,11 @@ export async function GET() {
         const startISO = startOfWeek.toISOString()
         const endISO = endOfWeek.toISOString()
 
+        // Clamp: if week spans across months, only count from start of current month
+        const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1)
+        startOfMonth.setHours(0, 0, 0, 0)
+        const effectiveStart = startOfWeek < startOfMonth ? startOfMonth.toISOString() : startISO
+
         // 2. Fetch Stats in Parallel
         const [hotelCount, auditoriumCount, visaCount, rentalCount] = await Promise.all([
             // Hotel: Count rooms for bookings with check-in this week (exclude cancelled)
@@ -31,11 +36,11 @@ export async function GET() {
                 collection: 'hotel-bookings',
                 where: {
                     and: [
-                        { checkIn: { greater_than_equal: startISO, less_than_equal: endISO } },
+                        { checkIn: { greater_than_equal: effectiveStart, less_than_equal: endISO } },
                         { status: { not_equals: 'cancelled' } }
                     ]
                 },
-                limit: 500, // Reasonable max per week
+                limit: 500,
                 pagination: false
             }),
 
@@ -44,7 +49,7 @@ export async function GET() {
                 collection: 'auditorium-bookings',
                 where: {
                     and: [
-                        { 'event.date': { greater_than_equal: startISO, less_than_equal: endISO } },
+                        { 'event.date': { greater_than_equal: effectiveStart, less_than_equal: endISO } },
                         { status: { not_equals: 'cancelled' } }
                     ]
                 },
@@ -55,7 +60,7 @@ export async function GET() {
                 collection: 'travel-docs',
                 where: {
                     createdAt: {
-                        greater_than_equal: startISO,
+                        greater_than_equal: effectiveStart,
                         less_than_equal: endISO,
                     },
                 },
@@ -73,7 +78,7 @@ export async function GET() {
                         },
                         {
                             createdAt: {
-                                greater_than_equal: startISO,
+                                greater_than_equal: effectiveStart,
                                 less_than_equal: endISO,
                             },
                         },
@@ -104,7 +109,7 @@ export async function GET() {
         }
 
         const period = {
-            start: startISO,
+            start: effectiveStart,
             end: endISO,
         }
 

@@ -24,12 +24,17 @@ export async function GET() {
         const startOfWeekStr = startOfWeek.toISOString().split('T')[0]
         const endOfWeekStr = endOfWeek.toISOString().split('T')[0]
 
+        // Clamp week start to current month boundary
+        const startOfMonthStr = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().split('T')[0]
+        const effectiveStartStr = startOfWeekStr < startOfMonthStr ? startOfMonthStr : startOfWeekStr
+        const effectiveStartISO = startOfWeekStr < startOfMonthStr ? new Date(now.getFullYear(), now.getMonth(), 1).toISOString() : startOfWeek.toISOString()
+
         // 1. Hotel: Bookings This Week
         const hotelBookings = await payload.find({
             collection: 'hotel-bookings',
             where: {
                 and: [
-                    { checkIn: { greater_than_equal: startOfWeekStr } },
+                    { checkIn: { greater_than_equal: effectiveStartStr } },
                     { checkIn: { less_than_equal: endOfWeekStr } },
                     { status: { not_equals: 'cancelled' } }
                 ]
@@ -44,7 +49,7 @@ export async function GET() {
             collection: 'auditorium-bookings',
             where: {
                 and: [
-                    { 'event.date': { greater_than_equal: startOfWeekStr } },
+                    { 'event.date': { greater_than_equal: effectiveStartStr } },
                     { 'event.date': { less_than_equal: endOfWeekStr } },
                     { status: { not_equals: 'cancelled' } }
                 ]
@@ -59,7 +64,7 @@ export async function GET() {
             collection: 'travel-docs',
             where: {
                 and: [
-                    { createdAt: { greater_than_equal: startOfWeek.toISOString() } },
+                    { createdAt: { greater_than_equal: effectiveStartISO } },
                     { createdAt: { less_than_equal: endOfWeek.toISOString() } }
                 ]
             },
@@ -74,7 +79,7 @@ export async function GET() {
             where: {
                 and: [
                     { bookingType: { equals: 'rental' } },
-                    { createdAt: { greater_than_equal: startOfWeek.toISOString() } },
+                    { createdAt: { greater_than_equal: effectiveStartISO } },
                     { createdAt: { less_than_equal: endOfWeek.toISOString() } }
                 ]
             },
@@ -83,19 +88,25 @@ export async function GET() {
         })
         const activeRentalsCount = rentalTransactions.totalDocs
 
-        // 5. Recent Paid Invoices
+        // 5. Recent Paid Invoices — CURRENT MONTH ONLY
+        const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1)
+        const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999)
+
         const paidInvoices = await payload.find({
             collection: 'transactions',
             where: {
-                paymentStatus: { equals: 'paid' }
+                and: [
+                    { paymentStatus: { equals: 'paid' } },
+                    { createdAt: { greater_than_equal: startOfMonth.toISOString() } },
+                    { createdAt: { less_than_equal: endOfMonth.toISOString() } },
+                ]
             },
-            limit: 5,
-            sort: '-updatedAt', // Show most recently paid/updated
+            limit: 10,
+            sort: '-updatedAt',
         })
 
         // 6. Calculate Balances — CURRENT MONTH only (from Paid Transactions)
-        const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1)
-        const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999)
+        // startOfMonth and endOfMonth already defined above
 
         const monthlyPaidInvoices = await payload.find({
             collection: 'transactions',
