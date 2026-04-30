@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import Sidebar from '@/components/layout/Sidebar'
 import Header from '@/components/layout/Header'
 import PortalPinGuard from '@/components/auth/PortalPinGuard'
-import { ChevronLeft, ChevronRight, CheckCircle2, AlertTriangle, Plus, Trash2, Eye, Wallet, BarChart3, Download, ArrowDownLeft, TrendingDown, ClipboardList, Camera, Save, KanbanSquare, MoveRight, MoveLeft, X, Package } from 'lucide-react'
+import { ChevronLeft, ChevronRight, CheckCircle2, AlertTriangle, Plus, Trash2, Eye, Wallet, BarChart3, Download, ArrowDownLeft, TrendingDown, ClipboardList, Camera, Save, KanbanSquare, MoveRight, MoveLeft, X, Package, Wrench, Layers, Zap, Droplets, Sparkles, Box } from 'lucide-react'
 import jsPDF from 'jspdf'
 
 export default function BPPGPortal() {
@@ -83,6 +83,28 @@ export default function BPPGPortal() {
     const newDetails = [...invForm.setDetails]
     newDetails[idx][field] = val
     setInvForm({ ...invForm, setDetails: newDetails })
+  }
+
+  const getCategoryIcon = (cat: string) => {
+    switch (cat) {
+      case 'tools': return <Wrench size={15} />
+      case 'materials': return <Layers size={15} />
+      case 'electrical': return <Zap size={15} />
+      case 'plumbing': return <Droplets size={15} />
+      case 'cleaning': return <Sparkles size={15} />
+      default: return <Box size={15} />
+    }
+  }
+
+  const getCategoryColor = (cat: string) => {
+    switch (cat) {
+      case 'tools': return '#ef4444'
+      case 'materials': return '#f59e0b'
+      case 'electrical': return '#eab308'
+      case 'plumbing': return '#3b82f6'
+      case 'cleaning': return '#10b981'
+      default: return '#6b7280'
+    }
   }
 
   // --- DANA OPERASIONAL STATE ---
@@ -598,49 +620,84 @@ export default function BPPGPortal() {
               <div className="inv-grid">
                 {inventoryList.map(item => {
                   const isLow = item.currentStock <= item.minimumStock
+                  const catColor = getCategoryColor(item.category)
+                  
+                  // Calculate Condition Percentages
+                  let goodPct = 0, brokenPct = 0, lostPct = 0
+                  if (item.inventoryType === 'asset' && item.condition && item.currentStock > 0) {
+                    goodPct = (item.condition.good / item.currentStock) * 100
+                    brokenPct = (item.condition.broken / item.currentStock) * 100
+                    lostPct = (item.condition.lost / item.currentStock) * 100
+                  }
+
                   return (
-                    <div key={item.id} className={`inv-card ${isLow ? 'low-stock' : ''}`}>
+                    <div key={item.id} className={`inv-card premium-card ${isLow ? 'low-stock' : ''}`} style={{ '--card-accent': catColor } as React.CSSProperties}>
+                      {/* Decorative Background Blur */}
+                      <div className="inv-card-bg-blur" style={{ background: catColor }}></div>
+                      
                       <div className="inv-card-header">
-                        <div>
-                          <h3 className="inv-title">{item.itemName}</h3>
-                          <span className="inv-cat-badge">{item.category}</span>
+                        <div className="inv-cat-pill" style={{ color: catColor, background: `${catColor}15`, border: `1px solid ${catColor}30` }}>
+                          {getCategoryIcon(item.category)}
+                          <span>{item.category.toUpperCase()}</span>
                         </div>
-                        <button onClick={() => deleteInv(item.id)} className="btn-icon text-danger" style={{ color: '#ef4444' }}><Trash2 size={16} /></button>
+                        <button onClick={() => deleteInv(item.id)} className="btn-icon text-danger"><Trash2 size={15} /></button>
                       </div>
 
-                      <div className="inv-stock-main">
-                        <span className="inv-stock-num">{item.currentStock}</span>
-                        <span className="inv-stock-unit">{item.unit}</span>
-                        {item.inventoryType === 'asset' && <span className="inv-type-badge">Aset</span>}
-                        {item.inventoryType === 'consumable' && <span className="inv-type-badge cons">Habis Pakai</span>}
-                      </div>
-
-                      {item.inventoryType === 'asset' && item.condition && (
-                        <div className="inv-condition-bar">
-                          <div className="cond-stat good">Bagus: <strong>{item.condition.good || 0}</strong></div>
-                          {(item.condition.broken > 0 || item.condition.lost > 0) && (
-                             <div className="cond-stat bad">
-                                {item.condition.broken > 0 ? `Rusak: ${item.condition.broken} ` : ''}
-                                {item.condition.lost > 0 ? `Hilang: ${item.condition.lost}` : ''}
-                             </div>
+                      <div className="inv-card-body">
+                        <h3 className="inv-title">{item.itemName}</h3>
+                        
+                        <div className="inv-stock-main">
+                          <div className="stock-number">
+                            <span className="inv-stock-num">{item.currentStock}</span>
+                            <span className="inv-stock-unit">{item.unit}</span>
+                          </div>
+                          {item.inventoryType === 'asset' ? (
+                             <span className="inv-type-badge premium asset">Aset Tetap</span>
+                          ) : (
+                             <span className="inv-type-badge premium cons">Habis Pakai</span>
                           )}
                         </div>
-                      )}
 
-                      {item.unit === 'set' && item.setDetails && item.setDetails.length > 0 && (
-                        <div className="inv-set-details">
-                          <p className="set-det-title">Isi dalam Set:</p>
-                          <ul className="set-det-list">
-                            {item.setDetails.map((sd: any, i: number) => (
-                              <li key={i} className={`sd-item ${sd.status}`}>
-                                <span className="sd-name">{sd.quantity}x {sd.itemName}</span>
-                                {sd.status === 'broken' && <span className="sd-status-badge broken">Rusak</span>}
-                                {sd.status === 'missing' && <span className="sd-status-badge missing">Hilang</span>}
-                              </li>
-                            ))}
-                          </ul>
-                        </div>
-                      )}
+                        {isLow && (
+                          <div className="low-stock-warning">
+                            <AlertTriangle size={14} /> Stok menipis (Minimum: {item.minimumStock})
+                          </div>
+                        )}
+
+                        {item.inventoryType === 'asset' && item.condition && (
+                          <div className="inv-condition-module">
+                            <div className="condition-bar-wrapper">
+                              <div className="cond-segment good" style={{ width: `${goodPct}%` }}></div>
+                              <div className="cond-segment broken" style={{ width: `${brokenPct}%` }}></div>
+                              <div className="cond-segment lost" style={{ width: `${lostPct}%` }}></div>
+                            </div>
+                            <div className="condition-legend">
+                              <div className="legend-item"><span className="dot good"></span> Bagus: {item.condition.good || 0}</div>
+                              <div className="legend-item"><span className="dot broken"></span> Rusak: {item.condition.broken || 0}</div>
+                              <div className="legend-item"><span className="dot lost"></span> Hilang: {item.condition.lost || 0}</div>
+                            </div>
+                          </div>
+                        )}
+
+                        {item.unit === 'set' && item.setDetails && item.setDetails.length > 0 && (
+                          <div className="inv-set-module">
+                            <div className="set-module-header">
+                              <Package size={14} /> Rincian Isi Set
+                            </div>
+                            <div className="set-items-grid">
+                              {item.setDetails.map((sd: any, i: number) => (
+                                <div key={i} className={`set-item-row ${sd.status}`}>
+                                  <span className="sd-qty">{sd.quantity}x</span>
+                                  <span className="sd-name">{sd.itemName}</span>
+                                  <span className={`sd-badge ${sd.status}`}>
+                                    {sd.status === 'good' ? '✓' : sd.status === 'broken' ? 'Rusak' : 'Hilang'}
+                                  </span>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                      </div>
                     </div>
                   )
                 })}
@@ -986,61 +1043,93 @@ export default function BPPGPortal() {
         .staff-stat { font-size: 0.72rem; color: var(--color-text-muted); }
 
         /* ═══════════════════════════════════
-           INVENTARIS BPPG
+           INVENTARIS BPPG - PREMIUM UI
         ═══════════════════════════════════ */
-        .inv-dashboard { display: flex; flex-direction: column; gap: 20px; animation: fadeIn 0.4s ease-out; }
-        .inv-header { display: flex; justify-content: space-between; align-items: center; background: var(--color-bg-card); padding: 16px 24px; border-radius: var(--radius-xl); box-shadow: var(--shadow-sm); border: 1px solid var(--color-bg-secondary); }
-        .inv-header h2 { font-size: 1.4rem; font-weight: 700; margin: 0 0 4px 0; color: var(--color-text-primary); }
-        .inv-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 16px; }
-        .inv-card { background: var(--color-bg-card); border-radius: var(--radius-xl); padding: 18px; border: 1px solid var(--color-bg-secondary); box-shadow: var(--shadow-sm); transition: transform 0.2s; display: flex; flex-direction: column; gap: 12px; }
-        .inv-card:hover { transform: translateY(-3px); box-shadow: var(--shadow-md); border-color: var(--color-primary-light); }
-        .inv-card.low-stock { border-left: 4px solid #ef4444; }
-        .inv-card-header { display: flex; justify-content: space-between; align-items: flex-start; }
-        .inv-title { font-size: 1.1rem; font-weight: 700; margin: 0 0 6px 0; color: var(--color-text-primary); }
-        .inv-cat-badge { font-size: 0.7rem; font-weight: 600; padding: 3px 8px; border-radius: 20px; background: var(--color-bg-secondary); color: var(--color-text-muted); text-transform: uppercase; letter-spacing: 0.05em; }
-        .inv-stock-main { display: flex; align-items: baseline; gap: 8px; margin-top: 8px; }
-        .inv-stock-num { font-size: 2rem; font-weight: 800; color: var(--color-primary); line-height: 1; }
-        .inv-stock-unit { font-size: 1rem; font-weight: 600; color: var(--color-text-secondary); text-transform: capitalize; }
-        .inv-type-badge { font-size: 0.65rem; font-weight: 700; padding: 3px 8px; border-radius: 6px; background: rgba(59, 130, 246, 0.1); color: #2563eb; margin-left: auto; }
-        .inv-type-badge.cons { background: rgba(16, 185, 129, 0.1); color: #059669; }
+        .inv-dashboard { display: flex; flex-direction: column; gap: 24px; animation: fadeIn 0.4s ease-out; }
+        .inv-header { display: flex; justify-content: space-between; align-items: center; background: linear-gradient(145deg, var(--color-bg-card) 0%, rgba(255,255,255,0.8) 100%); padding: 20px 28px; border-radius: var(--radius-2xl); box-shadow: 0 4px 20px rgba(0,0,0,0.03); border: 1px solid var(--color-bg-secondary); backdrop-filter: blur(10px); }
+        .inv-header h2 { font-size: 1.6rem; font-weight: 800; margin: 0 0 4px 0; color: var(--color-text-primary); letter-spacing: -0.02em; }
+        .inv-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 20px; }
         
-        .inv-condition-bar { display: flex; gap: 8px; font-size: 0.75rem; padding-top: 10px; border-top: 1px dashed var(--color-bg-secondary); }
-        .cond-stat { font-weight: 600; }
-        .cond-stat.good { color: #10b981; }
-        .cond-stat.bad { color: #ef4444; }
+        .premium-card { position: relative; background: var(--color-bg-card); border-radius: var(--radius-2xl); padding: 20px; border: 1px solid var(--color-bg-secondary); box-shadow: 0 4px 15px rgba(0,0,0,0.02); transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); display: flex; flex-direction: column; gap: 16px; overflow: hidden; z-index: 1; }
+        .premium-card:hover { transform: translateY(-4px); box-shadow: 0 12px 30px rgba(0,0,0,0.06); border-color: rgba(var(--card-accent), 0.3); }
+        .premium-card.low-stock { border-left: 4px solid #ef4444; }
+        
+        /* Ambient Background Blur */
+        .inv-card-bg-blur { position: absolute; top: -30px; right: -30px; width: 100px; height: 100px; border-radius: 50%; filter: blur(50px); opacity: 0.15; z-index: -1; transition: opacity 0.3s; }
+        .premium-card:hover .inv-card-bg-blur { opacity: 0.3; }
 
-        .inv-set-details { background: rgba(139, 69, 19, 0.03); border-radius: 8px; padding: 12px; margin-top: 4px; border: 1px solid rgba(139, 69, 19, 0.08); }
-        .set-det-title { font-size: 0.75rem; font-weight: 700; color: var(--color-text-secondary); margin: 0 0 8px 0; }
-        .set-det-list { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 6px; }
-        .sd-item { display: flex; justify-content: space-between; align-items: center; font-size: 0.8rem; }
+        .inv-card-header { display: flex; justify-content: space-between; align-items: center; }
+        .inv-cat-pill { display: flex; align-items: center; gap: 6px; font-size: 0.7rem; font-weight: 700; padding: 4px 10px; border-radius: 20px; text-transform: uppercase; letter-spacing: 0.05em; }
+        
+        .inv-card-body { display: flex; flex-direction: column; gap: 12px; }
+        .inv-title { font-size: 1.25rem; font-weight: 800; margin: 0; color: var(--color-text-primary); line-height: 1.3; }
+        
+        .inv-stock-main { display: flex; justify-content: space-between; align-items: center; background: rgba(0,0,0,0.02); padding: 12px 16px; border-radius: var(--radius-lg); border: 1px solid rgba(0,0,0,0.03); }
+        .stock-number { display: flex; align-items: baseline; gap: 6px; }
+        .inv-stock-num { font-size: 2.2rem; font-weight: 900; color: var(--color-text-primary); line-height: 1; letter-spacing: -0.03em; }
+        .inv-stock-unit { font-size: 0.9rem; font-weight: 700; color: var(--color-text-muted); text-transform: uppercase; letter-spacing: 0.05em; }
+        
+        .inv-type-badge.premium { font-size: 0.7rem; font-weight: 700; padding: 4px 10px; border-radius: 8px; border: 1px solid; }
+        .inv-type-badge.premium.asset { background: rgba(59, 130, 246, 0.05); color: #2563eb; border-color: rgba(59, 130, 246, 0.2); }
+        .inv-type-badge.premium.cons { background: rgba(16, 185, 129, 0.05); color: #059669; border-color: rgba(16, 185, 129, 0.2); }
+
+        .low-stock-warning { display: flex; align-items: center; gap: 6px; font-size: 0.75rem; font-weight: 700; color: #ef4444; background: #fef2f2; padding: 8px 12px; border-radius: 8px; border: 1px solid #fee2e2; }
+
+        /* Condition Bar */
+        .inv-condition-module { display: flex; flex-direction: column; gap: 8px; }
+        .condition-bar-wrapper { display: flex; width: 100%; height: 8px; border-radius: 4px; overflow: hidden; background: var(--color-bg-secondary); }
+        .cond-segment { height: 100%; transition: width 0.5s ease; }
+        .cond-segment.good { background: #10b981; }
+        .cond-segment.broken { background: #f59e0b; }
+        .cond-segment.lost { background: #ef4444; }
+        .condition-legend { display: flex; gap: 12px; font-size: 0.7rem; font-weight: 600; color: var(--color-text-secondary); }
+        .legend-item { display: flex; align-items: center; gap: 4px; }
+        .dot { width: 8px; height: 8px; border-radius: 50%; }
+        .dot.good { background: #10b981; }
+        .dot.broken { background: #f59e0b; }
+        .dot.lost { background: #ef4444; }
+
+        /* Set Details Module */
+        .inv-set-module { background: rgba(0,0,0,0.015); border-radius: var(--radius-lg); border: 1px solid rgba(0,0,0,0.04); overflow: hidden; margin-top: 4px; }
+        .set-module-header { display: flex; align-items: center; gap: 6px; font-size: 0.75rem; font-weight: 700; color: var(--color-text-secondary); padding: 10px 14px; background: rgba(0,0,0,0.02); border-bottom: 1px solid rgba(0,0,0,0.03); text-transform: uppercase; letter-spacing: 0.05em; }
+        .set-items-grid { display: flex; flex-direction: column; }
+        .set-item-row { display: grid; grid-template-columns: 30px 1fr auto; align-items: center; gap: 8px; padding: 10px 14px; border-bottom: 1px solid rgba(0,0,0,0.02); font-size: 0.8rem; transition: background 0.2s; }
+        .set-item-row:last-child { border-bottom: none; }
+        .set-item-row:hover { background: rgba(0,0,0,0.02); }
+        .sd-qty { font-weight: 800; color: var(--color-text-muted); font-variant-numeric: tabular-nums; }
         .sd-name { font-weight: 600; color: var(--color-text-primary); }
-        .sd-status-badge { font-size: 0.65rem; font-weight: 700; padding: 2px 6px; border-radius: 4px; }
-        .sd-status-badge.broken { background: #fef3c7; color: #b45309; }
-        .sd-status-badge.missing { background: #fee2e2; color: #dc2626; }
-        .sd-item.missing .sd-name { text-decoration: line-through; opacity: 0.6; }
+        .set-item-row.missing .sd-name { text-decoration: line-through; opacity: 0.5; }
+        .sd-badge { font-size: 0.65rem; font-weight: 700; padding: 2px 8px; border-radius: 12px; text-align: center; min-width: 45px; }
+        .sd-badge.good { background: #ecfdf5; color: #059669; }
+        .sd-badge.broken { background: #fef3c7; color: #b45309; }
+        .sd-badge.missing { background: #fef2f2; color: #dc2626; }
 
-        /* Form Modal */
-        .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 1000; padding: 20px; backdrop-filter: blur(4px); }
-        .modal-content.inv-modal { background: var(--color-bg-primary); border-radius: var(--radius-xl); width: 100%; max-width: 600px; padding: 24px; max-height: 90vh; overflow-y: auto; box-shadow: var(--shadow-xl); border: 1px solid var(--color-bg-secondary); }
-        .modal-content h3 { font-size: 1.4rem; font-weight: 700; margin: 0 0 20px 0; color: var(--color-text-primary); border-bottom: 2px solid var(--color-bg-secondary); padding-bottom: 12px; }
-        .inv-form { display: flex; flex-direction: column; gap: 16px; }
-        .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
-        .form-group { display: flex; flex-direction: column; gap: 6px; }
-        .form-group label { font-size: 0.8rem; font-weight: 600; color: var(--color-text-secondary); }
+        /* Form Modal - Upgraded */
+        .modal-overlay { position: fixed; inset: 0; background: rgba(15, 23, 42, 0.4); display: flex; align-items: center; justify-content: center; z-index: 1000; padding: 20px; backdrop-filter: blur(8px); animation: fadeIn 0.2s ease-out; }
+        .modal-content.inv-modal { background: var(--color-bg-primary); border-radius: var(--radius-2xl); width: 100%; max-width: 650px; padding: 32px; max-height: 90vh; overflow-y: auto; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25); border: 1px solid rgba(255,255,255,0.1); }
+        .modal-content h3 { font-size: 1.5rem; font-weight: 800; margin: 0 0 24px 0; color: var(--color-text-primary); border-bottom: 2px solid var(--color-bg-secondary); padding-bottom: 16px; letter-spacing: -0.02em; }
+        .inv-form { display: flex; flex-direction: column; gap: 20px; }
+        .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        @media (max-width: 600px) { .form-row { grid-template-columns: 1fr; gap: 16px; } }
+        .form-group { display: flex; flex-direction: column; gap: 8px; }
+        .form-group label { font-size: 0.85rem; font-weight: 700; color: var(--color-text-secondary); }
         
-        .condition-box { background: var(--color-bg-card); border-radius: var(--radius-lg); padding: 14px; border: 1px solid var(--color-bg-secondary); }
-        .condition-row { display: flex; gap: 12px; }
-        .cond-item { display: flex; flex-direction: column; gap: 4px; flex: 1; }
+        .condition-box { background: rgba(243, 244, 246, 0.5); border-radius: var(--radius-xl); padding: 18px; border: 1px solid var(--color-bg-secondary); }
+        .condition-row { display: flex; gap: 16px; }
+        @media (max-width: 400px) { .condition-row { flex-direction: column; } }
+        .cond-item { display: flex; flex-direction: column; gap: 6px; flex: 1; }
+        .cond-item label { font-size: 0.8rem; }
         
-        .set-details-box { background: rgba(139, 69, 19, 0.02); border-radius: var(--radius-lg); padding: 14px; border: 1px dashed rgba(139, 69, 19, 0.2); }
-        .set-box-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
-        .btn-mini { background: rgba(139, 69, 19, 0.1); color: var(--color-primary); border: none; font-size: 0.7rem; font-weight: 700; padding: 4px 10px; border-radius: 6px; cursor: pointer; transition: background 0.2s; }
-        .btn-mini:hover { background: rgba(139, 69, 19, 0.15); }
-        .set-detail-row { display: flex; gap: 8px; align-items: center; margin-bottom: 8px; }
-        .qty-input { width: 70px; }
-        .status-sel { width: 110px; }
-        .btn-icon { background: none; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; padding: 4px; border-radius: 4px; transition: background 0.2s; }
-        .btn-icon:hover { background: var(--color-bg-secondary); }
+        .set-details-box { background: #fafafa; border-radius: var(--radius-xl); padding: 18px; border: 2px dashed #e5e7eb; transition: border-color 0.2s; }
+        .set-details-box:focus-within { border-color: var(--color-primary-light); }
+        .set-box-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+        .btn-mini { background: var(--color-primary-light); color: var(--color-primary-dark); border: none; font-size: 0.75rem; font-weight: 700; padding: 6px 12px; border-radius: 8px; cursor: pointer; transition: all 0.2s; }
+        .btn-mini:hover { background: var(--color-primary); color: white; transform: translateY(-1px); }
+        .set-detail-row { display: flex; gap: 12px; align-items: center; margin-bottom: 12px; background: white; padding: 8px; border-radius: var(--radius-lg); border: 1px solid #e5e7eb; box-shadow: 0 1px 2px rgba(0,0,0,0.02); }
+        .qty-input { width: 80px; text-align: center; }
+        .status-sel { width: 130px; font-weight: 600; }
+        .btn-icon { background: none; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; padding: 6px; border-radius: 8px; transition: all 0.2s; color: var(--color-text-muted); }
+        .btn-icon:hover { background: #fee2e2; color: #ef4444; }
 
         /* TABS */
         .tabs-container { margin: var(--spacing-md) 0 var(--spacing-lg) 0; overflow-x: auto; scrollbar-width: none; -webkit-overflow-scrolling: touch; }
