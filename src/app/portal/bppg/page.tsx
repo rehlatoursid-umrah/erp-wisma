@@ -49,20 +49,34 @@ export default function BPPGPortal() {
     fetchInv()
   }, [])
 
+  const [isSubmittingInv, setIsSubmittingInv] = useState(false)
+
   const handleInvSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    setIsSubmittingInv(true)
     try {
-      const res = await fetch('/api/inventory', {
+      const res = await fetch('/api/inventory?division=bppg', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ ...invForm, division: 'bppg' })
       })
       if (res.ok) {
-        fetchInv()
         setShowInvForm(false)
-        setInvForm({ itemName: '', category: 'tools', inventoryType: 'asset', currentStock: 1, minimumStock: 1, unit: 'pcs', condition: { good: 1, broken: 0, lost: 0 }, setDetails: [] })
+        fetchInv()
+        setInvForm({
+          itemName: '', category: 'tools', inventoryType: 'asset', currentStock: 1, minimumStock: 1, unit: 'pcs',
+          condition: { good: 1, broken: 0, lost: 0 }, setDetails: []
+        })
+      } else {
+        const err = await res.text()
+        alert('Gagal menyimpan data: ' + err)
       }
-    } catch (e) { console.error(e) }
+    } catch (e) {
+      console.error(e)
+      alert('Terjadi kesalahan jaringan saat menyimpan.')
+    } finally {
+      setIsSubmittingInv(false)
+    }
   }
 
   const deleteInv = async (id: string) => {
@@ -610,7 +624,9 @@ export default function BPPGPortal() {
 
                       <div className="modal-actions" style={{ marginTop: '16px', display: 'flex', gap: '10px', justifyContent: 'flex-end' }}>
                         <button type="button" className="btn btn-secondary" onClick={() => setShowInvForm(false)}>Batal</button>
-                        <button type="submit" className="btn btn-primary">Simpan Barang</button>
+                        <button type="submit" className="btn btn-primary" disabled={isSubmittingInv}>
+                          {isSubmittingInv ? 'Menyimpan...' : 'Simpan Barang'}
+                        </button>
                       </div>
                     </form>
                   </div>
