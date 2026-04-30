@@ -1296,80 +1296,259 @@ export default function BPPGPortal() {
       `}</style>
       </div>
 
-      {/* FAIL-SAFE GLOBAL MODAL */}
+      {/* FAIL-SAFE GLOBAL MODAL - PREMIUM UI */}
       {showInvForm && (
-        <div style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.6)', zIndex: 999999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px', backdropFilter: 'blur(5px)' }}>
-          <div style={{ backgroundColor: 'white', width: '100%', maxWidth: '650px', maxHeight: '90vh', overflowY: 'auto', borderRadius: '16px', padding: '32px', position: 'relative', boxShadow: '0 25px 50px -12px rgba(0,0,0,0.5)' }}>
-            <h3 style={{ fontSize: '1.5rem', fontWeight: 800, margin: '0 0 24px 0', borderBottom: '2px solid #f1f5f9', paddingBottom: '16px', color: '#1e293b' }}>Tambah Barang Inventaris</h3>
-            <form onSubmit={handleInvSubmit} className="inv-form">
-              <div className="form-row">
-                <div className="form-group">
-                  <label>Nama Barang / Alat</label>
-                  <input type="text" className="trello-input" value={invForm.itemName} onChange={e => setInvForm({ ...invForm, itemName: e.target.value })} required />
-                </div>
-                <div className="form-group">
-                  <label>Kategori</label>
-                  <select className="trello-select" value={invForm.category} onChange={e => setInvForm({ ...invForm, category: e.target.value })}>
-                    <option value="tools">Alat Tukang (Tools)</option>
-                    <option value="materials">Material Bangunan</option>
-                    <option value="electrical">Elektronik & Kelistrikan</option>
-                    <option value="plumbing">Pipa & Saluran</option>
-                    <option value="cleaning">Alat Kebersihan</option>
-                    <option value="others">Lainnya</option>
-                  </select>
-                </div>
+        <div className="fixed inset-0 z-[999999] flex items-center justify-center bg-slate-900/60 p-4 backdrop-blur-sm sm:p-6 transition-all">
+          <div className="w-full max-w-2xl max-h-[90vh] overflow-hidden rounded-2xl bg-white shadow-2xl ring-1 ring-slate-900/5 flex flex-col animate-in zoom-in-95 duration-200">
+            {/* Header */}
+            <div className="flex items-center justify-between border-b border-slate-100 px-6 py-5 bg-white">
+              <div>
+                <h3 className="text-lg font-bold text-slate-900">Tambah Barang Inventaris</h3>
+                <p className="text-sm text-slate-500 mt-1">Masukkan detail aset atau material BPPG baru ke dalam sistem.</p>
               </div>
+              <button onClick={() => setShowInvForm(false)} className="rounded-full p-2 text-slate-400 hover:bg-slate-100 hover:text-slate-600 transition-colors">
+                <X size={20} />
+              </button>
+            </div>
 
-              <div className="form-row">
-                <div className="form-group">
-                  <label>Tipe Barang</label>
-                  <select className="trello-select" value={invForm.inventoryType} onChange={e => setInvForm({ ...invForm, inventoryType: e.target.value })}>
-                    <option value="asset">Aset Tetap (Palu, Bor, Kunci)</option>
-                    <option value="consumable">Habis Pakai (Paku, Lem, Pipa)</option>
-                  </select>
-                </div>
-                <div className="form-group">
-                  <label>Satuan</label>
-                  <select className="trello-select" value={invForm.unit} onChange={e => setInvForm({ ...invForm, unit: e.target.value })}>
-                    <option value="pcs">Pcs</option>
-                    <option value="set">Set</option>
-                    <option value="roll">Roll</option>
-                    <option value="meter">Meter</option>
-                    <option value="kg">Kg</option>
-                    <option value="box">Box</option>
-                  </select>
-                </div>
-              </div>
-
-              <div className="form-row">
-                <div className="form-group">
-                  <label>Total Stok Keseluruhan</label>
-                  <input type="number" className="trello-input" min="1" value={invForm.currentStock} onChange={e => setInvForm({ ...invForm, currentStock: Number(e.target.value) })} required />
-                </div>
-                <div className="form-group">
-                  <label>Minimum Stok (Warning)</label>
-                  <input type="number" className="trello-input" min="0" value={invForm.minimumStock} onChange={e => setInvForm({ ...invForm, minimumStock: Number(e.target.value) })} />
-                </div>
-              </div>
-
-              {invForm.inventoryType === 'asset' && (
-                <div className="form-group condition-box" style={{ background: '#f8fafc', padding: '16px', borderRadius: '12px', marginTop: '16px' }}>
-                  <label style={{ fontWeight: 700 }}>Rincian Kondisi Aset (Total = {invForm.currentStock})</label>
-                  <div className="condition-row" style={{ display: 'flex', gap: '12px', marginTop: '8px' }}>
-                    <div className="cond-item" style={{ flex: 1 }}><label>🟢 Bagus</label><input type="number" className="trello-input" min="0" value={invForm.condition.good} onChange={e => setInvForm({ ...invForm, condition: { ...invForm.condition, good: Number(e.target.value) } })} /></div>
-                    <div className="cond-item" style={{ flex: 1 }}><label>🟡 Rusak</label><input type="number" className="trello-input" min="0" value={invForm.condition.broken} onChange={e => setInvForm({ ...invForm, condition: { ...invForm.condition, broken: Number(e.target.value) } })} /></div>
-                    <div className="cond-item" style={{ flex: 1 }}><label>🔴 Hilang</label><input type="number" className="trello-input" min="0" value={invForm.condition.lost} onChange={e => setInvForm({ ...invForm, condition: { ...invForm.condition, lost: Number(e.target.value) } })} /></div>
+            {/* Form Body */}
+            <div className="flex-1 overflow-y-auto px-6 py-6">
+              <form id="inv-modal-form" onSubmit={handleInvSubmit} className="space-y-6">
+                
+                {/* Row 1 */}
+                <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
+                  <div className="space-y-2">
+                    <label className="text-sm font-semibold text-slate-700">Nama Barang / Alat <span className="text-red-500">*</span></label>
+                    <input 
+                      type="text" 
+                      value={invForm.itemName} 
+                      onChange={e => setInvForm({ ...invForm, itemName: e.target.value })} 
+                      placeholder="Contoh: Bor Listrik Bosch"
+                      className="flex h-11 w-full rounded-xl border border-slate-200 bg-slate-50 px-4 text-sm text-slate-900 placeholder:text-slate-400 focus:border-[#8b4513] focus:bg-white focus:outline-none focus:ring-4 focus:ring-[#8b4513]/10 transition-all"
+                      required 
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-sm font-semibold text-slate-700">Kategori <span className="text-red-500">*</span></label>
+                    <div className="relative">
+                      <select 
+                        value={invForm.category} 
+                        onChange={e => setInvForm({ ...invForm, category: e.target.value })}
+                        className="flex h-11 w-full appearance-none rounded-xl border border-slate-200 bg-slate-50 px-4 pr-10 text-sm text-slate-900 focus:border-[#8b4513] focus:bg-white focus:outline-none focus:ring-4 focus:ring-[#8b4513]/10 transition-all"
+                      >
+                        <option value="tools">Alat Tukang (Tools)</option>
+                        <option value="materials">Material Bangunan</option>
+                        <option value="electrical">Elektronik & Kelistrikan</option>
+                        <option value="plumbing">Pipa & Saluran</option>
+                        <option value="cleaning">Alat Kebersihan</option>
+                        <option value="others">Lainnya</option>
+                      </select>
+                      <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-slate-500">
+                        <ChevronDown size={16} />
+                      </div>
+                    </div>
                   </div>
                 </div>
-              )}
 
-              <div className="modal-actions" style={{ marginTop: '24px', display: 'flex', gap: '12px', justifyContent: 'flex-end', borderTop: '1px solid #e2e8f0', paddingTop: '16px' }}>
-                <button type="button" style={{ padding: '10px 20px', borderRadius: '8px', border: '1px solid #cbd5e1', background: 'white', fontWeight: 600, cursor: 'pointer' }} onClick={() => setShowInvForm(false)}>Batal</button>
-                <button type="submit" style={{ padding: '10px 20px', borderRadius: '8px', border: 'none', background: '#8b4513', color: 'white', fontWeight: 600, cursor: 'pointer' }} disabled={isSubmittingInv}>
-                  {isSubmittingInv ? 'Menyimpan...' : 'Simpan Barang'}
-                </button>
-              </div>
-            </form>
+                {/* Row 2 */}
+                <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
+                  <div className="space-y-2">
+                    <label className="text-sm font-semibold text-slate-700">Tipe Barang <span className="text-red-500">*</span></label>
+                    <div className="relative">
+                      <select 
+                        value={invForm.inventoryType} 
+                        onChange={e => setInvForm({ ...invForm, inventoryType: e.target.value })}
+                        className="flex h-11 w-full appearance-none rounded-xl border border-slate-200 bg-slate-50 px-4 pr-10 text-sm text-slate-900 focus:border-[#8b4513] focus:bg-white focus:outline-none focus:ring-4 focus:ring-[#8b4513]/10 transition-all"
+                      >
+                        <option value="asset">Aset Tetap (Dipakai Jangka Panjang)</option>
+                        <option value="consumable">Habis Pakai (Material Sekali Pakai)</option>
+                      </select>
+                      <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-slate-500">
+                        <ChevronDown size={16} />
+                      </div>
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-sm font-semibold text-slate-700">Satuan <span className="text-red-500">*</span></label>
+                    <div className="relative">
+                      <select 
+                        value={invForm.unit} 
+                        onChange={e => setInvForm({ ...invForm, unit: e.target.value })}
+                        className="flex h-11 w-full appearance-none rounded-xl border border-slate-200 bg-slate-50 px-4 pr-10 text-sm text-slate-900 focus:border-[#8b4513] focus:bg-white focus:outline-none focus:ring-4 focus:ring-[#8b4513]/10 transition-all"
+                      >
+                        <option value="pcs">Pcs (Satuan)</option>
+                        <option value="set">Set (Kumpulan)</option>
+                        <option value="roll">Roll</option>
+                        <option value="meter">Meter</option>
+                        <option value="kg">Kg</option>
+                        <option value="box">Box</option>
+                      </select>
+                      <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-slate-500">
+                        <ChevronDown size={16} />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Row 3 */}
+                <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
+                  <div className="space-y-2">
+                    <label className="text-sm font-semibold text-slate-700">Total Stok Keseluruhan <span className="text-red-500">*</span></label>
+                    <input 
+                      type="number" 
+                      min="1" 
+                      value={invForm.currentStock} 
+                      onChange={e => setInvForm({ ...invForm, currentStock: Number(e.target.value) })}
+                      className="flex h-11 w-full rounded-xl border border-slate-200 bg-slate-50 px-4 text-sm text-slate-900 focus:border-[#8b4513] focus:bg-white focus:outline-none focus:ring-4 focus:ring-[#8b4513]/10 transition-all"
+                      required 
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-sm font-semibold text-slate-700">Batas Stok Minimum (Warning) <span className="text-red-500">*</span></label>
+                    <input 
+                      type="number" 
+                      min="0" 
+                      value={invForm.minimumStock} 
+                      onChange={e => setInvForm({ ...invForm, minimumStock: Number(e.target.value) })}
+                      className="flex h-11 w-full rounded-xl border border-slate-200 bg-slate-50 px-4 text-sm text-slate-900 focus:border-[#8b4513] focus:bg-white focus:outline-none focus:ring-4 focus:ring-[#8b4513]/10 transition-all"
+                    />
+                  </div>
+                </div>
+
+                {/* Condition Box */}
+                {invForm.inventoryType === 'asset' && (
+                  <div className="mt-8 rounded-xl border border-slate-200 bg-slate-50/50 p-5">
+                    <div className="mb-4">
+                      <h4 className="text-sm font-bold text-slate-800">Distribusi Kondisi Aset</h4>
+                      <p className="text-xs text-slate-500 mt-1">Total jumlah kondisi harus sama dengan Total Stok ({invForm.currentStock})</p>
+                    </div>
+                    
+                    <div className="grid grid-cols-3 gap-4">
+                      <div className="space-y-1.5">
+                        <label className="flex items-center gap-2 text-xs font-semibold text-slate-600"><span className="flex h-2 w-2 rounded-full bg-emerald-500"></span> Bagus</label>
+                        <input 
+                          type="number" min="0" 
+                          value={invForm.condition.good} 
+                          onChange={e => setInvForm({ ...invForm, condition: { ...invForm.condition, good: Number(e.target.value) } })}
+                          className="flex h-10 w-full rounded-lg border border-slate-200 px-3 text-sm focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
+                        />
+                      </div>
+                      <div className="space-y-1.5">
+                        <label className="flex items-center gap-2 text-xs font-semibold text-slate-600"><span className="flex h-2 w-2 rounded-full bg-amber-500"></span> Rusak</label>
+                        <input 
+                          type="number" min="0" 
+                          value={invForm.condition.broken} 
+                          onChange={e => setInvForm({ ...invForm, condition: { ...invForm.condition, broken: Number(e.target.value) } })}
+                          className="flex h-10 w-full rounded-lg border border-slate-200 px-3 text-sm focus:border-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-500/20"
+                        />
+                      </div>
+                      <div className="space-y-1.5">
+                        <label className="flex items-center gap-2 text-xs font-semibold text-slate-600"><span className="flex h-2 w-2 rounded-full bg-red-500"></span> Hilang</label>
+                        <input 
+                          type="number" min="0" 
+                          value={invForm.condition.lost} 
+                          onChange={e => setInvForm({ ...invForm, condition: { ...invForm.condition, lost: Number(e.target.value) } })}
+                          className="flex h-10 w-full rounded-lg border border-slate-200 px-3 text-sm focus:border-red-500 focus:outline-none focus:ring-2 focus:ring-red-500/20"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Set Details Box */}
+                {invForm.unit === 'set' && (
+                  <div className="mt-8 rounded-xl border border-slate-200 bg-slate-50/50 p-5">
+                    <div className="mb-4 flex items-center justify-between">
+                      <div>
+                        <h4 className="text-sm font-bold text-slate-800">Rincian Isi Set</h4>
+                        <p className="text-xs text-slate-500 mt-1">Jabarkan komponen yang ada di dalam set ini (opsional).</p>
+                      </div>
+                      <button 
+                        type="button" 
+                        onClick={addSetDetail}
+                        className="inline-flex h-9 items-center justify-center rounded-lg bg-slate-100 px-3 text-xs font-semibold text-slate-700 transition-colors hover:bg-slate-200"
+                      >
+                        <Plus size={14} className="mr-1" /> Tambah Isi Set
+                      </button>
+                    </div>
+                    
+                    <div className="space-y-3">
+                      {invForm.setDetails.map((sd: any, idx: number) => (
+                        <div key={idx} className="flex items-center gap-3 rounded-lg border border-slate-200 bg-white p-2">
+                          <input 
+                            type="text" 
+                            placeholder="Nama item..." 
+                            value={sd.itemName} 
+                            onChange={e => updateSetDetail(idx, 'itemName', e.target.value)}
+                            className="flex h-9 w-full rounded-md bg-slate-50 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#8b4513]/20"
+                            required 
+                          />
+                          <input 
+                            type="number" 
+                            min="1" 
+                            placeholder="Qty"
+                            value={sd.quantity} 
+                            onChange={e => updateSetDetail(idx, 'quantity', Number(e.target.value))}
+                            className="flex h-9 w-24 rounded-md bg-slate-50 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#8b4513]/20"
+                            required 
+                          />
+                          <select 
+                            value={sd.status} 
+                            onChange={e => updateSetDetail(idx, 'status', e.target.value)}
+                            className="flex h-9 w-32 appearance-none rounded-md bg-slate-50 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#8b4513]/20"
+                          >
+                            <option value="good">🟢 Bagus</option>
+                            <option value="broken">🟡 Rusak</option>
+                            <option value="missing">🔴 Hilang</option>
+                          </select>
+                          <button 
+                            type="button" 
+                            onClick={() => removeSetDetail(idx)}
+                            className="flex h-9 w-9 items-center justify-center rounded-md text-slate-400 hover:bg-red-50 hover:text-red-500 transition-colors"
+                          >
+                            <Trash2 size={16} />
+                          </button>
+                        </div>
+                      ))}
+                      {invForm.setDetails.length === 0 && (
+                        <div className="flex h-24 items-center justify-center rounded-lg border border-dashed border-slate-300 bg-slate-50/50">
+                          <p className="text-xs text-slate-500">Belum ada rincian item. Klik tombol tambah untuk memasukkan isi set.</p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+              </form>
+            </div>
+
+            {/* Footer */}
+            <div className="border-t border-slate-100 bg-slate-50/50 px-6 py-5 flex items-center justify-end gap-3 rounded-b-2xl">
+              <button 
+                type="button" 
+                onClick={() => setShowInvForm(false)}
+                className="inline-flex h-11 items-center justify-center rounded-xl bg-white px-6 text-sm font-semibold text-slate-700 border border-slate-200 transition-colors hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-slate-200"
+              >
+                Batal
+              </button>
+              <button 
+                type="submit" 
+                form="inv-modal-form"
+                disabled={isSubmittingInv}
+                className="inline-flex h-11 items-center justify-center rounded-xl bg-[#8b4513] px-6 text-sm font-semibold text-white shadow-sm transition-all hover:bg-[#723a0f] focus:outline-none focus:ring-4 focus:ring-[#8b4513]/20 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {isSubmittingInv ? (
+                  <span className="flex items-center gap-2">
+                    <svg className="h-4 w-4 animate-spin text-white" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                    Menyimpan...
+                  </span>
+                ) : (
+                  <span className="flex items-center gap-2">
+                    <Save size={16} /> Simpan Barang
+                  </span>
+                )}
+              </button>
+            </div>
+
           </div>
         </div>
       )}
