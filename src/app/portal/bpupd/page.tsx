@@ -370,10 +370,10 @@ export default function BPUPDPortal() {
     const fetchInventory = async () => {
       try {
         setInventoryLoading(true)
-        const res = await fetch('/api/inventory?limit=100')
+        const res = await fetch('/api/inventory?division=bpupd')
         if (res.ok) {
           const data = await res.json()
-          setInventory(data.docs || [])
+          setInventory(Array.isArray(data) ? data : [])
         }
       } catch (e) { console.error('Failed to fetch inventory', e) }
       finally { setInventoryLoading(false) }
