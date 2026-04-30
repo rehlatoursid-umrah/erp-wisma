@@ -13,7 +13,7 @@ export async function GET() {
                 and: [
                     { type: { equals: 'in' } },
                     { approvalStatus: { equals: 'pending' } },
-                    { description: { like: 'Invoice %' } }
+                    { description: { contains: 'Invoice #' } }
                 ]
             },
             limit: 5000,

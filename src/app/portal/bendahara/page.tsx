@@ -43,13 +43,33 @@ export default function BendaharaPortal() {
 
         // Calculate Summary
         let totalIncome = 0
-        invoices.forEach((i: any) => { if (i.currency === 'EGP') totalIncome += i.totalAmount })
-        cashflow.filter((c: any) => c.type === 'in' && c.category !== 'treasurer_funding' && c.currency === 'EGP').forEach((c: any) => totalIncome += c.amount)
+        cashflow.filter((c: any) => 
+            c.type === 'in' && 
+            c.category !== 'treasurer_funding' && 
+            c.approvalStatus === 'approved' &&
+            c.currency === 'EGP'
+        ).forEach((c: any) => totalIncome += c.amount)
         
-        let totalExpense = 0
-        cashflow.filter((c: any) => (c.type === 'out' || (c.type === 'in' && c.category === 'treasurer_funding')) && c.currency === 'EGP').forEach((c: any) => totalExpense += c.amount)
+        let totalDistribusi = 0
+        cashflow.filter((c: any) => 
+            c.type === 'in' && 
+            c.category === 'treasurer_funding' && 
+            c.currency === 'EGP'
+        ).forEach((c: any) => totalDistribusi += c.amount)
 
-        setSummary({ income: totalIncome, expense: totalExpense, balance: totalIncome - totalExpense })
+        let totalOperasional = 0
+        cashflow.filter((c: any) => 
+            c.type === 'out' && 
+            c.currency === 'EGP'
+        ).forEach((c: any) => totalOperasional += c.amount)
+
+        // Total Pengeluaran = Distribusi ke Divisi + Operasional Divisi (Sesuai request user)
+        let totalExpense = totalDistribusi + totalOperasional
+
+        // Total Saldo Aktif = Saldo sisa operasional (Distribusi - Operasional)
+        let totalBalance = totalDistribusi - totalOperasional
+
+        setSummary({ income: totalIncome, expense: totalExpense, balance: totalBalance })
 
         // Pending Funds
         const pending = cashflow.filter((c: any) => 
@@ -174,7 +194,7 @@ export default function BendaharaPortal() {
                <div className="cf-card-body">
                  <span className="cf-card-label">Total Pemasukan</span>
                  <span className="cf-card-value">EGP {summary.income.toLocaleString()}</span>
-                 <span className="cf-card-sub">Bulan Ini</span>
+                 <span className="cf-card-sub">Dari Laporan BPUPD</span>
                </div>
              </div>
              <div className="cf-card cf-expense-card">
@@ -182,7 +202,7 @@ export default function BendaharaPortal() {
                <div className="cf-card-body">
                  <span className="cf-card-label">Total Pengeluaran</span>
                  <span className="cf-card-value">EGP {summary.expense.toLocaleString()}</span>
-                 <span className="cf-card-sub">Bulan Ini</span>
+                 <span className="cf-card-sub">Distribusi & Operasional</span>
                </div>
              </div>
              <div className={`cf-card cf-balance-card ${summary.balance < 0 ? 'cf-negative' : ''}`}>
@@ -190,7 +210,7 @@ export default function BendaharaPortal() {
                <div className="cf-card-body">
                  <span className="cf-card-label">Total Saldo Aktif</span>
                  <span className="cf-card-value">EGP {summary.balance.toLocaleString()}</span>
-                 <span className="cf-card-sub">{summary.balance < 0 ? 'Defisit' : 'Surplus'}</span>
+                 <span className="cf-card-sub">Sisa Operasional Divisi</span>
                </div>
              </div>
            </div>
