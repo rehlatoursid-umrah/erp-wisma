@@ -522,9 +522,6 @@ export default function BPPGPortal() {
             )
           })()}
 
-          {/* ═══════════════════════════════════════════
-              INVENTARIS BPPG
-          ═══════════════════════════════════════════ */}
           {activeTab === 'inventaris' && (
             <div className="inv-dashboard">
               <div className="inv-header" style={{ position: 'relative', zIndex: 10 }}>
@@ -532,7 +529,7 @@ export default function BPPGPortal() {
                   <h2>📦 Inventaris BPPG</h2>
                   <p style={{ margin: '4px 0 0 0', fontSize: '0.85rem', color: 'var(--color-text-secondary)', fontWeight: 500 }}>Pencatatan aset tetap, alat kerja, dan material operasional.</p>
                 </div>
-                <button className="btn btn-primary" style={{ position: 'relative', zIndex: 50, cursor: 'pointer', pointerEvents: 'auto' }} onClick={() => setShowInvForm(true)}>+ Tambah Barang</button>
+                <button className="btn btn-primary" style={{ position: 'relative', zIndex: 50, cursor: 'pointer', pointerEvents: 'auto' }} onClick={(e) => { e.preventDefault(); setShowInvForm(true); }}>+ Tambah Barang</button>
               </div>
 
               {showInvForm && (
