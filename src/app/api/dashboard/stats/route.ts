@@ -128,6 +128,22 @@ export async function GET() {
 
         const monthLabel = now.toLocaleDateString('id-ID', { month: 'long', year: 'numeric' })
 
+        // 7. Trend Invoices (Last 6 Months for Revenue Chart)
+        const sixMonthsAgo = new Date(now.getFullYear(), now.getMonth() - 5, 1, 0, 0, 0, 0)
+        
+        const trendInvoices = await payload.find({
+            collection: 'transactions',
+            where: {
+                and: [
+                    { paymentStatus: { equals: 'paid' } },
+                    { createdAt: { greater_than_equal: sixMonthsAgo.toISOString() } }
+                ]
+            },
+            limit: 5000,
+            pagination: false,
+            sort: 'createdAt',
+        })
+
         return NextResponse.json({
             stats: {
                 hotel: occupiedRooms,
@@ -141,7 +157,8 @@ export async function GET() {
                 aula: aulaBookings.docs,
                 visa: visaInquiries.docs,
                 rental: rentalTransactions.docs,
-                recentPaidInvoices: paidInvoices.docs
+                recentPaidInvoices: paidInvoices.docs,
+                revenueTrend: trendInvoices.docs
             }
         })
 

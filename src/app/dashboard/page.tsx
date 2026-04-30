@@ -86,8 +86,8 @@ export default function DashboardPage() {
   }>({ hotel: 0, aula: 0, visa: 0, rental: 0, balances: { EGP: 0, USD: 0, IDR: 0, EUR: 0 } })
 
   const [dashboardData, setDashboardData] = useState<{
-    hotel: any[]; aula: any[]; visa: any[]; rental: any[]; recentPaidInvoices: any[]
-  }>({ hotel: [], aula: [], visa: [], rental: [], recentPaidInvoices: [] })
+    hotel: any[]; aula: any[]; visa: any[]; rental: any[]; recentPaidInvoices: any[]; revenueTrend: any[]
+  }>({ hotel: [], aula: [], visa: [], rental: [], recentPaidInvoices: [], revenueTrend: [] })
 
   const fetchDashboardStats = async () => {
     try {
@@ -280,7 +280,7 @@ export default function DashboardPage() {
 
             {/* Charts Row */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-              <RevenueChart invoices={dashboardData.recentPaidInvoices} />
+              <RevenueChart invoices={dashboardData.revenueTrend || []} />
               <OccupancyBar stats={{ hotel: stats.hotel, auditorium: stats.aula, visa: stats.visa, rental: stats.rental }} />
             </div>
 
