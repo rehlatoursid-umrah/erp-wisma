@@ -64,8 +64,8 @@ export default function BendaharaPortal() {
             c.currency === 'EGP'
         ).forEach((c: any) => totalOperasional += c.amount)
 
-        // Total Pengeluaran = Distribusi dikurangi Operasional (Sesuai request user)
-        let totalExpense = totalDistribusi - totalOperasional
+        // Total Pengeluaran = Uang pengeluaran operasional per bulannya
+        let totalExpense = totalOperasional
 
         // Total Saldo Aktif = Saldo sisa operasional (Distribusi - Operasional)
         let totalBalance = totalDistribusi - totalOperasional
@@ -193,7 +193,7 @@ export default function BendaharaPortal() {
                <div className="cf-card-body">
                  <span className="cf-card-label">Total Pengeluaran</span>
                  <span className="cf-card-value">EGP {summary.expense.toLocaleString()}</span>
-                 <span className="cf-card-sub">Distribusi & Operasional</span>
+                 <span className="cf-card-sub">Operasional Bulanan</span>
                </div>
              </div>
              <div className={`cf-card cf-balance-card ${summary.balance < 0 ? 'cf-negative' : ''}`}>
