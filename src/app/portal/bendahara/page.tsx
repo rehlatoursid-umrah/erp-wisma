@@ -52,7 +52,11 @@ export default function BendaharaPortal() {
         setSummary({ income: totalIncome, expense: totalExpense, balance: totalIncome - totalExpense })
 
         // Pending Funds
-        const pending = cashflow.filter((c: any) => c.type === 'in' && c.approvalStatus === 'pending')
+        const pending = cashflow.filter((c: any) => 
+          c.type === 'in' && 
+          c.approvalStatus === 'pending' &&
+          !(c.description || '').startsWith('Invoice #')
+        )
         setPendingFunds(pending)
       }
     } catch (e) { console.error(e) }
