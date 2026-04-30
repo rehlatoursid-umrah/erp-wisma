@@ -20,6 +20,7 @@ export default function BendaharaPortal() {
   const [distHistory, setDistHistory] = useState<any[]>([])
   const [summary, setSummary] = useState({ income: 0, expense: 0, balance: 0 })
   const [pendingFunds, setPendingFunds] = useState<any[]>([])
+  const [approvedFunds, setApprovedFunds] = useState<any[]>([])
   const [isRefreshing, setIsRefreshing] = useState(true)
 
   const fetchData = async () => {
@@ -78,6 +79,15 @@ export default function BendaharaPortal() {
           !(c.description || '').startsWith('Invoice #')
         )
         setPendingFunds(pending)
+
+        // Approved Funds (Riwayat Setoran)
+        const approved = cashflow.filter((c: any) => 
+          c.type === 'in' && 
+          c.approvalStatus === 'approved' &&
+          c.category !== 'treasurer_funding' &&
+          !(c.description || '').startsWith('Invoice #')
+        )
+        setApprovedFunds(approved)
       }
     } catch (e) { console.error(e) }
     setIsRefreshing(false)
@@ -245,6 +255,58 @@ export default function BendaharaPortal() {
                     </div>
                    ))
                 )}
+              </div>
+
+              <div className="dist-history" style={{ marginTop: '2rem', borderTop: '1px solid var(--border-color)', paddingTop: '1.5rem' }}>
+                <h4>Riwayat Setoran (Approved)</h4>
+                {(() => {
+                  const groupedHistory = approvedFunds.reduce((acc, h) => {
+                    if (!h.transactionDate) return acc
+                    const d = new Date(h.transactionDate)
+                    const monthYear = d.toLocaleString('id-ID', { month: 'long', year: 'numeric' })
+                    if (!acc[monthYear]) acc[monthYear] = []
+                    acc[monthYear].push(h)
+                    return acc
+                  }, {} as Record<string, any[]>)
+
+                  return Object.keys(groupedHistory).length === 0 ? (
+                    <p className="text-muted">Belum ada riwayat setoran.</p>
+                  ) : (
+                    Object.entries(groupedHistory).map(([month, items]: [string, any]) => {
+                      const isExpanded = !!expandedMonths[month]
+                      return (
+                        <div key={month} className="month-folder">
+                          <button type="button" className="folder-header" onClick={() => toggleMonth(month)}>
+                            <div className="folder-title">
+                              {isExpanded ? <FolderOpen size={18} className="folder-icon" /> : <Folder size={18} className="folder-icon" />}
+                              <span>{month}</span>
+                              <span className="folder-count">{items.length} transaksi</span>
+                            </div>
+                            {isExpanded ? <ChevronDown size={18} className="text-muted" /> : <ChevronRight size={18} className="text-muted" />}
+                          </button>
+                          
+                          {isExpanded && (
+                            <div className="folder-content">
+                              {items.map((item: any) => (
+                                <div key={item.id} className="history-item">
+                                  <div className="history-info">
+                                    <span className="history-desc">{item.description}</span>
+                                    <span className="history-date">
+                                      {new Date(item.transactionDate).toLocaleDateString('id-ID')} • {item.division?.toUpperCase()}
+                                    </span>
+                                  </div>
+                                  <div className="history-amount text-success">
+                                    + EGP {item.amount?.toLocaleString()}
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      )
+                    })
+                  )
+                })()}
               </div>
             </div>
 
