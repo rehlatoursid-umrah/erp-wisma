@@ -64,8 +64,8 @@ export default function BendaharaPortal() {
             c.currency === 'EGP'
         ).forEach((c: any) => totalOperasional += c.amount)
 
-        // Total Pengeluaran = Distribusi ke Divisi + Operasional Divisi (Sesuai request user)
-        let totalExpense = totalDistribusi + totalOperasional
+        // Total Pengeluaran = Distribusi dikurangi Operasional (Sesuai request user)
+        let totalExpense = totalDistribusi - totalOperasional
 
         // Total Saldo Aktif = Saldo sisa operasional (Distribusi - Operasional)
         let totalBalance = totalDistribusi - totalOperasional
@@ -138,26 +138,7 @@ export default function BendaharaPortal() {
     }
   }
 
-  const LogbookTasks = ({ category }: { category: string }) => {
-    const [tasks, setTasks] = useState<any[]>([])
 
-    useEffect(() => {
-      fetch(`/api/tasks?category=${category}`).then(res => res.json()).then(data => setTasks(data)).catch(err => console.error(err))
-    }, [category])
-
-    if (tasks.length === 0) return <div className="empty-state"><ClipboardCheck size={24} /> <p>Tidak ada pesan logbook.</p></div>
-
-    return (
-      <div className="logbook-list">
-        {tasks.map((t: any) => (
-          <div key={t.id} className="logbook-item">
-            <p className="lb-title">{t.title}</p>
-            <span className="lb-date">{new Date(t.createdAt).toLocaleDateString()}</span>
-          </div>
-        ))}
-      </div>
-    )
-  }
 
   const handleApproval = async (id: string, status: 'approved' | 'rejected') => {
     try {
@@ -396,14 +377,6 @@ export default function BendaharaPortal() {
               </div>
             </div>
 
-            <div className="card">
-              <div className="card-header-icon">
-                 <ClipboardCheck size={20} className="icon-muted" />
-                 <h3>Catatan Logbook</h3>
-              </div>
-              <p className="card-desc">Pesan & laporan dari Piket/Resepsionis</p>
-              <LogbookTasks category="bendahara" />
-            </div>
 
             <SlipGajiWidget />
           </div>
