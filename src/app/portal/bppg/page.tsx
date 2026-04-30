@@ -1065,7 +1065,7 @@ export default function BPPGPortal() {
            INVENTARIS BPPG - PREMIUM UI
         ═══════════════════════════════════ */
         .inv-dashboard { display: flex; flex-direction: column; gap: 24px; animation: fadeIn 0.4s ease-out; }
-        .inv-header { display: flex; justify-content: space-between; align-items: center; background: linear-gradient(145deg, var(--color-bg-card) 0%, rgba(255,255,255,0.8) 100%); padding: 20px 28px; border-radius: var(--radius-2xl); box-shadow: 0 4px 20px rgba(0,0,0,0.03); border: 1px solid var(--color-bg-secondary); backdrop-filter: blur(10px); }
+        .inv-header { display: flex; justify-content: space-between; align-items: center; background: var(--color-bg-card); padding: 20px 28px; border-radius: var(--radius-2xl); box-shadow: 0 4px 20px rgba(0,0,0,0.03); border: 1px solid var(--color-bg-secondary); position: relative; z-index: 10; }
         .inv-header h2 { font-size: 1.6rem; font-weight: 800; margin: 0 0 4px 0; color: var(--color-text-primary); letter-spacing: -0.02em; }
         .inv-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 20px; }
         
