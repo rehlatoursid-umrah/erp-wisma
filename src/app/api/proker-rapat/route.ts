@@ -25,17 +25,17 @@ export async function GET(request: Request) {
 
         const payload = await getPayload({ config: configPromise })
 
-        // Fetch tasks
+        // Fetch tasks by dueDate matching the selected month
         const tasks = await payload.find({
             collection: 'tasks',
             where: {
                 and: [
-                    { createdAt: { greater_than_equal: startDate.toISOString() } },
-                    { createdAt: { less_than_equal: endDate.toISOString() } }
+                    { dueDate: { greater_than_equal: startDate.toISOString() } },
+                    { dueDate: { less_than_equal: endDate.toISOString() } }
                 ]
             },
             limit: 500,
-            sort: '-createdAt',
+            sort: '-dueDate',
         })
 
         // Fetch all users to map assignee names
