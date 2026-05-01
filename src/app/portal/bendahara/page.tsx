@@ -6,10 +6,11 @@ import Header from '@/components/layout/Header'
 import PortalPinGuard from '@/components/auth/PortalPinGuard'
 import SlipGajiWidget from '@/components/bendahara/SlipGajiWidget'
 
-import { Wallet, ArrowDownLeft, TrendingDown, ClipboardCheck, ArrowRight, Activity, PlusCircle, Folder, FolderOpen, ChevronDown, ChevronRight, Trash2 } from 'lucide-react'
+import { Wallet, ArrowDownLeft, TrendingDown, ClipboardCheck, ArrowRight, Activity, PlusCircle, Folder, FolderOpen, ChevronDown, ChevronRight, Trash2, FileText } from 'lucide-react'
 
 export default function BendaharaPortal() {
   const [sidebarOpen, setSidebarOpen] = useState(false)
+  const [activeTab, setActiveTab] = useState<'incoming' | 'distribusi' | 'slip_gaji'>('incoming')
   const [expandedMonths, setExpandedMonths] = useState<Record<string, boolean>>({})
 
   const toggleMonth = (month: string) => {
@@ -194,309 +195,310 @@ export default function BendaharaPortal() {
             )}
           </div>
 
-          <div className="cf-summary-row" style={{ marginBottom: '1.5rem' }}>
-             <div className="cf-card cf-income-card">
-               <div className="cf-card-icon"><ArrowDownLeft size={22} /></div>
-               <div className="cf-card-body">
-                 <span className="cf-card-label">Total Pemasukan</span>
-                 <span className="cf-card-value">EGP {summary.income.toLocaleString()}</span>
-                 <span className="cf-card-sub">{currentMonthLabel}</span>
-               </div>
-             </div>
-             <div className="cf-card cf-expense-card">
-               <div className="cf-card-icon"><TrendingDown size={22} /></div>
-               <div className="cf-card-body">
-                 <span className="cf-card-label">Total Pengeluaran</span>
-                 <span className="cf-card-value">EGP {summary.expense.toLocaleString()}</span>
-                 <span className="cf-card-sub">{currentMonthLabel}</span>
-               </div>
-             </div>
-             <div className={`cf-card cf-balance-card ${summary.balance < 0 ? 'cf-negative' : ''}`}>
-               <div className="cf-card-icon"><Wallet size={22} /></div>
-               <div className="cf-card-body">
-                 <span className="cf-card-label">Total Saldo Aktif</span>
-                 <span className="cf-card-value">EGP {summary.balance.toLocaleString()}</span>
-                 <span className="cf-card-sub">{currentMonthLabel}</span>
-               </div>
-             </div>
-           </div>
-
-          <div className="portal-grid">
-            
-            <div className="card">
-              <div className="card-header-icon">
-                 <ArrowDownLeft size={20} className="icon-income" />
-                 <h3>Incoming Funds</h3>
-              </div>
-              <p className="card-desc">Setoran tunai & kas yang menunggu persetujuan pusat</p>
-              
-              <div className="pending-list">
-                {pendingFunds.length === 0 ? (
-                   <div className="empty-state">
-                      <ClipboardCheck size={28} style={{ color: 'var(--color-success)' }} />
-                      <p>Semua dana telah disetujui.</p>
-                   </div>
-                ) : (
-                   pendingFunds.map(p => (
-                    <div key={p.id} className="pending-item">
-                      <div>
-                        <strong>{p.description}</strong>
-                        <div className="text-xs text-gray-500 mt-1 uppercase tracking-wider">{p.division}</div>
-                        <span className="amount">EGP {p.amount?.toLocaleString()}</span>
-                      </div>
-                      <div className="actions flex gap-2">
-                        <button className="btn btn-primary bg-emerald-600 hover:bg-emerald-700 border-none text-white px-3 py-1 text-sm rounded-md shadow-sm" onClick={() => handleApproval(p.id, 'approved')}>Approve</button>
-                        <button className="btn btn-primary bg-red-600 hover:bg-red-700 border-none text-white px-3 py-1 text-sm rounded-md shadow-sm" onClick={() => handleApproval(p.id, 'rejected')}>Reject</button>
-                      </div>
-                    </div>
-                   ))
-                )}
-              </div>
-
-              <div className="dist-history" style={{ marginTop: '2rem', borderTop: '1px solid var(--border-color)', paddingTop: '1.5rem' }}>
-                <h4>Riwayat Setoran (Approved)</h4>
-                {(() => {
-                  const groupedHistory = approvedFunds.reduce((acc, h) => {
-                    if (!h.transactionDate) return acc
-                    const d = new Date(h.transactionDate)
-                    const monthYear = d.toLocaleString('id-ID', { month: 'long', year: 'numeric' })
-                    if (!acc[monthYear]) acc[monthYear] = []
-                    acc[monthYear].push(h)
-                    return acc
-                  }, {} as Record<string, any[]>)
-
-                  return Object.keys(groupedHistory).length === 0 ? (
-                    <p className="text-muted">Belum ada riwayat setoran.</p>
-                  ) : (
-                    Object.entries(groupedHistory).map(([month, items]: [string, any]) => {
-                      const isExpanded = !!expandedMonths[month]
-                      return (
-                        <div key={month} className="month-folder">
-                          <button type="button" className="folder-header" onClick={() => toggleMonth(month)}>
-                            <div className="folder-title">
-                              {isExpanded ? <FolderOpen size={18} className="folder-icon" /> : <Folder size={18} className="folder-icon" />}
-                              <span>{month}</span>
-                              <span className="folder-count">{items.length} transaksi</span>
-                            </div>
-                            {isExpanded ? <ChevronDown size={18} className="text-muted" /> : <ChevronRight size={18} className="text-muted" />}
-                          </button>
-                          
-                          {isExpanded && (
-                            <div className="folder-content">
-                              {items.map((item: any) => (
-                                <div key={item.id} className="history-item">
-                                  <div className="history-info">
-                                    <span className="history-desc">{item.description}</span>
-                                    <span className="history-date">
-                                      {new Date(item.transactionDate).toLocaleDateString('id-ID')} • {item.division?.toUpperCase()}
-                                    </span>
-                                  </div>
-                                  <div className="history-amount text-success">
-                                    + EGP {item.amount?.toLocaleString()}
-                                  </div>
-                                </div>
-                              ))}
-                            </div>
-                          )}
-                        </div>
-                      )
-                    })
-                  )
-                })()}
-              </div>
+          {/* ── Tab Navigation ── */}
+          <div className="tabs-container">
+            <div className="tabs">
+              {[
+                { key: 'incoming' as const, icon: <ArrowDownLeft size={18} />, label: 'Incoming Funds' },
+                { key: 'distribusi' as const, icon: <ArrowRight size={18} />, label: 'Distribusi Operasional' },
+                { key: 'slip_gaji' as const, icon: <FileText size={18} />, label: 'Generate Slip Gaji' },
+              ].map(t => (
+                <button key={t.key} className={`tab ${activeTab === t.key ? 'active' : ''}`} onClick={() => setActiveTab(t.key)}>
+                  {t.icon} {t.label}
+                </button>
+              ))}
             </div>
-
-            <div className="card">
-              <div className="card-header-icon">
-                 <ArrowRight size={20} className="icon-primary" />
-                 <h3>Distribusi Uang Operasional</h3>
-              </div>
-              <p className="card-desc">Kirim dana operasional bulan ini ke divisi terkait</p>
-              
-              <form className="dist-form" onSubmit={submitDistribusi}>
-                <div className="dist-group">
-                  <label>Pilih Divisi Penerima</label>
-                  <select className="dist-input" value={distForm.division} onChange={e => setDistForm({...distForm, division: e.target.value})}>
-                    <option value="bpupd">BPUPD (Badan Pengembangan Usaha dan Pengelolaan Dana)</option>
-                    <option value="bppg">BPPG (Badan Perbaikan dan Pemeliharaan Gedung)</option>
-                    <option value="pmik">PMIK (Perpustakaan, Media, Informasi & Komunikasi)</option>
-                  </select>
-                </div>
-                <div className="dist-row">
-                  <div className="dist-group">
-                    <label>Tanggal *</label>
-                    <input type="date" required className="dist-input" value={distForm.date} onChange={e => setDistForm({...distForm, date: e.target.value})} />
-                  </div>
-                  <div className="dist-group">
-                    <label>Jumlah (EGP) *</label>
-                    <input type="number" required className="dist-input" placeholder="0" value={distForm.amount} onChange={e => setDistForm({...distForm, amount: e.target.value})} />
-                  </div>
-                </div>
-                <div className="dist-group">
-                  <label>Keterangan / Tujuan Dana *</label>
-                  <input type="text" required className="dist-input" placeholder="Contoh: Dana Operasional April" value={distForm.description} onChange={e => setDistForm({...distForm, description: e.target.value})} />
-                </div>
-                <button type="submit" className="cf-submit-btn"><ArrowRight size={16} /> Distribusikan Dana</button>
-              </form>
-
-              <div className="dist-history">
-                <h4>Riwayat Distribusi</h4>
-                {(() => {
-                  const groupedHistory = distHistory.reduce((acc, h) => {
-                    if (!h.transactionDate) return acc
-                    const d = new Date(h.transactionDate)
-                    const monthYear = d.toLocaleString('id-ID', { month: 'long', year: 'numeric' })
-                    if (!acc[monthYear]) acc[monthYear] = []
-                    acc[monthYear].push(h)
-                    return acc
-                  }, {} as Record<string, any[]>)
-
-                  return Object.keys(groupedHistory).length === 0 ? (
-                    <p className="text-muted">Belum ada data distribusi.</p>
-                  ) : (
-                    Object.entries(groupedHistory).map(([month, items]: [string, any]) => {
-                      const isExpanded = !!expandedMonths[month]
-                      return (
-                        <div key={month} className="month-folder">
-                          <button type="button" className="folder-header" onClick={() => toggleMonth(month)}>
-                            <div className="folder-title">
-                              {isExpanded ? <FolderOpen size={18} className="folder-icon" /> : <Folder size={18} className="folder-icon" />}
-                              <span>{month}</span>
-                              <span className="folder-count">{items.length} transaksi</span>
-                            </div>
-                            {isExpanded ? <ChevronDown size={18} className="text-muted" /> : <ChevronRight size={18} className="text-muted" />}
-                          </button>
-                          
-                          {isExpanded && (
-                            <div className="folder-content">
-                              {items.map((h: any) => (
-                                <div key={h.id} className="history-item">
-                                  <div>
-                                    <div className="hi-title">{h.description} <span className="hi-badge">{h.division}</span></div>
-                                    <div className="hi-date">{h.transactionDate ? h.transactionDate.split('T')[0] : ''}</div>
-                                  </div>
-                                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                                    <div className="hi-amount">- EGP {h.amount?.toLocaleString()}</div>
-                                    <button type="button" onClick={() => deleteDistribusi(h.id)} style={{ background: 'rgba(239, 68, 68, 0.1)', border: 'none', color: 'var(--color-danger)', cursor: 'pointer', padding: '6px', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '6px', transition: 'all 0.2s' }} title="Hapus transaksi" className="delete-btn">
-                                      <Trash2 size={16} />
-                                    </button>
-                                  </div>
-                                </div>
-                              ))}
-                            </div>
-                          )}
-                        </div>
-                      )
-                    })
-                  )
-                })()}
-              </div>
-            </div>
-
-
-            <SlipGajiWidget />
           </div>
+
+          {/* ── Summary Cards ── */}
+          <div className="finance-section">
+            <div className="cf-summary-row">
+              <div className="cf-card cf-income-card">
+                <div className="cf-card-icon"><ArrowDownLeft size={22} /></div>
+                <div className="cf-card-body">
+                  <span className="cf-card-label">Total Pemasukan</span>
+                  <span className="cf-card-value">EGP {summary.income.toLocaleString()}</span>
+                  <span className="cf-card-sub">{currentMonthLabel}</span>
+                </div>
+              </div>
+              <div className="cf-card cf-expense-card">
+                <div className="cf-card-icon"><TrendingDown size={22} /></div>
+                <div className="cf-card-body">
+                  <span className="cf-card-label">Total Pengeluaran</span>
+                  <span className="cf-card-value">EGP {summary.expense.toLocaleString()}</span>
+                  <span className="cf-card-sub">{currentMonthLabel}</span>
+                </div>
+              </div>
+              <div className={`cf-card cf-balance-card ${summary.balance < 0 ? 'cf-negative' : ''}`}>
+                <div className="cf-card-icon"><Wallet size={22} /></div>
+                <div className="cf-card-body">
+                  <span className="cf-card-label">Total Saldo Aktif</span>
+                  <span className="cf-card-value">EGP {summary.balance.toLocaleString()}</span>
+                  <span className="cf-card-sub">{currentMonthLabel}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* ═══════ TAB: Incoming Funds ═══════ */}
+          {activeTab === 'incoming' && (
+            <div className="finance-section">
+              <div className="cf-section">
+                <div className="cf-section-header income-header">
+                  <span className="cf-section-title"><ArrowDownLeft size={18} /> Pending Approval</span>
+                  <span className="cf-readonly-badge">{pendingFunds.length} menunggu</span>
+                </div>
+                <div className="cf-timeline">
+                  {pendingFunds.length === 0 ? (
+                    <div className="cf-empty"><ClipboardCheck size={28} style={{ color: '#10b981' }} /><p>Semua dana telah disetujui.</p></div>
+                  ) : (
+                    pendingFunds.map(p => (
+                      <div key={p.id} className="pending-item">
+                        <div>
+                          <strong>{p.description}</strong>
+                          <div className="hi-badge" style={{ display: 'inline-block', marginLeft: 8 }}>{p.division}</div>
+                          <span className="amount">EGP {p.amount?.toLocaleString()}</span>
+                        </div>
+                        <div className="actions">
+                          <button className="approve-btn" onClick={() => handleApproval(p.id, 'approved')}>Approve</button>
+                          <button className="reject-btn" onClick={() => handleApproval(p.id, 'rejected')}>Reject</button>
+                        </div>
+                      </div>
+                    ))
+                  )}
+                </div>
+              </div>
+
+              <div className="cf-section" style={{ marginTop: '1.5rem' }}>
+                <div className="cf-section-header">
+                  <span className="cf-section-title"><Folder size={18} /> Riwayat Setoran (Approved)</span>
+                </div>
+                <div className="cf-timeline">
+                  {(() => {
+                    const grouped = approvedFunds.reduce((acc, h) => {
+                      if (!h.transactionDate) return acc
+                      const d = new Date(h.transactionDate)
+                      const my = d.toLocaleString('id-ID', { month: 'long', year: 'numeric' })
+                      if (!acc[my]) acc[my] = []
+                      acc[my].push(h)
+                      return acc
+                    }, {} as Record<string, any[]>)
+                    return Object.keys(grouped).length === 0 ? (
+                      <div className="cf-empty"><p>Belum ada riwayat setoran.</p></div>
+                    ) : (
+                      Object.entries(grouped).map(([month, items]: [string, any]) => {
+                        const isExp = !!expandedMonths[month]
+                        return (
+                          <div key={month} className="month-folder">
+                            <button type="button" className="folder-header" onClick={() => toggleMonth(month)}>
+                              <div className="folder-title">{isExp ? <FolderOpen size={18} className="folder-icon" /> : <Folder size={18} className="folder-icon" />}<span>{month}</span><span className="folder-count">{items.length}</span></div>
+                              {isExp ? <ChevronDown size={18} /> : <ChevronRight size={18} />}
+                            </button>
+                            {isExp && <div className="folder-content">{items.map((item: any) => (
+                              <div key={item.id} className="history-item"><div className="history-info"><span className="history-desc">{item.description}</span><span className="history-date">{new Date(item.transactionDate).toLocaleDateString('id-ID')} • {item.division?.toUpperCase()}</span></div><div className="history-amount text-success">+ EGP {item.amount?.toLocaleString()}</div></div>
+                            ))}</div>}
+                          </div>
+                        )
+                      })
+                    )
+                  })()}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* ═══════ TAB: Distribusi ═══════ */}
+          {activeTab === 'distribusi' && (
+            <div className="finance-section">
+              <div className="cf-section">
+                <div className="cf-section-header expense-header">
+                  <span className="cf-section-title"><ArrowRight size={18} /> Kirim Dana Operasional</span>
+                </div>
+                <div style={{ padding: '1.25rem' }}>
+                  <form className="dist-form" onSubmit={submitDistribusi}>
+                    <div className="dist-group"><label>Pilih Divisi Penerima</label>
+                      <select className="dist-input" value={distForm.division} onChange={e => setDistForm({...distForm, division: e.target.value})}>
+                        <option value="bpupd">BPUPD (Pengembangan Usaha & Pengelolaan Dana)</option>
+                        <option value="bppg">BPPG (Perbaikan & Pemeliharaan Gedung)</option>
+                        <option value="pmik">PMIK (Perpustakaan, Media, Informasi & Komunikasi)</option>
+                      </select>
+                    </div>
+                    <div className="dist-row">
+                      <div className="dist-group"><label>Tanggal *</label><input type="date" required className="dist-input" value={distForm.date} onChange={e => setDistForm({...distForm, date: e.target.value})} /></div>
+                      <div className="dist-group"><label>Jumlah (EGP) *</label><input type="number" required className="dist-input" placeholder="0" value={distForm.amount} onChange={e => setDistForm({...distForm, amount: e.target.value})} /></div>
+                    </div>
+                    <div className="dist-group"><label>Keterangan / Tujuan Dana *</label><input type="text" required className="dist-input" placeholder="Contoh: Dana Operasional April" value={distForm.description} onChange={e => setDistForm({...distForm, description: e.target.value})} /></div>
+                    <button type="submit" className="cf-submit-btn"><ArrowRight size={16} /> Distribusikan Dana</button>
+                  </form>
+                </div>
+              </div>
+
+              <div className="cf-section" style={{ marginTop: '1.5rem' }}>
+                <div className="cf-section-header"><span className="cf-section-title"><Folder size={18} /> Riwayat Distribusi</span></div>
+                <div className="cf-timeline">
+                  {(() => {
+                    const grouped = distHistory.reduce((acc, h) => {
+                      if (!h.transactionDate) return acc
+                      const d = new Date(h.transactionDate)
+                      const my = d.toLocaleString('id-ID', { month: 'long', year: 'numeric' })
+                      if (!acc[my]) acc[my] = []
+                      acc[my].push(h)
+                      return acc
+                    }, {} as Record<string, any[]>)
+                    return Object.keys(grouped).length === 0 ? (
+                      <div className="cf-empty"><p>Belum ada data distribusi.</p></div>
+                    ) : (
+                      Object.entries(grouped).map(([month, items]: [string, any]) => {
+                        const isExp = !!expandedMonths[month]
+                        return (
+                          <div key={month} className="month-folder">
+                            <button type="button" className="folder-header" onClick={() => toggleMonth(month)}>
+                              <div className="folder-title">{isExp ? <FolderOpen size={18} className="folder-icon" /> : <Folder size={18} className="folder-icon" />}<span>{month}</span><span className="folder-count">{items.length}</span></div>
+                              {isExp ? <ChevronDown size={18} /> : <ChevronRight size={18} />}
+                            </button>
+                            {isExp && <div className="folder-content">{items.map((h: any) => (
+                              <div key={h.id} className="history-item">
+                                <div><div className="hi-title">{h.description} <span className="hi-badge">{h.division}</span></div><div className="hi-date">{h.transactionDate ? h.transactionDate.split('T')[0] : ''}</div></div>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                                  <div className="hi-amount">- EGP {h.amount?.toLocaleString()}</div>
+                                  <button type="button" onClick={() => deleteDistribusi(h.id)} className="delete-btn" title="Hapus"><Trash2 size={16} /></button>
+                                </div>
+                              </div>
+                            ))}</div>}
+                          </div>
+                        )
+                      })
+                    )
+                  })()}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* ═══════ TAB: Slip Gaji ═══════ */}
+          {activeTab === 'slip_gaji' && (
+            <div className="finance-section">
+              <SlipGajiWidget />
+            </div>
+          )}
         </main>
 
         <style jsx>{`
-          .dashboard-layout { display: flex; min-height: 100vh; background: var(--color-bg-primary); }
-          .main-content { flex: 1; padding: var(--spacing-2xl); width: 100%; display: flex; flex-direction: column; animation: fadeIn 0.4s ease-out forwards; }
-          
-          .portal-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 2rem; padding-bottom: 1.5rem; border-bottom: 1px solid var(--color-border); }
-          .portal-header h1 { font-size: 2rem; font-weight: 800; color: var(--color-text); margin: 0 0 0.25rem 0; letter-spacing: -0.02em; }
-          .portal-subtitle { font-size: 0.95rem; color: var(--color-text-muted); margin: 0; font-weight: 500; }
+          /* Mobile-First Fullwidth (matches BPUPD/PMIK) */
+          .dashboard-layout { display: flex; min-height: 100vh; background: var(--color-bg-primary); font-family: var(--font-sans); color: var(--color-text-primary); }
+          .main-content { flex: 1; overflow-y: auto; overflow-x: hidden; padding-bottom: 80px; animation: fadeIn 0.4s ease-out forwards; }
+          h1, h2, h3, h4 { font-family: var(--font-heading); }
+
+          .portal-header { padding: var(--spacing-lg); background: var(--color-bg-card); border-bottom: 1px solid var(--color-bg-secondary); display: flex; align-items: center; justify-content: space-between; }
+          .portal-header h1 { font-size: 1.5rem; font-weight: 700; color: var(--color-text-primary); margin: 0 0 0.25rem 0; line-height: 1.2; }
+          .portal-subtitle { font-size: 0.875rem; color: var(--color-text-secondary); margin: 0; font-weight: 500; }
           .badge { display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; border-radius: 20px; font-size: 0.8rem; font-weight: 600; }
           .badge-success { background: rgba(16, 185, 129, 0.1); color: #10b981; }
           .badge-info { background: rgba(59, 130, 246, 0.1); color: #3b82f6; }
           .shrink-0 { flex-shrink: 0; }
 
-          /* Summary Cards (from BPUPD/BPPG aesthetic) */
-          .cf-summary-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem; animation: slideUp 0.4s ease-out forwards; }
-          .cf-card { background: var(--color-bg-card); border-radius: 16px; border: 1px solid var(--color-border); padding: 1.5rem; display: flex; align-items: flex-start; gap: 1.25rem; transition: transform 0.2s, box-shadow 0.2s; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.02); }
+          /* Tabs */
+          .tabs-container { margin: var(--spacing-md) 0 var(--spacing-lg) 0; padding: 0 var(--spacing-lg); overflow-x: auto; scrollbar-width: none; -webkit-overflow-scrolling: touch; }
+          .tabs-container::-webkit-scrollbar { display: none; }
+          .tabs { display: inline-flex; gap: var(--spacing-sm); padding-right: var(--spacing-lg); }
+          .tab { display: flex; align-items: center; gap: var(--spacing-xs); padding: 0.75rem 1.25rem; border: 1px solid var(--color-bg-secondary); border-radius: var(--radius-full); background: var(--color-bg-card); color: var(--color-text-secondary); font-weight: 600; font-size: 0.9rem; white-space: nowrap; transition: all 0.2s; cursor: pointer; }
+          .tab.active { background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%); color: #fff; border-color: var(--color-primary); box-shadow: var(--shadow-md); }
+
+          /* Finance Section */
+          .finance-section { padding: 0 var(--spacing-lg); margin-bottom: var(--spacing-lg); }
+
+          /* Summary Cards */
+          .cf-summary-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; animation: slideUp 0.4s ease-out forwards; }
+          .cf-card { background: var(--color-bg-card); border-radius: 16px; border: 1px solid var(--color-border); padding: 1.25rem; display: flex; align-items: flex-start; gap: 1rem; transition: transform 0.2s, box-shadow 0.2s; }
           .cf-card:hover { transform: translateY(-2px); box-shadow: 0 10px 15px -3px rgba(0,0,0,0.05); }
-          .cf-card-icon { width: 48px; height: 48px; border-radius: 12px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+          .cf-card-icon { width: 44px; height: 44px; border-radius: 12px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
           .cf-income-card .cf-card-icon { background: rgba(16, 185, 129, 0.1); color: #10b981; }
           .cf-expense-card .cf-card-icon { background: rgba(239, 68, 68, 0.1); color: #ef4444; }
           .cf-balance-card .cf-card-icon { background: rgba(139, 69, 19, 0.1); color: var(--color-primary); }
           .cf-negative { border-color: #ef4444 !important; background: rgba(239, 68, 68, 0.02); }
           .cf-negative .cf-card-icon { background: rgba(239, 68, 68, 0.1); color: #ef4444; }
-          .cf-card-body { display: flex; flex-direction: column; gap: 0.25rem; }
-          .cf-card-label { font-size: 0.75rem; font-weight: 700; color: var(--color-text-secondary); text-transform: uppercase; letter-spacing: 0.05em; }
-          .cf-card-value { font-size: 1.5rem; font-weight: 800; color: var(--color-text-primary); }
-          .cf-card-sub { font-size: 0.8rem; color: var(--color-text-muted); font-weight: 500; }
+          .cf-card-body { display: flex; flex-direction: column; gap: 0.2rem; }
+          .cf-card-label { font-size: 0.72rem; font-weight: 700; color: var(--color-text-secondary); text-transform: uppercase; letter-spacing: 0.05em; }
+          .cf-card-value { font-size: 1.35rem; font-weight: 800; color: var(--color-text-primary); font-family: var(--font-heading); }
+          .cf-card-sub { font-size: 0.75rem; color: var(--color-text-muted); font-weight: 500; }
 
-          .portal-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 1.5rem; animation: slideUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
-          .card { background: var(--color-bg-card); border-radius: 16px; padding: 1.5rem; border: 1px solid var(--color-border); box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.02); transition: all 0.2s ease; display: flex; flex-direction: column; }
-          .card:hover { box-shadow: 0 10px 20px -5px rgba(0, 0, 0, 0.05); border-color: var(--color-primary-light); }
-          
-          .card-header-icon { display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.25rem; }
-          .card-header-icon h3 { font-size: 1.15rem; font-weight: 700; color: var(--color-text); margin: 0; }
-          .icon-income { color: #10b981; }
-          .icon-primary { color: var(--color-primary); }
-          .icon-muted { color: var(--color-text-muted); }
-          .card-desc { color: var(--color-text-muted); font-size: 0.85rem; margin-bottom: 1.5rem; }
+          /* Section Card */
+          .cf-section { background: var(--color-bg-card); border-radius: 16px; border: 1px solid var(--color-border); overflow: hidden; }
+          .cf-section-header { padding: 1.25rem 1.5rem; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--color-border); }
+          .income-header { background: rgba(16, 185, 129, 0.03); }
+          .expense-header { background: rgba(239, 68, 68, 0.03); }
+          .cf-section-title { font-weight: 700; font-size: 1rem; color: var(--color-text-primary); display: flex; align-items: center; gap: 0.5rem; }
+          .cf-readonly-badge { font-size: 0.7rem; font-weight: 700; background: var(--color-bg-secondary); padding: 4px 8px; border-radius: 6px; color: var(--color-text-muted); }
+          .cf-timeline { padding: 1.25rem; display: flex; flex-direction: column; gap: 0; }
+          .cf-empty { display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 28px; color: var(--color-text-muted); text-align: center; }
+          .cf-empty p { font-size: 0.82rem; margin: 0; }
 
-          .pending-list { display: flex; flex-direction: column; gap: 1rem; }
-          .pending-item { display: flex; flex-direction: column; padding: 1.25rem; background: var(--color-bg-secondary); border-radius: 12px; border: 1px solid transparent; transition: all 0.2s ease; }
-          .pending-item:hover { border-color: var(--color-border); background: var(--color-bg-card); box-shadow: var(--shadow-sm); }
-          .pending-item > div:first-child { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1rem; }
-          .pending-item strong { display: block; color: var(--color-text); font-size: 0.95rem; font-weight: 600; margin-bottom: 0.25rem; }
-          .amount { display: block; font-size: 1.15rem; font-weight: 800; color: #10b981; }
+          /* Pending Items */
+          .pending-item { display: flex; flex-direction: column; padding: 1.25rem; background: var(--color-bg-secondary); border-radius: 12px; border: 1px solid transparent; transition: all 0.2s; margin-bottom: 0.75rem; }
+          .pending-item:hover { border-color: var(--color-border); background: var(--color-bg-card); }
+          .pending-item > div:first-child { margin-bottom: 1rem; }
+          .pending-item strong { display: block; color: var(--color-text-primary); font-size: 0.95rem; font-weight: 600; margin-bottom: 0.25rem; }
+          .amount { display: block; font-size: 1.15rem; font-weight: 800; color: #10b981; margin-top: 0.5rem; }
           .actions { display: flex; gap: 0.5rem; width: 100%; }
-          .actions .btn { flex: 1; padding: 0.6rem; font-size: 0.85rem; border-radius: 8px; font-weight: 600; }
+          .approve-btn { flex: 1; padding: 0.6rem; font-size: 0.85rem; border-radius: 8px; font-weight: 600; background: #10b981; color: white; border: none; cursor: pointer; transition: opacity 0.2s; }
+          .approve-btn:hover { opacity: 0.88; }
+          .reject-btn { flex: 1; padding: 0.6rem; font-size: 0.85rem; border-radius: 8px; font-weight: 600; background: #ef4444; color: white; border: none; cursor: pointer; transition: opacity 0.2s; }
+          .reject-btn:hover { opacity: 0.88; }
 
-          .empty-state { padding: 2rem 1rem; display: flex; flex-direction: column; align-items: center; gap: 1rem; text-align: center; color: var(--color-text-muted); background: var(--color-bg-secondary); border-radius: 12px; }
-          .empty-state p { margin: 0; font-size: 0.9rem; font-weight: 500; }
-
-          /* Distribusi Form Styles */
-          .dist-form { display: flex; flex-direction: column; gap: 1rem; padding-bottom: 1.5rem; border-bottom: 1px solid var(--color-border); }
+          /* Distribusi Form */
+          .dist-form { display: flex; flex-direction: column; gap: 1rem; }
           .dist-group { display: flex; flex-direction: column; gap: 0.4rem; }
           .dist-group label { font-size: 0.8rem; font-weight: 600; color: var(--color-text-secondary); }
           .dist-row { display: flex; gap: 1rem; }
           .dist-row .dist-group { flex: 1; }
-          .dist-input { padding: 0.75rem 1rem; border: 1px solid var(--color-border); border-radius: 10px; background: var(--color-bg-primary); font-size: 0.9rem; outline: none; transition: all 0.2s; font-family: inherit; }
-          .dist-input:focus { border-color: var(--color-primary); box-shadow: 0 0 0 3px rgba(139, 69, 19, 0.1); background: var(--color-bg-card); }
-          .cf-submit-btn { margin-top: 0.5rem; width: 100%; padding: 0.875rem; background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%); color: white; border: none; border-radius: 10px; font-weight: 700; font-size: 0.95rem; cursor: pointer; display: flex; justify-content: center; align-items: center; gap: 0.5rem; box-shadow: 0 4px 10px rgba(139, 69, 19, 0.2); transition: transform 0.2s; }
-          .cf-submit-btn:hover { transform: translateY(-1px); box-shadow: 0 6px 14px rgba(139, 69, 19, 0.3); }
+          .dist-input { padding: 0.75rem 1rem; border: 1.5px solid var(--color-bg-secondary); border-radius: 10px; background: var(--color-bg-primary); font-size: 0.85rem; outline: none; transition: all 0.2s; font-family: inherit; color: var(--color-text-primary); }
+          .dist-input:focus { border-color: var(--color-primary); box-shadow: 0 0 0 3px rgba(139, 69, 19, 0.1); }
+          .cf-submit-btn { margin-top: 0.5rem; width: 100%; padding: 0.875rem; background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%); color: white; border: none; border-radius: 10px; font-weight: 700; font-size: 0.9rem; cursor: pointer; display: flex; justify-content: center; align-items: center; gap: 0.5rem; transition: transform 0.2s, opacity 0.2s; }
+          .cf-submit-btn:hover { transform: translateY(-1px); opacity: 0.92; }
 
-          .dist-history h4 { font-size: 0.8rem; color: var(--color-text-muted); margin: 1.5rem 0 1rem 0; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; }
-          .history-item { display: flex; justify-content: space-between; align-items: center; padding: 1rem; background: var(--color-bg-primary); border-radius: 10px; margin-bottom: 0.5rem; border: 1px solid var(--color-border); transition: all 0.2s; }
-          .history-item:hover { border-color: var(--color-primary-light); box-shadow: 0 2px 4px rgba(0,0,0,0.02); }
-          .hi-title { font-weight: 600; font-size: 0.9rem; color: var(--color-text-primary); display: flex; align-items: center; gap: 0.5rem; }
-          .hi-badge { background: var(--color-primary-light); color: var(--color-primary-dark); font-size: 0.65rem; padding: 2px 6px; border-radius: 4px; font-weight: 700; text-transform: uppercase; }
-          .hi-date { font-size: 0.75rem; color: var(--color-text-muted); margin-top: 4px; font-weight: 500; }
-          .hi-amount { font-weight: 700; color: #ef4444; font-size: 0.95rem; }
-          .delete-btn:hover { background: #ef4444 !important; color: white !important; }
-          
-          /* Folder Styles */
-          .month-folder { margin-bottom: 0.75rem; background: var(--color-bg-secondary); border-radius: 12px; border: 1px solid var(--color-border); overflow: hidden; transition: all 0.2s; }
+          /* Folder & History */
+          .month-folder { margin-bottom: 0.75rem; background: var(--color-bg-secondary); border-radius: 12px; border: 1px solid var(--color-border); overflow: hidden; }
           .month-folder:hover { border-color: var(--color-primary-light); }
           .folder-header { width: 100%; display: flex; justify-content: space-between; align-items: center; padding: 1rem; background: transparent; border: none; cursor: pointer; color: var(--color-text); transition: background 0.2s; }
           .folder-header:hover { background: var(--color-bg-highlight); }
           .folder-title { display: flex; align-items: center; gap: 0.75rem; font-weight: 600; font-size: 0.95rem; }
           .folder-icon { color: var(--color-primary); }
-          .folder-count { font-size: 0.75rem; color: var(--color-text-muted); font-weight: 500; background: var(--color-bg-primary); padding: 2px 8px; border-radius: 10px; margin-left: 0.25rem; border: 1px solid var(--color-border); }
+          .folder-count { font-size: 0.72rem; color: var(--color-text-muted); font-weight: 700; background: var(--color-bg-primary); padding: 2px 8px; border-radius: 10px; border: 1px solid var(--color-border); }
           .folder-content { padding: 0 1rem 1rem 1rem; animation: fadeIn 0.3s ease; }
-
+          .history-item { display: flex; justify-content: space-between; align-items: center; padding: 0.875rem; background: var(--color-bg-primary); border-radius: 10px; margin-bottom: 0.5rem; border: 1px solid var(--color-border); transition: all 0.2s; }
+          .history-item:hover { border-color: var(--color-primary-light); }
+          .history-info { display: flex; flex-direction: column; gap: 2px; }
+          .history-desc { font-weight: 600; font-size: 0.88rem; color: var(--color-text-primary); }
+          .history-date { font-size: 0.72rem; color: var(--color-text-muted); }
+          .history-amount { font-weight: 700; font-size: 0.92rem; }
+          .text-success { color: #10b981; }
+          .hi-title { font-weight: 600; font-size: 0.88rem; color: var(--color-text-primary); display: flex; align-items: center; gap: 0.5rem; }
+          .hi-badge { background: rgba(139,69,19,0.1); color: var(--color-primary-dark); font-size: 0.65rem; padding: 2px 6px; border-radius: 4px; font-weight: 700; text-transform: uppercase; }
+          .hi-date { font-size: 0.72rem; color: var(--color-text-muted); margin-top: 3px; }
+          .hi-amount { font-weight: 700; color: #ef4444; font-size: 0.92rem; }
+          .delete-btn { background: rgba(239, 68, 68, 0.1); border: none; color: #ef4444; cursor: pointer; padding: 6px; display: flex; align-items: center; justify-content: center; border-radius: 6px; transition: all 0.2s; }
+          .delete-btn:hover { background: #ef4444; color: white; }
           .text-muted { color: var(--color-text-muted); font-size: 0.85rem; }
-
-          /* Logbook Styles */
-          .logbook-list { display: flex; flex-direction: column; gap: 0.75rem; }
-          .logbook-item { padding: 1rem; background: var(--color-bg-secondary); border-radius: 10px; border-left: 3px solid var(--color-text-muted); }
-          .lb-title { font-weight: 600; font-size: 0.9rem; margin: 0 0 4px 0; color: var(--color-text-primary); }
-          .lb-date { font-size: 0.75rem; color: var(--color-text-muted); }
 
           @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
           @keyframes slideUp { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
 
+          /* Desktop scale-up */
+          @media (min-width: 768px) {
+            .portal-header { padding: var(--spacing-lg) var(--spacing-2xl); }
+            .tabs-container { margin: var(--spacing-xl) 0 var(--spacing-xl) var(--spacing-2xl); }
+            .finance-section { padding: 0 var(--spacing-2xl); }
+          }
           @media (max-width: 1024px) {
             .cf-summary-row { grid-template-columns: 1fr; }
           }
           @media (max-width: 768px) {
-            .portal-grid { grid-template-columns: 1fr; }
-            .main-content { padding: 1.25rem; padding-top: calc(var(--spacing-2xl) + 20px); }
-            .cf-card { padding: 1.25rem; }
-            .portal-header { flex-direction: column; align-items: flex-start; gap: 1rem; }
+            .portal-header { flex-direction: column; align-items: flex-start; gap: 0.75rem; }
+            .cf-card { padding: 1rem; gap: 0.75rem; }
+            .cf-card-icon { width: 36px; height: 36px; }
+            .cf-card-value { font-size: 1.1rem; }
+            .cf-section-header { padding: 1rem; }
+            .dist-row { flex-direction: column; gap: 0.75rem; }
           }
         `}</style>
       </div>
