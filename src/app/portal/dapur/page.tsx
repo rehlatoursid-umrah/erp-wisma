@@ -144,9 +144,6 @@ export default function DapurPortal() {
             <div className="cf-month-nav">
                 <div className="cf-month-nav-header">
                 <span className="cf-fiscal-label">Periode Laporan</span>
-                <button onClick={generateCashflowPDF} className="trello-save-btn" style={{ padding: '6px 12px', width: 'auto' }}>
-                    <Download size={14} /> PDF
-                </button>
                 </div>
                 <div className="cf-month-pills">
                 {fiscalMonths.map((m, i) => {
@@ -198,9 +195,9 @@ export default function DapurPortal() {
                 {/* KIRI: Form Pengeluaran */}
                 <div className="cf-section" style={{ position: 'sticky', top: '20px' }}>
                 <div className="cf-section-header expense-header">
-                    <div className="cf-section-title"><TrendingDown size={18} color="#ef4444" /> Catat Pengeluaran Dapur</div>
+                    <div className="cf-section-title"><TrendingDown size={18} color="#ef4444" /> Catat Pengeluaran</div>
                 </div>
-                <form onSubmit={handleExpenseSubmit} className="cf-timeline" style={{ borderBottom: '1px solid var(--color-border)' }}>
+                <form onSubmit={handleExpenseSubmit} className="cf-expense-form" style={{ padding: '1.25rem 1.5rem', borderBottom: '1px solid var(--color-border)' }}>
                     {isArchive && <div style={{ fontSize: '0.8rem', color: '#ef4444', marginBottom: '10px', background: '#fee2e2', padding: '8px', borderRadius: '6px' }}>⚠️ Anda mencatat pengeluaran di bulan lalu.</div>}
                     
                     <div className="cf-input-group">
@@ -242,7 +239,10 @@ export default function DapurPortal() {
                 <div className="cf-section">
                 <div className="cf-section-header">
                     <div className="cf-section-title">Timeline Pengeluaran</div>
-                    <span className="cf-readonly-badge">{transactions.filter(t => t.type === 'out').length} Transaksi</span>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <span className="cf-readonly-badge">{transactions.filter(t => t.type === 'out').length} Transaksi</span>
+                        <button type="button" onClick={generateCashflowPDF} className="cf-pdf-btn" style={{ background: '#3b82f6', color: 'white', border: 'none', padding: '6px 12px', borderRadius: '6px', fontSize: '0.75rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px', fontWeight: 600 }}><Download size={14} /> PDF</button>
+                    </div>
                 </div>
                 <div className="cf-timeline">
                     {transactions.filter(t => t.type === 'out').length === 0 ? (
@@ -329,25 +329,23 @@ export default function DapurPortal() {
         .cf-section-title { font-weight: 700; font-size: 1rem; color: var(--color-text-primary); display: flex; align-items: center; gap: 0.5rem; }
         .cf-readonly-badge { font-size: 0.7rem; font-weight: 700; background: var(--color-bg-secondary); padding: 4px 8px; border-radius: 6px; color: var(--color-text-muted); }
         
-        .cf-input-group { display: flex; flex-direction: column; gap: 6px; margin-bottom: 12px; }
-        .cf-input-group label { font-size: 0.82rem; font-weight: 600; color: var(--color-text-secondary); }
-        .cf-input { width: 100%; padding: 10px 12px; border: 1.5px solid var(--color-bg-secondary); border-radius: 8px; font-size: 0.9rem; background: var(--color-bg-primary); color: var(--color-text-primary); transition: all 0.2s; }
-        .cf-input:focus { outline: none; border-color: var(--color-primary); box-shadow: 0 0 0 3px rgba(139,69,19,0.1); }
-        .cf-form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-        .cf-total-display { display: flex; justify-content: space-between; align-items: center; padding: 12px 14px; background: rgba(139,69,19,0.05); border-radius: 8px; margin: 8px 0; }
-        .cf-total-display span:first-child { font-size: 0.85rem; font-weight: 600; color: var(--color-text-secondary); }
-        .cf-total-value { font-size: 1.2rem; font-weight: 800; color: var(--color-primary); font-family: var(--font-heading); }
-        
-        .cf-upload-area { margin: 16px 0; }
+        /* Expense Form */
+        .cf-expense-form { display: flex; flex-direction: column; gap: 10px; }
+        .cf-input { width: 100%; padding: 10px 12px; border: 1.5px solid var(--color-bg-secondary); border-radius: 10px; font-size: 0.85rem; background: var(--color-bg-primary); color: var(--color-text-primary); font-family: var(--font-sans); transition: border 0.2s; box-sizing: border-box; }
+        .cf-input:focus { outline: none; border-color: var(--color-primary); }
+        .cf-input-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+        .cf-input-group { display: flex; flex-direction: column; gap: 4px; }
+        .cf-input-group label { font-size: 0.75rem; font-weight: 600; color: var(--color-text-muted); }
+        .cf-total-display { background: var(--color-bg-secondary); border-radius: 10px; padding: 10px 14px; display: flex; justify-content: space-between; align-items: center; margin: 8px 0; }
+        .cf-total-value { font-size: 1.05rem; font-weight: 800; color: #ef4444; font-family: var(--font-heading); }
+        .cf-upload-area { border: 1.5px dashed var(--color-bg-secondary); border-radius: 10px; overflow: hidden; margin: 8px 0; }
         .hidden-file-input { display: none; }
-        .cf-upload-label { display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; padding: 12px; border: 1.5px dashed var(--color-border); border-radius: 8px; font-size: 0.85rem; color: var(--color-text-muted); cursor: pointer; transition: all 0.2s; background: var(--color-bg-primary); }
-        .cf-upload-label:hover { border-color: var(--color-primary); color: var(--color-primary); background: rgba(139,69,19,0.02); }
+        .cf-upload-label { display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; padding: 12px; font-size: 0.85rem; color: var(--color-text-muted); cursor: pointer; transition: all 0.2s; background: var(--color-bg-primary); }
+        .cf-upload-label:hover { color: var(--color-primary); background: rgba(139,69,19,0.02); }
         
         .cf-submit-btn { width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px; background: var(--color-primary); color: white; border: none; padding: 12px; border-radius: 8px; font-weight: 700; cursor: pointer; transition: all 0.2s; }
         .cf-submit-btn:hover { background: var(--color-primary-dark); }
         .cf-submit-btn:disabled { opacity: 0.7; cursor: not-allowed; }
-
-        .trello-save-btn { flex: 1; background: var(--color-primary); color: white; border: none; border-radius: 8px; padding: 7px; font-weight: 700; font-size: 0.8rem; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 5px; transition: opacity 0.2s; }
 
         /* Timeline */
         .cf-timeline { display: flex; flex-direction: column; gap: 0; padding: 1.5rem; }
