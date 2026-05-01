@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import Sidebar from '@/components/layout/Sidebar'
 import Header from '@/components/layout/Header'
 import PortalPinGuard from '@/components/auth/PortalPinGuard'
-import { Download, TrendingDown, ClipboardList, Save, Eye, Wallet, BarChart3, ChefHat } from 'lucide-react'
+import { Download, TrendingDown, ClipboardList, Save, Eye, Wallet, BarChart3, ChefHat, Trash2 } from 'lucide-react'
 import jsPDF from 'jspdf'
 
 export default function DapurPortal() {
@@ -87,6 +87,14 @@ export default function DapurPortal() {
       }
     } catch (e) { console.error(e) }
     setIsSubmitting(false)
+  }
+
+  const handleDeleteExpense = async (id: string) => {
+    if (!confirm('Hapus catatan pengeluaran ini?')) return
+    try {
+      const res = await fetch(`/api/finance?id=${id}`, { method: 'DELETE' })
+      if (res.ok) fetchCashflow(cfMonth, cfYear)
+    } catch (e) { console.error(e) }
   }
 
   const totalIncome = transactions.filter(t => t.type === 'in' && t.category === 'treasurer_funding').reduce((s, t) => s + (t.amount || 0), 0)
@@ -252,6 +260,7 @@ export default function DapurPortal() {
                             <span>{t.date}{t.quantity ? ` · ${t.quantity}x @ ${t.unitPrice}` : ''}</span>
                             <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
                                 {t.proofImage && <a href={`/api/media/file/${typeof t.proofImage === 'string' ? t.proofImage : t.proofImage.filename}`} target="_blank" className="cf-proof-link"><Eye size={11} /> Bukti</a>}
+                                <button onClick={() => handleDeleteExpense(t.id)} className="card-del-btn" style={{ marginLeft: '8px', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-text-muted)' }} title="Hapus"><Trash2 size={12} /></button>
                             </div>
                             </div>
                         </div>

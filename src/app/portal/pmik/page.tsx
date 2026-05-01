@@ -118,6 +118,14 @@ export default function PMIKPortal() {
     } catch (e) { console.error(e) }
   }
 
+  const handleDeleteExpense = async (id: string) => {
+    if (!confirm('Hapus catatan pengeluaran ini?')) return
+    try {
+      const res = await fetch(`/api/finance?id=${id}`, { method: 'DELETE' })
+      if (res.ok) fetchCashflow(cfMonth, cfYear)
+    } catch (e) { console.error(e) }
+  }
+
   const totalIncome = transactions.filter(t => t.type === 'in' && t.category === 'treasurer_funding').reduce((s, t) => s + (t.amount || 0), 0)
   const totalExpense = transactions.filter(t => t.type === 'out').reduce((s, t) => s + (t.amount || 0), 0)
   const saldo = totalIncome - totalExpense
@@ -416,6 +424,7 @@ export default function PMIKPortal() {
                               <span>{t.date}{t.quantity ? ` · ${t.quantity}x @ ${t.unitPrice}` : ''}</span>
                               <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
                                 {t.proofImage && <a href={`/api/media/file/${typeof t.proofImage === 'string' ? t.proofImage : t.proofImage.filename}`} target="_blank" className="cf-proof-link"><Eye size={11} /> Bukti</a>}
+                                <button onClick={() => handleDeleteExpense(t.id)} className="card-del-btn" style={{ marginLeft: '8px' }} title="Hapus"><Trash2 size={12} /></button>
                               </div>
                             </div>
                           </div>
