@@ -29,11 +29,11 @@ export default function SlipGajiWidget() {
         jabatan: '',
         noPaspor: '',
         kekeluargaan: '',
-        gajiPokok: 0,
-        piketKantorCount: 0,
-        gajiPiketRate: 0,
-        tips: 0,
-        bonus: 0,
+        gajiPokok: '' as number | string,
+        piketKantorCount: '' as number | string,
+        gajiPiketRate: '' as number | string,
+        tips: '' as number | string,
+        bonus: '' as number | string,
     })
 
     const set = (field: string, val: string | number) => {
@@ -171,7 +171,7 @@ export default function SlipGajiWidget() {
 
             const tableData = [
                 ['Gaji Pokok', '', formatRupiah(Number(form.gajiPokok))],
-                ['Piket Kantor', `${form.piketKantorCount} Kali x ${formatRupiah(Number(form.gajiPiketRate))}`, formatRupiah(totalPiket)],
+                ['Piket Kantor', `${Number(form.piketKantorCount)} Kali x ${formatRupiah(Number(form.gajiPiketRate))}`, formatRupiah(totalPiket)],
                 ['Tips', '', formatRupiah(Number(form.tips))],
                 ['Bonus', '', formatRupiah(Number(form.bonus))],
             ]
@@ -295,30 +295,30 @@ export default function SlipGajiWidget() {
                 <div className="form-row">
                     <div className="field">
                         <label>Gaji Pokok (EGP)</label>
-                        <input type="number" min="0" value={form.gajiPokok || ''} onChange={e => set('gajiPokok', Number(e.target.value))} required />
+                        <input type="number" min="0" value={form.gajiPokok} onChange={e => set('gajiPokok', e.target.value === '' ? '' : Number(e.target.value))} required />
                     </div>
                 </div>
 
                 <div className="form-row piket-row">
                     <div className="field">
                         <label>Jml Piket Kantor</label>
-                        <input type="number" min="0" value={form.piketKantorCount || ''} onChange={e => set('piketKantorCount', Number(e.target.value))} required />
+                        <input type="number" min="0" value={form.piketKantorCount} onChange={e => set('piketKantorCount', e.target.value === '' ? '' : Number(e.target.value))} required />
                     </div>
                     <div className="field-x">x</div>
                     <div className="field">
                         <label>Rate per Piket (EGP)</label>
-                        <input type="number" min="0" value={form.gajiPiketRate || ''} onChange={e => set('gajiPiketRate', Number(e.target.value))} required />
+                        <input type="number" min="0" value={form.gajiPiketRate} onChange={e => set('gajiPiketRate', e.target.value === '' ? '' : Number(e.target.value))} required />
                     </div>
                 </div>
 
                 <div className="form-row">
                     <div className="field">
                         <label>Tips (EGP)</label>
-                        <input type="number" min="0" value={form.tips || ''} onChange={e => set('tips', Number(e.target.value))} />
+                        <input type="number" min="0" value={form.tips} onChange={e => set('tips', e.target.value === '' ? '' : Number(e.target.value))} />
                     </div>
                     <div className="field">
                         <label>Bonus (EGP)</label>
-                        <input type="number" min="0" value={form.bonus || ''} onChange={e => set('bonus', Number(e.target.value))} />
+                        <input type="number" min="0" value={form.bonus} onChange={e => set('bonus', e.target.value === '' ? '' : Number(e.target.value))} />
                     </div>
                 </div>
 
