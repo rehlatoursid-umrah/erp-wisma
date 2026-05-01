@@ -23,6 +23,7 @@ export default function PortalPinGuard({ expectedPin, portalName, children, useO
     const [otpError, setOtpError] = useState('')
     const [countdown, setCountdown] = useState(0)
     const [cooldown, setCooldown] = useState(0)
+    const [otpToken, setOtpToken] = useState('')
     const timerRef = useRef<NodeJS.Timeout | null>(null)
     const cooldownRef = useRef<NodeJS.Timeout | null>(null)
 
@@ -106,6 +107,7 @@ export default function PortalPinGuard({ expectedPin, portalName, children, useO
                 setOtpStep('verify')
                 setCountdown(data.expiresIn || 60)
                 setCooldown(30)
+                setOtpToken(data.token || '')
                 setPin('')
                 setTimeout(() => inputRef.current?.focus(), 300)
             } else {
@@ -125,7 +127,7 @@ export default function PortalPinGuard({ expectedPin, portalName, children, useO
             const res = await fetch(otpEndpoint, {
                 method: 'PATCH',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ code: pin }),
+                body: JSON.stringify({ code: pin, token: otpToken }),
             })
             const data = await res.json()
             if (res.ok && data.verified) {
