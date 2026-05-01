@@ -430,12 +430,13 @@ export default function PMIKPortal() {
 
         </main>
         <style jsx>{`
-        /* EXISTING PMIK STYLES */
-        .dashboard-layout { display: flex; min-height: 100vh; background: var(--color-bg-primary); }
-        .main-content { flex: 1; padding: var(--spacing-2xl); width: 100%; display: flex; flex-direction: column; animation: fadeIn 0.4s ease-out forwards; }
-        .portal-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: var(--spacing-2xl); padding-bottom: var(--spacing-lg); border-bottom: 2px solid var(--color-border); }
-        .portal-header h1 { font-size: 2rem; font-weight: 700; color: var(--color-text); margin: 0 0 0.5rem 0; letter-spacing: -0.025em; }
-        .portal-header p { font-size: 1rem; color: var(--color-text-muted); margin: 0; }
+        /* EXISTING PMIK STYLES — Fullwidth Layout */
+        .dashboard-layout { display: flex; min-height: 100vh; background: var(--color-bg-primary); font-family: var(--font-sans); color: var(--color-text-primary); }
+        .main-content { flex: 1; overflow-y: auto; overflow-x: hidden; padding-bottom: 80px; animation: fadeIn 0.4s ease-out forwards; }
+        h1, h2, h3, h4 { font-family: var(--font-heading); }
+        .portal-header { padding: var(--spacing-lg) var(--spacing-2xl); background: var(--color-bg-card); border-bottom: 1px solid var(--color-bg-secondary); display: flex; align-items: center; justify-content: space-between; }
+        .portal-header h1 { font-size: 1.75rem; font-weight: 700; color: var(--color-text); margin: 0 0 0.35rem 0; letter-spacing: -0.025em; }
+        .portal-header p { font-size: 0.9rem; color: var(--color-text-muted); margin: 0; }
         .portal-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: var(--spacing-xl); animation: slideUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
         .card { background: var(--color-bg-card); border-radius: var(--radius-xl); padding: var(--spacing-xl); border: 1px solid var(--color-border); box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05); transition: all 0.2s ease-in-out; display: flex; flex-direction: column; }
         .card:hover { box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.08); transform: translateY(-2px); border-color: var(--color-primary-light); }
@@ -454,7 +455,7 @@ export default function PMIKPortal() {
         /* ═══════════════════════════════════
            TRELLO BOARD — Proker Bulanan
         ═══════════════════════════════════ */
-        .proker-board-wrapper { display: flex; flex-direction: column; gap: 20px; animation: fadeIn 0.4s ease-out; }
+        .proker-board-wrapper { display: flex; flex-direction: column; gap: 20px; animation: fadeIn 0.4s ease-out; padding: var(--spacing-xl) var(--spacing-2xl); }
         .proker-header { background: var(--color-bg-card); border-radius: var(--radius-xl); padding: 16px 20px; display: flex; flex-direction: column; gap: 14px; box-shadow: var(--shadow-sm); border: 1px solid var(--color-bg-secondary); }
         .proker-title-row { display: flex; align-items: center; gap: 10px; }
         .proker-title-row h2 { font-size: 1.2rem; font-weight: 700; color: var(--color-text-primary); margin: 0; }
@@ -533,14 +534,14 @@ export default function PMIKPortal() {
         .staff-stat { font-size: 0.72rem; color: var(--color-text-muted); }
 
         /* TABS */
-        .tabs-container { margin: var(--spacing-md) 0 var(--spacing-lg) 0; overflow-x: auto; scrollbar-width: none; -webkit-overflow-scrolling: touch; }
+        .tabs-container { padding: var(--spacing-md) var(--spacing-2xl); overflow-x: auto; scrollbar-width: none; -webkit-overflow-scrolling: touch; background: var(--color-bg-card); border-bottom: 1px solid var(--color-bg-secondary); }
         .tabs-container::-webkit-scrollbar { display: none; }
-        .tabs { display: inline-flex; gap: var(--spacing-sm); padding-right: var(--spacing-lg); }
+        .tabs { display: inline-flex; gap: var(--spacing-sm); }
         .tab { display: flex; align-items: center; gap: var(--spacing-xs); padding: 0.75rem 1.25rem; border: 1px solid var(--color-bg-secondary); border-radius: var(--radius-full); background: var(--color-bg-card); color: var(--color-text-secondary); font-weight: 600; font-size: 0.9rem; white-space: nowrap; transition: all 0.2s; cursor: pointer; }
         .tab.active { background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%); color: #fff; border-color: var(--color-primary); box-shadow: var(--shadow-md); }
 
         /* DANA OPS STYLES */
-        .cashflow-dashboard { display: flex; flex-direction: column; gap: 1.5rem; }
+        .cashflow-dashboard { display: flex; flex-direction: column; gap: 1.5rem; padding: var(--spacing-xl) var(--spacing-2xl); }
         
         .cf-month-nav { background: var(--color-bg-card); border-radius: 16px; border: 1px solid var(--color-border); padding: 1.25rem; display: flex; flex-direction: column; gap: 1rem; }
         .cf-month-nav-header { display: flex; justify-content: space-between; align-items: center; }
@@ -619,9 +620,18 @@ export default function PMIKPortal() {
           .cf-summary-row { grid-template-columns: 1fr; }
           .cf-two-col { grid-template-columns: 1fr; }
           .cf-month-pills { grid-template-columns: repeat(4, 1fr); }
+          .portal-header { padding: var(--spacing-md) var(--spacing-lg); }
+          .tabs-container { padding: var(--spacing-sm) var(--spacing-lg); }
+          .proker-board-wrapper { padding: var(--spacing-md) var(--spacing-lg); }
+          .cashflow-dashboard { padding: var(--spacing-md) var(--spacing-lg); }
         }
         @media (max-width: 768px) {
           .cf-month-pills { grid-template-columns: repeat(3, 1fr); }
+          .portal-header { padding: var(--spacing-md) var(--spacing-md); }
+          .portal-header h1 { font-size: 1.35rem; }
+          .tabs-container { padding: var(--spacing-sm) var(--spacing-md); }
+          .proker-board-wrapper { padding: var(--spacing-sm) var(--spacing-md); }
+          .cashflow-dashboard { padding: var(--spacing-sm) var(--spacing-md); }
         }
       `}</style>
       </div>
