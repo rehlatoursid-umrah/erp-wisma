@@ -22,8 +22,8 @@ export default function PMIKPortal() {
   })
 
   const STAFF = [
-    { name: 'Staff PMIK 1', initials: 'P1', color: '#3b82f6' },
-    { name: 'Staff PMIK 2', initials: 'P2', color: '#8b5cf6' },
+    { name: 'Ketua PMIK', initials: 'K', color: '#3b82f6' },
+    { name: 'Wakil Ketua PMIK', initials: 'WK', color: '#8b5cf6' },
   ]
 
   // --- DANA OPERASIONAL STATE ---
