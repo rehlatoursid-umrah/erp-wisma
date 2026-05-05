@@ -152,7 +152,16 @@ export default function ManualInvoiceModal({ isOpen, onClose, onSuccess, initial
                 setCustomerName(initialData.customerName || '')
                 setCustomerWA(initialData.customerWA || '')
                 setCustomerNotes(initialData.notes || '')
-                setInvoiceDate(initialData.invoiceDate ? new Date(initialData.invoiceDate).toISOString().slice(0, 10) : new Date().toISOString().slice(0, 10))
+                let parsedDate = new Date().toISOString().slice(0, 10);
+                if (initialData.invoiceDate) {
+                    try {
+                        const d = new Date(initialData.invoiceDate);
+                        if (!isNaN(d.getTime())) {
+                            parsedDate = d.toISOString().slice(0, 10);
+                        }
+                    } catch (e) { /* ignore invalid dates */ }
+                }
+                setInvoiceDate(parsedDate);
                 setSalesperson(initialData.salesperson || '')
                 setBookingType(initialData.bookingType || 'manual')
                 setCurrency(initialData.currency || 'EGP')
