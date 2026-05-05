@@ -273,7 +273,7 @@ export default function ManualInvoiceModal({ isOpen, onClose, onSuccess, initial
         }
     }
 
-    if (!mounted || !isOpen) return null
+    if (!mounted) return null
 
     return (
         <Dialog open={isOpen} onOpenChange={open => !open && onClose()}>
