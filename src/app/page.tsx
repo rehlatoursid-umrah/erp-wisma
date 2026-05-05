@@ -69,6 +69,21 @@ export default function LoginPage() {
             <h1 className={styles.brandName}>Wisma Nusantara Cairo</h1>
             <p className={styles.brandTagline}>Operational System</p>
           </div>
+
+          <div className={styles.desktopDecoration}>
+            <div className={styles.glassCard}>
+              <div className={styles.glassStat}>
+                <Lock size={16} className={styles.statIcon} />
+                <span>End-to-End Secure</span>
+              </div>
+              <div className={styles.glassStatDivider} />
+              <div className={styles.glassStat}>
+                <div className={styles.pulseDot} />
+                <span>System Online</span>
+              </div>
+            </div>
+          </div>
+
           <div className={styles.heroTriangle} />
         </div>
 

@@ -499,9 +499,16 @@
 }
 
 /* ═══════════════════════════════════════════════
-   RESPONSIVE — Desktop centering
+   DESKTOP DECORATIONS (Hidden on Mobile)
    ═══════════════════════════════════════════════ */
-@media (min-width: 768px) {
+.desktopDecoration {
+  display: none;
+}
+
+/* ═══════════════════════════════════════════════
+   RESPONSIVE — Tablet Centering
+   ═══════════════════════════════════════════════ */
+@media (min-width: 768px) and (max-width: 1023px) {
   .loginPage {
     align-items: center;
     justify-content: center;
@@ -511,7 +518,7 @@
 
   .loginWrapper {
     width: 100%;
-    max-width: 420px;
+    max-width: 440px;
     border-radius: 28px;
     overflow: hidden;
     box-shadow: 0 20px 60px rgba(0, 0, 0, 0.12);
@@ -527,7 +534,226 @@
   }
 
   .formSection {
-    padding: 0.5rem 2rem 2rem;
+    padding: 0.5rem 2.5rem 2.5rem;
+  }
+}
+
+/* ═══════════════════════════════════════════════
+   RESPONSIVE — Desktop (Super Professional Split)
+   ═══════════════════════════════════════════════ */
+@media (min-width: 1024px) {
+  .loginPage {
+    align-items: center;
+    justify-content: center;
+    /* Premium elegant background for desktop */
+    background: radial-gradient(circle at 100% 0%, rgba(212, 165, 116, 0.15) 0%, transparent 40%),
+                radial-gradient(circle at 0% 100%, rgba(139, 69, 19, 0.1) 0%, transparent 40%),
+                var(--color-bg-secondary);
+    padding: 2rem;
+  }
+
+  .loginWrapper {
+    width: 100%;
+    max-width: 1080px;
+    border-radius: 32px;
+    overflow: hidden;
+    /* Soft premium shadow */
+    box-shadow: 0 32px 80px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(0, 0, 0, 0.03);
+    display: flex;
+    flex-direction: row;
+    min-height: 640px;
+    background: var(--color-bg-card);
+  }
+
+  /* Left Side: Hero Branding */
+  .heroSection {
+    flex: 1.1;
+    min-height: auto;
+    padding: 4rem;
+    justify-content: center;
+    background: linear-gradient(150deg, var(--color-primary-dark) 0%, var(--color-primary) 100%);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .heroSection::before {
+    width: 500px;
+    height: 500px;
+    top: -150px;
+    right: -150px;
+    background: radial-gradient(circle, rgba(255, 255, 255, 0.1) 0%, transparent 60%);
+  }
+
+  .heroSection::after {
+    width: 400px;
+    height: 400px;
+    bottom: -100px;
+    left: -100px;
+    background: radial-gradient(circle, rgba(255, 255, 255, 0.06) 0%, transparent 70%);
+  }
+
+  .heroTriangle {
+    display: none; /* Removed for split view */
+  }
+
+  .brandSection {
+    align-items: flex-start;
+    text-align: left;
+    margin-top: -3rem;
+  }
+
+  .logoCircle {
+    width: 100px;
+    height: 100px;
+    margin-bottom: 2rem;
+    border-radius: 28px;
+    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.2);
+    padding: 0.75rem;
+  }
+
+  .logoImage {
+    width: 100%;
+    height: 100%;
+  }
+
+  .brandName {
+    font-size: 2.75rem;
+    text-align: left;
+    margin-bottom: 0.5rem;
+    letter-spacing: -0.02em;
+  }
+
+  .brandTagline {
+    font-size: 1.25rem;
+    text-align: left;
+    opacity: 0.9;
+  }
+
+  /* Glassmorphism Desktop Decoration */
+  .desktopDecoration {
+    display: block;
+    margin-top: 4rem;
+    position: relative;
+    z-index: 10;
+    animation: heroFadeIn 1s ease-out 0.3s backwards;
+  }
+
+  .glassCard {
+    display: inline-flex;
+    align-items: center;
+    gap: 1.5rem;
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    padding: 1rem 1.75rem;
+    border-radius: 20px;
+    color: white;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+  }
+
+  .glassStat {
+    display: flex;
+    align-items: center;
+    gap: 0.625rem;
+    font-size: 0.9375rem;
+    font-weight: 500;
+    letter-spacing: 0.01em;
+  }
+
+  .glassStatDivider {
+    width: 1px;
+    height: 24px;
+    background: rgba(255, 255, 255, 0.2);
+  }
+
+  .statIcon {
+    opacity: 0.9;
+  }
+
+  .pulseDot {
+    width: 8px;
+    height: 8px;
+    background-color: #10B981; /* Emerald green */
+    border-radius: 50%;
+    box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7);
+    animation: pulse 2s infinite;
+  }
+
+  @keyframes pulse {
+    0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
+    70% { transform: scale(1); box-shadow: 0 0 0 8px rgba(16, 185, 129, 0); }
+    100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+  }
+
+  /* Right Side: Form Content */
+  .formSection {
+    flex: 0.9;
+    padding: 4.5rem 5rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    max-width: none;
+    margin: 0;
+  }
+
+  .loginTitle {
+    font-size: 2.25rem;
+    text-align: left;
+    margin-bottom: 2.5rem;
+    letter-spacing: -0.01em;
+  }
+  
+  .fieldGroup {
+    margin-bottom: 1.5rem;
+  }
+
+  .fieldLabel {
+    font-size: 0.9375rem;
+    margin-bottom: 0.25rem;
+  }
+
+  .fieldInput {
+    padding: 1rem 1rem 1rem 3rem;
+    border-radius: 16px;
+    font-size: 1.0625rem;
+  }
+
+  .inputIcon {
+    left: 1.25rem;
+    width: 20px;
+    height: 20px;
+  }
+
+  .togglePassword {
+    right: 1.25rem;
+  }
+
+  .loginButton {
+    padding: 1.125rem;
+    border-radius: 16px;
+    font-size: 1.125rem;
+    margin-top: 1rem;
+    box-shadow: 0 8px 24px rgba(139, 69, 19, 0.25);
+  }
+
+  .divider {
+    margin: 2rem 0;
+  }
+
+  .googleButton {
+    padding: 1.125rem;
+    border-radius: 16px;
+    font-size: 1rem;
+  }
+  
+  .installCta {
+    display: none; /* Usually don't need app install CTA on desktop, but if desired, it can be shown */
+  }
+
+  .footer {
+    margin-top: 2rem;
+    text-align: left;
   }
 }
 
