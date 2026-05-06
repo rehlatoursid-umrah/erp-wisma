@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WIN-OS | Wisma Nusantara Integrated OS</title>
+    <meta name="description" content="Sistem ERP mutakhir untuk operasional Wisma Nusantara Cairo. Documentasi teknis.">
+    <link rel="stylesheet" href="styles.css">
+    <!-- Ionicons for premium minimalist icons -->
+    <script type="module" src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"></script>
+    <script nomodule src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.js"></script>
+</head>
+<body>
+    <div class="grid-bg"></div>
+
+    <nav class="nav">
+        <div class="nav-logo">WIN<span>OS</span></div>
+        <ul class="nav-links">
+            <li><a href="#fitur">Fitur</a></li>
+            <li><a href="#flow">System Flow</a></li>
+            <li><a href="#portal">Portal Divisi</a></li>
+            <li><a href="#arsitektur">Arsitektur</a></li>
+        </ul>
+        <a href="#hubungi" class="btn-nav">Minta Demo</a>
+    </nav>
+
+    <header class="hero">
+        <div class="hero-glow"></div>
+        <div class="hero-badge reveal">
+            <div class="pulse"></div>
+            SYSTEM STATUS: ONLINE
+        </div>
+        <h1 class="reveal stagger-1">Operasional Cerdas.<br><span class="italic">Kendali Penuh.</span></h1>
+        <p class="hero-sub reveal stagger-2">
+            Wisma Nusantara Integrated Operation System (WIN-OS) adalah arsitektur ERP 4-Layer 
+            yang dirancang khusus untuk mendigitalisasi dan mengotomatisasi seluruh alur kerja asrama dan unit bisnis.
+        </p>
+        
+        <div class="hero-stats reveal stagger-3" id="stats">
+            <div class="stat-item">
+                <div class="num"><span class="counter" data-target="11">0</span></div>
+                <div class="lbl">Database Collections</div>
+            </div>
+            <div class="stat-item">
+                <div class="num"><span class="counter" data-target="7">0</span></div>
+                <div class="lbl">Portal Eksekutif</div>
+            </div>
+            <div class="stat-item">
+                <div class="num"><span class="counter" data-target="13">0</span><span class="suffix">+</span></div>
+                <div class="lbl">Modul Terintegrasi</div>
+            </div>
+            <div class="stat-item">
+                <div class="num"><span class="counter" data-target="4">0</span></div>
+                <div class="lbl">Layer Keamanan</div>
+            </div>
+        </div>
+    </header>
+
+    <section id="fitur" class="section container">
+        <div class="section-header reveal">
+            <span class="sec-tag">Core Capabilities</span>
+            <h2 class="sec-title">Dari Manual ke Digital</h2>
+            <p class="sec-desc">Sistem terpusat yang mengeliminasi redundansi data, mempercepat audit, dan menyajikan laporan analitik secara real-time.</p>
+        </div>
+
+        <div class="grid-cards">
+            <div class="card-spotlight reveal stagger-1">
+                <div class="card-content">
+                    <div class="card-icon"><ion-icon name="sync-outline"></ion-icon></div>
+                    <h3>Sinkronisasi Real-Time</h3>
+                    <p>Semua transaksi dari unit bisnis (Hotel, Auditorium, Visa) langsung terekap di dashboard pusat Bendahara Umum tanpa delay.</p>
+                    <div class="card-tags">
+                        <span class="card-tag">WebSockets</span>
+                        <span class="card-tag">State Sync</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card-spotlight reveal stagger-2">
+                <div class="card-content">
+                    <div class="card-icon"><ion-icon name="document-text-outline"></ion-icon></div>
+                    <h3>Smart Invoicing & PDF</h3>
+                    <p>Generate invoice digital dan laporan keuangan bulanan dalam format PDF dengan satu klik. Paperless dan profesional.</p>
+                    <div class="card-tags">
+                        <span class="card-tag">PDF Generator</span>
+                        <span class="card-tag">Automated Format</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card-spotlight reveal stagger-3">
+                <div class="card-content">
+                    <div class="card-icon"><ion-icon name="shield-checkmark-outline"></ion-icon></div>
+                    <h3>Validasi OTP WhatsApp</h3>
+                    <p>Setiap penarikan dana atau persetujuan dokumen krusial dilindungi oleh One-Time Password yang dikirim via WhatsApp API.</p>
+                    <div class="card-tags">
+                        <span class="card-tag">WhatsApp API</span>
+                        <span class="card-tag">2FA Security</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- NEW SECTION: ANIMASI FLOW -->
+    <section id="flow" class="section container">
+        <div class="section-header reveal">
+            <span class="sec-tag">Data Architecture</span>
+            <h2 class="sec-title">Alur Data Terpusat</h2>
+            <p class="sec-desc">Visualisasi bagaimana data dari berbagai divisi mengalir dan diverifikasi di pusat.</p>
+        </div>
+
+        <div class="flow-container reveal">
+            <svg class="flow-svg" preserveAspectRatio="xMidYMid slice" viewBox="0 0 1000 500">
+                <!-- Hotel to Center -->
+                <path class="flow-path" id="p1" d="M 200 150 Q 500 150 500 250" />
+                <circle class="flow-particle"><animateMotion dur="3s" repeatCount="indefinite"><mpath href="#p1"/></animateMotion></circle>
+                
+                <!-- Auditorium to Center -->
+                <path class="flow-path" id="p2" d="M 200 350 Q 500 350 500 250" />
+                <circle class="flow-particle"><animateMotion dur="2.5s" repeatCount="indefinite"><mpath href="#p2"/></animateMotion></circle>
+
+                <!-- BPUD to Center -->
+                <path class="flow-path" id="p3" d="M 800 150 Q 500 150 500 250" />
+                <circle class="flow-particle" cx="0" cy="0" r="4"><animateMotion dur="3.5s" repeatCount="indefinite" keyPoints="1;0" keyTimes="0;1" calcMode="linear"><mpath href="#p3"/></animateMotion></circle>
+
+                <!-- BPPG to Center -->
+                <path class="flow-path" id="p4" d="M 800 350 Q 500 350 500 250" />
+                <circle class="flow-particle" cx="0" cy="0" r="4"><animateMotion dur="4s" repeatCount="indefinite" keyPoints="1;0" keyTimes="0;1" calcMode="linear"><mpath href="#p4"/></animateMotion></circle>
+            </svg>
+
+            <!-- Nodes -->
+            <div class="node" style="top: 120px; left: 100px;">
+                <ion-icon name="bed-outline" class="node-icon"></ion-icon>
+                <span class="node-label">Hotel Wisma</span>
+            </div>
+            <div class="node" style="top: 320px; left: 100px;">
+                <ion-icon name="mic-outline" class="node-icon"></ion-icon>
+                <span class="node-label">Auditorium</span>
+            </div>
+
+            <div class="node center" style="top: 210px; left: 390px;">
+                <ion-icon name="server-outline" class="node-icon text-gold" style="font-size:2rem;"></ion-icon>
+                <span class="node-label text-gold">Central Engine<br>(Bendahara Umum)</span>
+            </div>
+
+            <div class="node" style="top: 120px; right: 100px;">
+                <ion-icon name="airplane-outline" class="node-icon"></ion-icon>
+                <span class="node-label">BPUPD (Visa/Tiket)</span>
+            </div>
+            <div class="node" style="top: 320px; right: 100px;">
+                <ion-icon name="construct-outline" class="node-icon"></ion-icon>
+                <span class="node-label">BPPG (Aset/Gedung)</span>
+            </div>
+        </div>
+    </section>
+
+    <section id="portal" class="section container">
+        <div class="section-header reveal">
+            <span class="sec-tag">Role-Based Access</span>
+            <h2 class="sec-title">7 Portal Divisi Khusus</h2>
+            <p class="sec-desc">Akses terisolasi dengan proteksi PIN Guard untuk menjaga kerahasiaan operasional tiap unit.</p>
+        </div>
+
+        <div class="portals-grid reveal stagger-1">
+            <div class="portal-card">
+                <ion-icon name="wallet-outline" class="p-icon text-gold"></ion-icon>
+                <div class="p-info"><h4>Bendahara Umum</h4><p>Pusat approval & distribusi dana</p></div>
+            </div>
+            <div class="portal-card">
+                <ion-icon name="airplane-outline" class="p-icon text-gold"></ion-icon>
+                <div class="p-info"><h4>BPUPD</h4><p>Usaha, tiket & cashflow bisnis</p></div>
+            </div>
+            <div class="portal-card">
+                <ion-icon name="construct-outline" class="p-icon text-gold"></ion-icon>
+                <div class="p-info"><h4>BPPG</h4><p>Maintenance & inventaris aset</p></div>
+            </div>
+            <div class="portal-card">
+                <ion-icon name="restaurant-outline" class="p-icon text-gold"></ion-icon>
+                <div class="p-info"><h4>Dapur</h4><p>Logistik belanja bahan makanan</p></div>
+            </div>
+            <div class="portal-card">
+                <ion-icon name="book-outline" class="p-icon text-gold"></ion-icon>
+                <div class="p-info"><h4>PMIK</h4><p>Perpustakaan & media informasi</p></div>
+            </div>
+            <div class="portal-card">
+                <ion-icon name="folder-open-outline" class="p-icon text-gold"></ion-icon>
+                <div class="p-info"><h4>Sekretaris</h4><p>Admin, surat & rekap piket</p></div>
+            </div>
+            <div class="portal-card" style="grid-column: 1 / -1; justify-content: center; background: rgba(212,175,55,0.05); border-color: rgba(212,175,55,0.2);">
+                <ion-icon name="bar-chart-outline" class="p-icon text-gold"></ion-icon>
+                <div class="p-info" style="text-align:center;"><h4>Portal Direktur</h4><p>Executive Dashboard View-Only & KPI Analytics</p></div>
+            </div>
+        </div>
+    </section>
+
+    <section id="arsitektur" class="section container">
+        <div class="section-header reveal">
+            <span class="sec-tag">System Design</span>
+            <h2 class="sec-title">Tech Stack & Security</h2>
+        </div>
+
+        <div class="terminal reveal stagger-1">
+            <div class="term-header">
+                <div class="term-dot r"></div><div class="term-dot y"></div><div class="term-dot g"></div>
+                <div class="term-title">win-os-architecture.yml</div>
+            </div>
+            <div class="term-body">
+                <div class="term-line"><span class="term-num">1</span><span class="term-keyword">version:</span> <span class="term-string">"1.0"</span></div>
+                <div class="term-line"><span class="term-num">2</span><span class="term-keyword">name:</span> <span class="term-string">"WIN-OS (Wisma Nusantara OS)"</span></div>
+                <div class="term-line"><span class="term-num">3</span><span class="term-comment"># --- ARSITEKTUR 4 LAYER ---</span></div>
+                <div class="term-line"><span class="term-num">4</span><span class="term-keyword">frontend:</span></div>
+                <div class="term-line"><span class="term-num">5</span>  <span class="term-cmd">- Next.js 15 (App Router)</span></div>
+                <div class="term-line"><span class="term-num">6</span>  <span class="term-cmd">- React 19 + Tailwind CSS</span></div>
+                <div class="term-line"><span class="term-num">7</span><span class="term-keyword">backend:</span></div>
+                <div class="term-line"><span class="term-num">8</span>  <span class="term-cmd">- Payload CMS v3 (Next.js Native API)</span></div>
+                <div class="term-line"><span class="term-num">9</span><span class="term-keyword">database:</span></div>
+                <div class="term-line"><span class="term-num">10</span>  <span class="term-cmd">- MongoDB Atlas (11 Collections)</span></div>
+                <div class="term-line"><span class="term-num">11</span><span class="term-keyword">storage:</span></div>
+                <div class="term-line"><span class="term-num">12</span>  <span class="term-cmd">- Cloudflare R2 (S3 API)</span></div>
+                <div class="term-line"><span class="term-num">13</span><span class="term-cursor"></span></div>
+            </div>
+        </div>
+
+        <div class="sec-grid" style="margin-top: 4rem;">
+            <div class="sec-card reveal stagger-1">
+                <span class="sec-num">01.</span>
+                <h4>JWT Authentication</h4>
+                <p>Login terpusat menggunakan Payload Auth berbasis cookie token.</p>
+            </div>
+            <div class="sec-card reveal stagger-2">
+                <span class="sec-num">02.</span>
+                <h4>Divisional PIN Guard</h4>
+                <p>Proteksi lapis kedua menggunakan PIN unik untuk setiap sub-portal divisi.</p>
+            </div>
+            <div class="sec-card reveal stagger-3">
+                <span class="sec-num">03.</span>
+                <h4>WhatsApp OTP</h4>
+                <p>Fitur krusial (transfer/approval Bendahara) wajib melewati validasi OTP server-side.</p>
+            </div>
+            <div class="sec-card reveal stagger-4">
+                <span class="sec-num">04.</span>
+                <h4>Middleware RBAC</h4>
+                <p>Validasi rute Next.js middleware yang ketat mencegah akses tanpa otorisasi ke halaman <code>/dashboard/*</code>.</p>
+            </div>
+        </div>
+    </section>
+
+    <footer class="cta">
+        <h2 class="reveal">Siap untuk transisi digital?</h2>
+        <a href="#" class="cta-btn-main reveal stagger-1">
+            <span>Jadwalkan Presentasi</span>
+        </a>
+    </footer>
+
+    <div class="footer">
+        <p>&copy; 2026 Wisma Nusantara Cairo. Developed with ♥ in Cairo.</p>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>

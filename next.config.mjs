@@ -27,6 +27,14 @@ const nextConfig = {
         config.resolve.alias.canvas = false;
         return config;
     },
+    async rewrites() {
+        return [
+            {
+                source: '/documentation',
+                destination: '/documentation/index.html',
+            },
+        ];
+    },
 };
 
 export default withPWA(nextConfig);
