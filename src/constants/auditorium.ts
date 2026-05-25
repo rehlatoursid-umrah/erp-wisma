@@ -1,19 +1,19 @@
 export const HALL_PACKAGES = [
-    { maxHours: 4, value: '4h', label: '4 Hours', price: 420 },
-    { maxHours: 9, value: '9h', label: '9 Hours', price: 900 },
-    { maxHours: 12, value: '12h', label: '12 Hours', price: 1100 },
-    { maxHours: 14, value: '14h', label: 'Full Day (14h)', price: 1250 },
+    { maxHours: 4, value: '4h', label: '4 Hours', price: 540 },
+    { maxHours: 9, value: '9h', label: '9 Hours', price: 1180 },
+    { maxHours: 12, value: '12h', label: '12 Hours', price: 1550 },
+    { maxHours: 14, value: '14h', label: 'Full Day (14h)', price: 1760 },
 ]
 
 export const AFTER_HOURS_RATE = 125 // EGP per hour (22:00 - 07:00)
-export const EXTRA_HOUR_RATE = 115 // EGP per hour for hours beyond package
+export const EXTRA_HOUR_RATE = 140 // EGP per hour for hours beyond package
 
 export const AC_OPTIONS = [
     { value: '', label: 'No AC', price: 0 },
-    { value: '4-6', label: '4-6 hours', price: 150 },
-    { value: '7-9', label: '7-9 hours', price: 200 },
-    { value: '10-12', label: '10-12 hours', price: 300 },
-    { value: '13-14', label: '13-14 hours', price: 350 },
+    { value: '4-6', label: '4-6 hours', price: 190 },
+    { value: '7-9', label: '7-9 hours', price: 240 },
+    { value: '10-12', label: '10-12 hours', price: 340 },
+    { value: '13-14', label: '13-14 hours', price: 390 },
 ]
 
 export const CHAIR_OPTIONS = [
@@ -53,9 +53,12 @@ export const PLATE_OPTIONS = [
 
 export const GLASS_OPTIONS = [
     { value: '', label: 'No glasses', price: 0 },
-    { value: '3', label: '3 glasses', price: 20 },
-    { value: '6', label: '6 glasses', price: 35 },
-    { value: '12', label: '12 glasses', price: 60 },
+    { value: '6', label: '6 glasses', price: 30 },
+    { value: '12', label: '12 glasses', price: 55 },
+    { value: '18', label: '18 glasses', price: 80 },
+    { value: '24', label: '24 glasses', price: 100 },
+    { value: '30', label: '30 glasses', price: 125 },
+    { value: '36', label: '36 glasses', price: 135 },
 ]
 
 // Helper function to calculate hours between two times

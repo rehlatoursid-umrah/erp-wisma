@@ -121,10 +121,10 @@ export const AuditoriumBookings: CollectionConfig = {
                     type: 'select',
                     label: 'Package (Auto-detected)',
                     options: [
-                        { label: '4 Hours - 420 EGP', value: '4h' },
-                        { label: '9 Hours - 900 EGP', value: '9h' },
-                        { label: '12 Hours - 1,100 EGP', value: '12h' },
-                        { label: 'Full Day (14h) - 1,250 EGP', value: '14h' },
+                        { label: '4 Hours - 540 EGP', value: '4h' },
+                        { label: '9 Hours - 1,180 EGP', value: '9h' },
+                        { label: '12 Hours - 1,550 EGP', value: '12h' },
+                        { label: 'Full Day (14h) - 1,760 EGP', value: '14h' },
                     ],
                 },
                 {
@@ -150,7 +150,7 @@ export const AuditoriumBookings: CollectionConfig = {
                             defaultValue: 0,
                             admin: {
                                 width: '50%',
-                                description: '+115 EGP/hour for late checkout'
+                                description: '+140 EGP/hour for late checkout'
                             },
                         },
                     ],
@@ -190,10 +190,10 @@ export const AuditoriumBookings: CollectionConfig = {
                             admin: { width: '50%' },
                             options: [
                                 { label: 'No AC', value: '' },
-                                { label: '4-6 hours - 150 EGP', value: '4-6' },
-                                { label: '7-9 hours - 200 EGP', value: '7-9' },
-                                { label: '10-12 hours - 300 EGP', value: '10-12' },
-                                { label: '13-14 hours - 350 EGP', value: '13-14' },
+                                { label: '4-6 hours - 190 EGP', value: '4-6' },
+                                { label: '7-9 hours - 240 EGP', value: '7-9' },
+                                { label: '10-12 hours - 340 EGP', value: '10-12' },
+                                { label: '13-14 hours - 390 EGP', value: '13-14' },
                             ],
                         },
                         {
@@ -268,9 +268,12 @@ export const AuditoriumBookings: CollectionConfig = {
                             admin: { width: '50%' },
                             options: [
                                 { label: 'No glasses', value: '' },
-                                { label: '3 glasses - 20 EGP', value: '3' },
-                                { label: '6 glasses - 35 EGP', value: '6' },
-                                { label: '12 glasses - 60 EGP', value: '12' },
+                                { label: '6 glasses - 30 EGP', value: '6' },
+                                { label: '12 glasses - 55 EGP', value: '12' },
+                                { label: '18 glasses - 80 EGP', value: '18' },
+                                { label: '24 glasses - 100 EGP', value: '24' },
+                                { label: '30 glasses - 125 EGP', value: '30' },
+                                { label: '36 glasses - 135 EGP', value: '36' },
                             ],
                         },
                     ],
