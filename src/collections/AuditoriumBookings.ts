@@ -162,13 +162,13 @@ export const AuditoriumBookings: CollectionConfig = {
                             name: 'hallPrice',
                             type: 'number',
                             label: 'Hall Rental Price (EGP)',
-                            admin: { width: '50%', readOnly: true },
+                            admin: { width: '50%' },
                         },
                         {
                             name: 'afterHoursPrice',
                             type: 'number',
                             label: 'After Hours Price (EGP)',
-                            admin: { width: '50%', readOnly: true },
+                            admin: { width: '50%' },
                         },
                     ],
                 },
@@ -287,7 +287,6 @@ export const AuditoriumBookings: CollectionConfig = {
             label: 'Services Price (EGP)',
             admin: {
                 position: 'sidebar',
-                readOnly: true,
             },
         },
         {
@@ -296,7 +295,6 @@ export const AuditoriumBookings: CollectionConfig = {
             label: 'Total Price (EGP)',
             admin: {
                 position: 'sidebar',
-                readOnly: true,
             },
         },
         // Status

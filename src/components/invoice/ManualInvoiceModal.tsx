@@ -44,7 +44,7 @@ const PREDEFINED_ITEMS: Record<string, { name: string, price: number }[]> = {
         { name: 'Auditorium Paket 12 Jam', price: 1550 },
         { name: 'Auditorium Paket 14 Jam', price: 1760 },
         { name: 'Auditorium Per 1 Jam', price: 140 },
-        { name: 'Extra Charge Diluar Jam Operasional', price: 125 },
+        { name: 'Extra Charge Diluar Jam Operasional', price: 140 },
         { name: 'Ruang VIP', price: 500 },
         { name: 'AC 4 Jam s.d. 6 Jam', price: 190 },
         { name: 'AC 7 Jam s.d. 9 Jam', price: 240 },

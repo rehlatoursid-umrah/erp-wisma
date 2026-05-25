@@ -5,7 +5,7 @@ export const HALL_PACKAGES = [
     { maxHours: 14, value: '14h', label: 'Full Day (14h)', price: 1760 },
 ]
 
-export const AFTER_HOURS_RATE = 125 // EGP per hour (22:00 - 07:00)
+export const AFTER_HOURS_RATE = 140 // EGP per hour (22:00 - 07:00)
 export const EXTRA_HOUR_RATE = 140 // EGP per hour for hours beyond package
 
 export const AC_OPTIONS = [
