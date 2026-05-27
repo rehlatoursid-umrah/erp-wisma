@@ -6,6 +6,7 @@ export const FLOORS = [
     { value: 3, label: 'Lantai 3' },
     { value: 4, label: 'Lantai 4' },
     { value: 5, label: 'Lantai 5' },
+    { value: 6, label: 'Lantai 6' },
 ]
 
 export const CONDITION_OPTIONS = [

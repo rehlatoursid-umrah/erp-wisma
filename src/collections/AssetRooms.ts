@@ -19,7 +19,7 @@ export const AssetRooms: CollectionConfig = {
             required: true,
             label: 'Lantai',
             min: 1,
-            max: 5,
+            max: 6,
         },
         {
             name: 'roomName',
