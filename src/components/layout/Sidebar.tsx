@@ -21,7 +21,8 @@ import {
     X,
     KanbanSquare,
     BookOpen,
-    ChefHat
+    ChefHat,
+    Package
 } from 'lucide-react'
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet'
 import { Button } from '@/components/ui/button'
@@ -77,13 +78,14 @@ const navItems: NavSection[] = [
         section: 'Manajemen',
         items: [
             { href: '/dashboard/proker-rapat', icon: KanbanSquare, label: 'Rapat Proker', roles: ['all'] },
+            { href: '/dashboard/inventaris', icon: Package, label: 'Inventaris Aset', roles: ['all'] },
         ]
     },
 ]
 
 /** Roles that have restricted sidebar access */
 const RESTRICTED_ROLES: Record<string, string[]> = {
-    pengawas: ['/dashboard/proker-rapat'],
+    pengawas: ['/dashboard/proker-rapat', '/dashboard/inventaris'],
 }
 
 /** Filter nav items based on user role */
@@ -161,11 +163,12 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
                     const role = data.user.role
                     setUserRole(role)
 
-                    // Client-side route guard
-                    if (role === 'pengawas') {
-                        // Allow /settings and their specific page
-                        if (pathname !== '/dashboard/proker-rapat' && pathname !== '/settings') {
-                            router.replace('/dashboard/proker-rapat')
+                    // Client-side route guard for restricted roles
+                    const allowedPaths = RESTRICTED_ROLES[role]
+                    if (allowedPaths) {
+                        const isAllowed = allowedPaths.some(p => pathname.startsWith(p)) || pathname === '/settings'
+                        if (!isAllowed) {
+                            router.replace(allowedPaths[0])
                         }
                     }
                 }
