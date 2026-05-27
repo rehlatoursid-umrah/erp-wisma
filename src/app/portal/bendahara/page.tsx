@@ -321,6 +321,7 @@ export default function BendaharaPortal() {
                         <option value="bpupd">BPUPD (Pengembangan Usaha & Pengelolaan Dana)</option>
                         <option value="bppg">BPPG (Perbaikan & Pemeliharaan Gedung)</option>
                         <option value="pmik">PMIK (Perpustakaan, Media, Informasi & Komunikasi)</option>
+                        <option value="dapur">Dapur</option>
                       </select>
                     </div>
                     <div className="dist-row">
