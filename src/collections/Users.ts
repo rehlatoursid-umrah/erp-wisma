@@ -24,6 +24,7 @@ export const Users: CollectionConfig = {
                 { label: 'BPUPD', value: 'bpupd' },
                 { label: 'BPPG', value: 'bppg' },
                 { label: 'PMIK', value: 'pmik' },
+                { label: 'Pengawas Wisma', value: 'pengawas' },
                 { label: 'Staff', value: 'staff' },
             ],
             defaultValue: 'staff',

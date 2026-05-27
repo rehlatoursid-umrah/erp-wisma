@@ -39,7 +39,12 @@ export default function LoginPage() {
       })
 
       if (res.ok) {
-        window.location.href = '/dashboard'
+        const data = await res.json()
+        if (data?.user?.role === 'pengawas') {
+          window.location.href = '/dashboard/proker-rapat'
+        } else {
+          window.location.href = '/dashboard'
+        }
       } else {
         setError('Email atau password salah!')
         setIsLoading(false)

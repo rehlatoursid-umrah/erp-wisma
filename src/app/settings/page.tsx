@@ -193,6 +193,8 @@ export default function SettingsPage() {
     sekretaris: 'Sekretaris',
     bpupd: 'BPUPD',
     bppg: 'BPPG',
+    pmik: 'PMIK',
+    pengawas: 'Pengawas Wisma',
     staff: 'Staff',
   }
 

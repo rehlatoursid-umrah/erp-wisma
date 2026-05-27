@@ -1,5 +1,6 @@
 'use client'
 
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { usePathname, useRouter } from 'next/navigation'
@@ -32,7 +33,21 @@ interface SidebarProps {
     onClose: () => void
 }
 
-const navItems = [
+interface NavItem {
+    href: string
+    icon: any
+    label: string
+    locked?: boolean
+    /** If defined, only these roles can see this item. If undefined, visible to all (except pengawas). */
+    roles?: string[]
+}
+
+interface NavSection {
+    section: string
+    items: NavItem[]
+}
+
+const navItems: NavSection[] = [
     {
         section: 'Main',
         items: [
@@ -61,16 +76,41 @@ const navItems = [
     {
         section: 'Manajemen',
         items: [
-            { href: '/dashboard/proker-rapat', icon: KanbanSquare, label: 'Rapat Proker' },
+            { href: '/dashboard/proker-rapat', icon: KanbanSquare, label: 'Rapat Proker', roles: ['all'] },
         ]
     },
 ]
 
+/** Roles that have restricted sidebar access */
+const RESTRICTED_ROLES: Record<string, string[]> = {
+    pengawas: ['/dashboard/proker-rapat'],
+}
+
+/** Filter nav items based on user role */
+function getFilteredNavItems(role?: string): NavSection[] {
+    // Return empty array while loading to prevent flashing unrestricted items
+    if (role === undefined) return []
+
+    // If there is no role (unlikely after loading) or it's a role not in RESTRICTED_ROLES, show everything
+    const allowedPaths = RESTRICTED_ROLES[role]
+    if (!allowedPaths) return navItems
+
+    // For restricted roles, only show items whose href is in the allowedPaths
+    return navItems
+        .map(section => ({
+            ...section,
+            items: section.items.filter(item => allowedPaths.includes(item.href)),
+        }))
+        .filter(section => section.items.length > 0)
+}
+
 /** Navigation content shared between desktop sidebar and mobile sheet */
-function NavContent({ pathname, onNavClick }: { pathname: string; onNavClick?: () => void }) {
+function NavContent({ pathname, onNavClick, userRole }: { pathname: string; onNavClick?: () => void; userRole?: string }) {
+    const filteredNav = getFilteredNavItems(userRole)
+
     return (
         <nav className="flex flex-1 flex-col gap-1 overflow-y-auto scrollbar-hide pr-1">
-            {navItems.map((section, sIdx) => (
+            {filteredNav.map((section, sIdx) => (
                 <div key={sIdx}>
                     <p className="px-3 py-2 text-[0.7rem] uppercase tracking-wider font-semibold text-white/40">
                         {section.section}
@@ -98,7 +138,7 @@ function NavContent({ pathname, onNavClick }: { pathname: string; onNavClick?: (
                             )}
                         </Link>
                     ))}
-                    {sIdx < navItems.length - 1 && (
+                    {sIdx < filteredNav.length - 1 && (
                         <Separator className="my-3 bg-white/[0.08]" />
                     )}
                 </div>
@@ -110,6 +150,28 @@ function NavContent({ pathname, onNavClick }: { pathname: string; onNavClick?: (
 export default function Sidebar({ isOpen, onClose }: SidebarProps) {
     const pathname = usePathname()
     const router = useRouter()
+    const [userRole, setUserRole] = useState<string | undefined>(undefined)
+
+    // Fetch current user role for sidebar filtering and route guarding
+    useEffect(() => {
+        fetch('/api/users/me')
+            .then(res => res.json())
+            .then(data => {
+                if (data?.user?.role) {
+                    const role = data.user.role
+                    setUserRole(role)
+
+                    // Client-side route guard
+                    if (role === 'pengawas') {
+                        // Allow /settings and their specific page
+                        if (pathname !== '/dashboard/proker-rapat' && pathname !== '/settings') {
+                            router.replace('/dashboard/proker-rapat')
+                        }
+                    }
+                }
+            })
+            .catch(console.error)
+    }, [pathname, router])
 
     const handleLogout = async () => {
         try {
@@ -171,7 +233,7 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
                 </div>
 
                 {/* Navigation */}
-                <NavContent pathname={pathname} />
+                <NavContent pathname={pathname} userRole={userRole} />
 
                 {/* Footer */}
                 <FooterNav />
@@ -190,7 +252,7 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
                     </SheetHeader>
 
                     <div className="flex flex-col flex-1 h-[calc(100vh-100px)] px-4 py-4">
-                        <NavContent pathname={pathname} onNavClick={onClose} />
+                        <NavContent pathname={pathname} onNavClick={onClose} userRole={userRole} />
                         <FooterNav />
                     </div>
                 </SheetContent>

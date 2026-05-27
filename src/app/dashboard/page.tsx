@@ -68,6 +68,7 @@ export default function DashboardPage() {
       .then(res => res.json())
       .then(data => {
         if (!data?.user) router.push('/')
+        else if (data.user.role === 'pengawas') router.push('/dashboard/proker-rapat')
         else setSessionLoading(false)
       })
       .catch(() => router.push('/'))
