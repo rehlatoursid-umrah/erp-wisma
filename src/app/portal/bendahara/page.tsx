@@ -7,7 +7,7 @@ import PortalPinGuard from '@/components/auth/PortalPinGuard'
 import SlipGajiWidget from '@/components/bendahara/SlipGajiWidget'
 import ProkerBoard from '@/components/dashboard/ProkerBoard'
 
-import { Wallet, ArrowDownLeft, TrendingDown, ClipboardCheck, ArrowRight, Activity, PlusCircle, Folder, FolderOpen, ChevronDown, ChevronRight, Trash2, FileText, KanbanSquare } from 'lucide-react'
+import { Wallet, ArrowDownLeft, TrendingDown, ClipboardCheck, ArrowRight, Activity, PlusCircle, Folder, FolderOpen, ChevronDown, ChevronRight, Trash2, FileText, KanbanSquare, X, Eye, ShoppingCart, Image as ImageIcon } from 'lucide-react'
 
 export default function BendaharaPortal() {
   const [sidebarOpen, setSidebarOpen] = useState(false)
@@ -24,6 +24,9 @@ export default function BendaharaPortal() {
   const [pendingFunds, setPendingFunds] = useState<any[]>([])
   const [approvedFunds, setApprovedFunds] = useState<any[]>([])
   const [isRefreshing, setIsRefreshing] = useState(true)
+
+  // Spending Detail Popup State
+  const [spendingPopup, setSpendingPopup] = useState<{ open: boolean; division: string; divisionLabel: string; month: number; year: number; data: any[]; loading: boolean; totalSpent: number }>({ open: false, division: '', divisionLabel: '', month: 0, year: 0, data: [], loading: false, totalSpent: 0 })
 
   // Current month constants
   const NOW = new Date()
@@ -156,6 +159,35 @@ export default function BendaharaPortal() {
   }
 
 
+
+  // Fetch spending detail for a division in a specific month
+  const fetchSpendingDetail = async (division: string, divisionLabel: string, transactionDate: string) => {
+    const d = new Date(transactionDate)
+    const month = d.getMonth()
+    const year = d.getFullYear()
+    setSpendingPopup({ open: true, division, divisionLabel, month, year, data: [], loading: true, totalSpent: 0 })
+    try {
+      const res = await fetch(`/api/finance?month=${month}&year=${year}&division=${division}`)
+      if (res.ok) {
+        const json = await res.json()
+        const expenses = (json.cashflow || []).filter((c: any) => c.type === 'out')
+        const totalSpent = expenses.reduce((sum: number, c: any) => sum + (c.amount || 0), 0)
+        setSpendingPopup(prev => ({ ...prev, data: expenses, loading: false, totalSpent }))
+      } else {
+        setSpendingPopup(prev => ({ ...prev, loading: false }))
+      }
+    } catch (e) {
+      console.error(e)
+      setSpendingPopup(prev => ({ ...prev, loading: false }))
+    }
+  }
+
+  const DIVISION_LABELS: Record<string, string> = {
+    bpupd: 'BPUPD',
+    bppg: 'BPPG',
+    pmik: 'PMIK',
+    dapur: 'Dapur',
+  }
 
   const handleApproval = async (id: string, status: 'approved' | 'rejected') => {
     try {
@@ -377,6 +409,7 @@ export default function BendaharaPortal() {
                                   <div className="hi-amount">- EGP {h.amount?.toLocaleString()}</div>
                                   <button type="button" onClick={() => deleteDistribusi(h.id)} className="delete-btn" title="Hapus"><Trash2 size={16} /></button>
                                 </div>
+                                <button type="button" className="view-spending-btn" title="Lihat Detail Belanja" onClick={() => fetchSpendingDetail(h.division, DIVISION_LABELS[h.division] || h.division?.toUpperCase(), h.transactionDate)}><Eye size={15} /> Belanja</button>
                               </div>
                             ))}</div>}
                           </div>
@@ -384,6 +417,66 @@ export default function BendaharaPortal() {
                       })
                     )
                   })()}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* ═══════ SPENDING DETAIL POPUP MODAL ═══════ */}
+          {spendingPopup.open && (
+            <div className="modal-overlay" onClick={() => setSpendingPopup(prev => ({ ...prev, open: false }))}>
+              <div className="modal-content" onClick={e => e.stopPropagation()}>
+                <div className="modal-header">
+                  <div className="modal-header-info">
+                    <ShoppingCart size={20} />
+                    <div>
+                      <h3>Detail Belanja — {spendingPopup.divisionLabel}</h3>
+                      <p>{new Date(spendingPopup.year, spendingPopup.month).toLocaleString('id-ID', { month: 'long', year: 'numeric' })}</p>
+                    </div>
+                  </div>
+                  <button className="modal-close" onClick={() => setSpendingPopup(prev => ({ ...prev, open: false }))}><X size={20} /></button>
+                </div>
+                <div className="modal-body">
+                  {spendingPopup.loading ? (
+                    <div className="cf-empty"><Activity size={28} className="animate-spin" style={{ color: 'var(--color-primary)' }} /><p>Memuat data belanja...</p></div>
+                  ) : spendingPopup.data.length === 0 ? (
+                    <div className="cf-empty"><ShoppingCart size={28} style={{ color: 'var(--color-text-muted)' }} /><p>Belum ada data belanja untuk divisi ini pada bulan tersebut.</p></div>
+                  ) : (
+                    <>
+                      <div className="spending-summary-bar">
+                        <span>Total Belanja</span>
+                        <strong>EGP {spendingPopup.totalSpent.toLocaleString()}</strong>
+                      </div>
+                      <div className="spending-table-wrap">
+                        <table className="spending-table">
+                          <thead>
+                            <tr>
+                              <th>No</th>
+                              <th>Tanggal</th>
+                              <th>Keterangan</th>
+                              <th>Qty</th>
+                              <th>Harga Satuan</th>
+                              <th>Jumlah</th>
+                              <th>Bukti</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {spendingPopup.data.map((item: any, idx: number) => (
+                              <tr key={item.id}>
+                                <td>{idx + 1}</td>
+                                <td>{item.transactionDate ? new Date(item.transactionDate).toLocaleDateString('id-ID', { day: 'numeric', month: 'short' }) : '-'}</td>
+                                <td className="spending-desc-cell">{item.description || '-'}</td>
+                                <td>{item.quantity || '-'}</td>
+                                <td>{item.unitPrice ? `EGP ${Number(item.unitPrice).toLocaleString()}` : '-'}</td>
+                                <td className="spending-amount-cell">EGP {(item.amount || 0).toLocaleString()}</td>
+                                <td>{item.proofImage ? <a href={typeof item.proofImage === 'object' ? item.proofImage.url : `/api/media/${item.proofImage}`} target="_blank" rel="noopener noreferrer" className="proof-link"><ImageIcon size={14} /> Lihat</a> : <span style={{ color: 'var(--color-text-muted)', fontSize: '0.75rem' }}>—</span>}</td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    </>
+                  )}
                 </div>
               </div>
             </div>
@@ -493,6 +586,42 @@ export default function BendaharaPortal() {
           .delete-btn { background: rgba(239, 68, 68, 0.1); border: none; color: #ef4444; cursor: pointer; padding: 6px; display: flex; align-items: center; justify-content: center; border-radius: 6px; transition: all 0.2s; }
           .delete-btn:hover { background: #ef4444; color: white; }
           .text-muted { color: var(--color-text-muted); font-size: 0.85rem; }
+
+          /* View Spending Button */
+          .view-spending-btn { display: inline-flex; align-items: center; gap: 5px; padding: 5px 10px; font-size: 0.72rem; font-weight: 700; background: rgba(139, 69, 19, 0.08); border: 1px solid rgba(139, 69, 19, 0.15); border-radius: 8px; color: var(--color-primary); cursor: pointer; transition: all 0.2s; white-space: nowrap; }
+          .view-spending-btn:hover { background: var(--color-primary); color: white; border-color: var(--color-primary); }
+
+          /* Modal Overlay */
+          .modal-overlay { position: fixed; inset: 0; z-index: 1000; background: rgba(0, 0, 0, 0.55); backdrop-filter: blur(4px); display: flex; align-items: center; justify-content: center; padding: 1rem; animation: fadeIn 0.2s ease-out; }
+          .modal-content { background: var(--color-bg-card); border-radius: 20px; width: 100%; max-width: 820px; max-height: 85vh; display: flex; flex-direction: column; box-shadow: 0 20px 60px rgba(0, 0, 0, 0.25); overflow: hidden; animation: slideUp 0.3s ease-out; }
+          .modal-header { display: flex; align-items: center; justify-content: space-between; padding: 1.25rem 1.5rem; border-bottom: 1px solid var(--color-border); background: rgba(139, 69, 19, 0.03); }
+          .modal-header-info { display: flex; align-items: center; gap: 0.75rem; color: var(--color-primary); }
+          .modal-header-info h3 { font-size: 1.05rem; font-weight: 700; color: var(--color-text-primary); margin: 0; }
+          .modal-header-info p { font-size: 0.78rem; color: var(--color-text-muted); margin: 2px 0 0 0; }
+          .modal-close { background: var(--color-bg-secondary); border: none; border-radius: 10px; width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; cursor: pointer; color: var(--color-text-muted); transition: all 0.2s; }
+          .modal-close:hover { background: rgba(239, 68, 68, 0.1); color: #ef4444; }
+          .modal-body { flex: 1; overflow-y: auto; padding: 1.25rem 1.5rem; }
+
+          /* Spending Summary Bar */
+          .spending-summary-bar { display: flex; justify-content: space-between; align-items: center; background: rgba(239, 68, 68, 0.05); border: 1px solid rgba(239, 68, 68, 0.15); border-radius: 12px; padding: 0.875rem 1.25rem; margin-bottom: 1rem; }
+          .spending-summary-bar span { font-size: 0.85rem; font-weight: 600; color: var(--color-text-secondary); }
+          .spending-summary-bar strong { font-size: 1.15rem; font-weight: 800; color: #ef4444; font-family: var(--font-heading); }
+
+          /* Spending Table */
+          .spending-table-wrap { overflow-x: auto; border-radius: 12px; border: 1px solid var(--color-border); }
+          .spending-table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+          .spending-table thead { background: var(--color-bg-secondary); }
+          .spending-table th { padding: 0.75rem 1rem; text-align: left; font-size: 0.75rem; font-weight: 700; color: var(--color-text-secondary); text-transform: uppercase; letter-spacing: 0.04em; border-bottom: 1px solid var(--color-border); white-space: nowrap; }
+          .spending-table td { padding: 0.75rem 1rem; border-bottom: 1px solid var(--color-border); color: var(--color-text-primary); vertical-align: top; }
+          .spending-table tbody tr { transition: background 0.15s; }
+          .spending-table tbody tr:hover { background: rgba(139, 69, 19, 0.03); }
+          .spending-table tbody tr:last-child td { border-bottom: none; }
+          .spending-desc-cell { max-width: 200px; word-break: break-word; }
+          .spending-amount-cell { font-weight: 700; color: #ef4444; white-space: nowrap; }
+          .proof-link { display: inline-flex; align-items: center; gap: 4px; color: var(--color-primary); font-weight: 600; font-size: 0.78rem; text-decoration: none; }
+          .proof-link:hover { text-decoration: underline; }
+          .animate-spin { animation: spin 1s linear infinite; }
+          @keyframes spin { to { transform: rotate(360deg); } }
 
           @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
           @keyframes slideUp { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
