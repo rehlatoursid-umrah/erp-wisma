@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { createPortal } from 'react-dom'
 import Sidebar from '@/components/layout/Sidebar'
 import Header from '@/components/layout/Header'
 import PortalPinGuard from '@/components/auth/PortalPinGuard'
@@ -435,70 +436,6 @@ export default function BendaharaPortal() {
             </div>
           )}
 
-          {/* ═══════ SPENDING DETAIL POPUP MODAL ═══════ */}
-          {spendingPopup.open && (
-            <div className="modal-overlay" style={{ position: 'fixed', inset: 0, zIndex: 99999, background: 'rgba(0,0,0,0.55)', backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem' }} onClick={() => setSpendingPopup(prev => ({ ...prev, open: false }))}>
-              <div className="modal-content" style={{ background: 'var(--color-bg-card)', borderRadius: '20px', width: '100%', maxWidth: '820px', maxHeight: '85vh', display: 'flex', flexDirection: 'column', boxShadow: '0 20px 60px rgba(0,0,0,0.25)', overflow: 'hidden' }} onClick={e => e.stopPropagation()}>
-                <div className="modal-header" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '1.25rem 1.5rem', borderBottom: '1px solid var(--color-border)', background: 'rgba(139, 69, 19, 0.03)' }}>
-                  <div className="modal-header-info" style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', color: 'var(--color-primary)' }}>
-                    <ShoppingCart size={20} />
-                    <div>
-                      <h3 style={{ fontSize: '1.05rem', fontWeight: 700, color: 'var(--color-text-primary)', margin: 0 }}>Detail Belanja — {spendingPopup.divisionLabel}</h3>
-                      <p style={{ fontSize: '0.78rem', color: 'var(--color-text-muted)', margin: '2px 0 0 0' }}>
-                        {spendingPopup.year && !isNaN(spendingPopup.year) 
-                          ? new Date(spendingPopup.year, spendingPopup.month).toLocaleString('id-ID', { month: 'long', year: 'numeric' }) 
-                          : 'Bulan ini'}
-                      </p>
-                    </div>
-                  </div>
-                  <button className="modal-close" onClick={() => setSpendingPopup(prev => ({ ...prev, open: false }))}><X size={20} /></button>
-                </div>
-                <div className="modal-body" style={{ flex: 1, overflowY: 'auto', padding: '1.25rem 1.5rem' }}>
-                  {spendingPopup.loading ? (
-                    <div className="cf-empty"><Activity size={28} className="animate-spin" style={{ color: 'var(--color-primary)' }} /><p>Memuat data belanja...</p></div>
-                  ) : spendingPopup.data.length === 0 ? (
-                    <div className="cf-empty"><ShoppingCart size={28} style={{ color: 'var(--color-text-muted)' }} /><p>Belum ada data belanja untuk divisi ini pada bulan tersebut.</p></div>
-                  ) : (
-                    <>
-                      <div className="spending-summary-bar">
-                        <span>Total Belanja</span>
-                        <strong>EGP {spendingPopup.totalSpent.toLocaleString()}</strong>
-                      </div>
-                      <div className="spending-table-wrap">
-                        <table className="spending-table">
-                          <thead>
-                            <tr>
-                              <th>No</th>
-                              <th>Tanggal</th>
-                              <th>Keterangan</th>
-                              <th>Qty</th>
-                              <th>Harga Satuan</th>
-                              <th>Jumlah</th>
-                              <th>Bukti</th>
-                            </tr>
-                          </thead>
-                          <tbody>
-                            {spendingPopup.data.map((item: any, idx: number) => (
-                              <tr key={item.id}>
-                                <td>{idx + 1}</td>
-                                <td>{item.transactionDate ? new Date(item.transactionDate).toLocaleDateString('id-ID', { day: 'numeric', month: 'short' }) : '-'}</td>
-                                <td className="spending-desc-cell">{item.description || '-'}</td>
-                                <td>{item.quantity || '-'}</td>
-                                <td>{item.unitPrice ? `EGP ${Number(item.unitPrice).toLocaleString()}` : '-'}</td>
-                                <td className="spending-amount-cell">EGP {(item.amount || 0).toLocaleString()}</td>
-                                <td>{item.proofImage ? <a href={typeof item.proofImage === 'object' ? item.proofImage.url : `/api/media/${item.proofImage}`} target="_blank" rel="noopener noreferrer" className="proof-link"><ImageIcon size={14} /> Lihat</a> : <span style={{ color: 'var(--color-text-muted)', fontSize: '0.75rem' }}>—</span>}</td>
-                              </tr>
-                            ))}
-                          </tbody>
-                        </table>
-                      </div>
-                    </>
-                  )}
-                </div>
-              </div>
-            </div>
-          )}
-
           {/* ═══════ TAB: Slip Gaji ═══════ */}
           {activeTab === 'slip_gaji' && (
             <div className="finance-section">
@@ -506,6 +443,77 @@ export default function BendaharaPortal() {
             </div>
           )}
         </main>
+
+        {/* ═══════ SPENDING DETAIL POPUP MODAL (Portal to body) ═══════ */}
+        {typeof document !== 'undefined' && spendingPopup.open && createPortal(
+          <div style={{ position: 'fixed', inset: 0, zIndex: 99999, background: 'rgba(0,0,0,0.55)', backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem' }} onClick={() => setSpendingPopup(prev => ({ ...prev, open: false }))}>
+            <div style={{ background: '#fff', borderRadius: '20px', width: '100%', maxWidth: '820px', maxHeight: '85vh', display: 'flex', flexDirection: 'column' as const, boxShadow: '0 20px 60px rgba(0,0,0,0.25)', overflow: 'hidden' }} onClick={e => e.stopPropagation()}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '1.25rem 1.5rem', borderBottom: '1px solid #e5e7eb', background: 'rgba(139, 69, 19, 0.03)' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', color: '#8b4513' }}>
+                  <ShoppingCart size={20} />
+                  <div>
+                    <h3 style={{ fontSize: '1.05rem', fontWeight: 700, color: '#1a1612', margin: 0 }}>Detail Belanja — {spendingPopup.divisionLabel}</h3>
+                    <p style={{ fontSize: '0.78rem', color: '#9C8B79', margin: '2px 0 0 0' }}>
+                      {spendingPopup.year && !isNaN(spendingPopup.year)
+                        ? new Date(spendingPopup.year, spendingPopup.month).toLocaleString('id-ID', { month: 'long', year: 'numeric' })
+                        : 'Bulan ini'}
+                    </p>
+                  </div>
+                </div>
+                <button style={{ background: '#f3f4f6', border: 'none', borderRadius: '10px', width: '36px', height: '36px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: '#6b7280' }} onClick={() => setSpendingPopup(prev => ({ ...prev, open: false }))}><X size={20} /></button>
+              </div>
+              <div style={{ flex: 1, overflowY: 'auto' as const, padding: '1.25rem 1.5rem' }}>
+                {spendingPopup.loading ? (
+                  <div style={{ display: 'flex', flexDirection: 'column' as const, alignItems: 'center', gap: '8px', padding: '28px', color: '#9C8B79', textAlign: 'center' as const }}>
+                    <Activity size={28} style={{ color: '#8b4513', animation: 'spin 1s linear infinite' }} />
+                    <p style={{ fontSize: '0.82rem', margin: 0 }}>Memuat data belanja...</p>
+                  </div>
+                ) : spendingPopup.data.length === 0 ? (
+                  <div style={{ display: 'flex', flexDirection: 'column' as const, alignItems: 'center', gap: '8px', padding: '28px', color: '#9C8B79', textAlign: 'center' as const }}>
+                    <ShoppingCart size={28} style={{ color: '#9C8B79' }} />
+                    <p style={{ fontSize: '0.82rem', margin: 0 }}>Belum ada data belanja untuk divisi ini pada bulan tersebut.</p>
+                  </div>
+                ) : (
+                  <>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'rgba(239,68,68,0.05)', border: '1px solid rgba(239,68,68,0.15)', borderRadius: '12px', padding: '0.875rem 1.25rem', marginBottom: '1rem' }}>
+                      <span style={{ fontSize: '0.85rem', fontWeight: 600, color: '#666' }}>Total Belanja</span>
+                      <strong style={{ fontSize: '1.15rem', fontWeight: 800, color: '#ef4444' }}>EGP {spendingPopup.totalSpent.toLocaleString()}</strong>
+                    </div>
+                    <div style={{ overflowX: 'auto' as const, borderRadius: '12px', border: '1px solid #e5e7eb' }}>
+                      <table style={{ width: '100%', borderCollapse: 'collapse' as const, fontSize: '0.85rem' }}>
+                        <thead>
+                          <tr style={{ background: '#f9fafb' }}>
+                            <th style={{ padding: '0.75rem 1rem', textAlign: 'left' as const, fontSize: '0.75rem', fontWeight: 700, color: '#666', textTransform: 'uppercase' as const, letterSpacing: '0.04em', borderBottom: '1px solid #e5e7eb', whiteSpace: 'nowrap' as const }}>No</th>
+                            <th style={{ padding: '0.75rem 1rem', textAlign: 'left' as const, fontSize: '0.75rem', fontWeight: 700, color: '#666', textTransform: 'uppercase' as const, letterSpacing: '0.04em', borderBottom: '1px solid #e5e7eb', whiteSpace: 'nowrap' as const }}>Tanggal</th>
+                            <th style={{ padding: '0.75rem 1rem', textAlign: 'left' as const, fontSize: '0.75rem', fontWeight: 700, color: '#666', textTransform: 'uppercase' as const, letterSpacing: '0.04em', borderBottom: '1px solid #e5e7eb' }}>Keterangan</th>
+                            <th style={{ padding: '0.75rem 1rem', textAlign: 'left' as const, fontSize: '0.75rem', fontWeight: 700, color: '#666', textTransform: 'uppercase' as const, letterSpacing: '0.04em', borderBottom: '1px solid #e5e7eb' }}>Qty</th>
+                            <th style={{ padding: '0.75rem 1rem', textAlign: 'left' as const, fontSize: '0.75rem', fontWeight: 700, color: '#666', textTransform: 'uppercase' as const, letterSpacing: '0.04em', borderBottom: '1px solid #e5e7eb', whiteSpace: 'nowrap' as const }}>Harga Satuan</th>
+                            <th style={{ padding: '0.75rem 1rem', textAlign: 'left' as const, fontSize: '0.75rem', fontWeight: 700, color: '#666', textTransform: 'uppercase' as const, letterSpacing: '0.04em', borderBottom: '1px solid #e5e7eb' }}>Jumlah</th>
+                            <th style={{ padding: '0.75rem 1rem', textAlign: 'left' as const, fontSize: '0.75rem', fontWeight: 700, color: '#666', textTransform: 'uppercase' as const, letterSpacing: '0.04em', borderBottom: '1px solid #e5e7eb' }}>Bukti</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {spendingPopup.data.map((item: any, idx: number) => (
+                            <tr key={item.id} style={{ borderBottom: idx < spendingPopup.data.length - 1 ? '1px solid #e5e7eb' : 'none' }}>
+                              <td style={{ padding: '0.75rem 1rem' }}>{idx + 1}</td>
+                              <td style={{ padding: '0.75rem 1rem', whiteSpace: 'nowrap' as const }}>{item.transactionDate ? new Date(item.transactionDate).toLocaleDateString('id-ID', { day: 'numeric', month: 'short' }) : '-'}</td>
+                              <td style={{ padding: '0.75rem 1rem', maxWidth: '200px', wordBreak: 'break-word' as const }}>{item.description || '-'}</td>
+                              <td style={{ padding: '0.75rem 1rem' }}>{item.quantity || '-'}</td>
+                              <td style={{ padding: '0.75rem 1rem', whiteSpace: 'nowrap' as const }}>{item.unitPrice ? `EGP ${Number(item.unitPrice).toLocaleString()}` : '-'}</td>
+                              <td style={{ padding: '0.75rem 1rem', fontWeight: 700, color: '#ef4444', whiteSpace: 'nowrap' as const }}>EGP {(item.amount || 0).toLocaleString()}</td>
+                              <td style={{ padding: '0.75rem 1rem' }}>{item.proofImage ? <a href={typeof item.proofImage === 'object' ? item.proofImage.url : `/api/media/${item.proofImage}`} target="_blank" rel="noopener noreferrer" style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', color: '#8b4513', fontWeight: 600, fontSize: '0.78rem', textDecoration: 'none' }}><ImageIcon size={14} /> Lihat</a> : <span style={{ color: '#9C8B79', fontSize: '0.75rem' }}>—</span>}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </>
+                )}
+              </div>
+            </div>
+          </div>,
+          document.body
+        )}
 
         <style jsx>{`
           /* Mobile-First Fullwidth (matches BPUPD/PMIK) */
