@@ -47,9 +47,9 @@ export async function GET(request: Request) {
         const userMap = new Map(users.docs.map(u => [u.id, u]))
 
         // Group tasks by category (division)
-        const categories = ['bpupd', 'bppg', 'bendahara', 'direktur', 'sekretaris', 'pmik', 'housekeeping', 'maintenance', 'inventory', 'admin', 'general']
+        const allowedCategories = ['direktur', 'bendahara', 'sekretaris', 'bpupd', 'bppg', 'pmik']
         
-        const groupedData = categories.reduce((acc, cat) => {
+        const groupedData = allowedCategories.reduce((acc, cat) => {
             acc[cat] = {
                 title: getCategoryTitle(cat),
                 tasks: [],
@@ -60,8 +60,10 @@ export async function GET(request: Request) {
 
         tasks.docs.forEach((task: any) => {
             const cat = task.category || 'general'
-            if (!groupedData[cat]) {
-                groupedData[cat] = { title: getCategoryTitle(cat), tasks: [], stats: { total: 0, completed: 0, pending: 0, in_progress: 0 } }
+            
+            // Only process tasks that belong to the allowed categories
+            if (!allowedCategories.includes(cat)) {
+                return
             }
             
             // Map assignee data
