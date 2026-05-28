@@ -4,7 +4,7 @@
    ═══════════════════════════════════════════════ */
 
 /* CSS Variables */
-:root {
+.shell {
   --clay-deep: #3B2316;
   --clay-mid: #6B3C20;
   --clay-warm: #99502A;
@@ -20,10 +20,7 @@
   --radius-field: 16px;
   --shadow-btn: 0 14px 28px -10px rgba(194, 98, 46, .55);
   --ease: cubic-bezier(.22, .61, .36, 1);
-}
 
-/* ── Shell ── */
-.shell {
   display: grid;
   grid-template-columns: minmax(420px, 44%) 1fr;
   min-height: 100dvh;
