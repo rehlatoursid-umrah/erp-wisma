@@ -437,19 +437,23 @@ export default function BendaharaPortal() {
 
           {/* ═══════ SPENDING DETAIL POPUP MODAL ═══════ */}
           {spendingPopup.open && (
-            <div className="modal-overlay" onClick={() => setSpendingPopup(prev => ({ ...prev, open: false }))}>
-              <div className="modal-content" onClick={e => e.stopPropagation()}>
-                <div className="modal-header">
-                  <div className="modal-header-info">
+            <div className="modal-overlay" style={{ position: 'fixed', inset: 0, zIndex: 99999, background: 'rgba(0,0,0,0.55)', backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem' }} onClick={() => setSpendingPopup(prev => ({ ...prev, open: false }))}>
+              <div className="modal-content" style={{ background: 'var(--color-bg-card)', borderRadius: '20px', width: '100%', maxWidth: '820px', maxHeight: '85vh', display: 'flex', flexDirection: 'column', boxShadow: '0 20px 60px rgba(0,0,0,0.25)', overflow: 'hidden' }} onClick={e => e.stopPropagation()}>
+                <div className="modal-header" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '1.25rem 1.5rem', borderBottom: '1px solid var(--color-border)', background: 'rgba(139, 69, 19, 0.03)' }}>
+                  <div className="modal-header-info" style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', color: 'var(--color-primary)' }}>
                     <ShoppingCart size={20} />
                     <div>
-                      <h3>Detail Belanja — {spendingPopup.divisionLabel}</h3>
-                      <p>{new Date(spendingPopup.year, spendingPopup.month).toLocaleString('id-ID', { month: 'long', year: 'numeric' })}</p>
+                      <h3 style={{ fontSize: '1.05rem', fontWeight: 700, color: 'var(--color-text-primary)', margin: 0 }}>Detail Belanja — {spendingPopup.divisionLabel}</h3>
+                      <p style={{ fontSize: '0.78rem', color: 'var(--color-text-muted)', margin: '2px 0 0 0' }}>
+                        {spendingPopup.year && !isNaN(spendingPopup.year) 
+                          ? new Date(spendingPopup.year, spendingPopup.month).toLocaleString('id-ID', { month: 'long', year: 'numeric' }) 
+                          : 'Bulan ini'}
+                      </p>
                     </div>
                   </div>
                   <button className="modal-close" onClick={() => setSpendingPopup(prev => ({ ...prev, open: false }))}><X size={20} /></button>
                 </div>
-                <div className="modal-body">
+                <div className="modal-body" style={{ flex: 1, overflowY: 'auto', padding: '1.25rem 1.5rem' }}>
                   {spendingPopup.loading ? (
                     <div className="cf-empty"><Activity size={28} className="animate-spin" style={{ color: 'var(--color-primary)' }} /><p>Memuat data belanja...</p></div>
                   ) : spendingPopup.data.length === 0 ? (
