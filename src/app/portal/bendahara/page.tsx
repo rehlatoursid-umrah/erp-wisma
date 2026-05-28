@@ -402,16 +402,29 @@ export default function BendaharaPortal() {
                               <div className="folder-title">{isExp ? <FolderOpen size={18} className="folder-icon" /> : <Folder size={18} className="folder-icon" />}<span>{month}</span><span className="folder-count">{items.length}</span></div>
                               {isExp ? <ChevronDown size={18} /> : <ChevronRight size={18} />}
                             </button>
-                            {isExp && <div className="folder-content">{items.map((h: any) => (
-                              <div key={h.id} className="history-item">
-                                <div><div className="hi-title">{h.description} <span className="hi-badge">{h.division}</span></div><div className="hi-date">{h.transactionDate ? h.transactionDate.split('T')[0] : ''}</div></div>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                                  <div className="hi-amount">- EGP {h.amount?.toLocaleString()}</div>
-                                  <button type="button" onClick={() => deleteDistribusi(h.id)} className="delete-btn" title="Hapus"><Trash2 size={16} /></button>
-                                </div>
-                                <button type="button" className="view-spending-btn" title="Lihat Detail Belanja" onClick={() => fetchSpendingDetail(h.division, DIVISION_LABELS[h.division] || h.division?.toUpperCase(), h.transactionDate)}><Eye size={15} /> Belanja</button>
+                            {isExp && <div className="folder-content">
+                              <div className="monthly-spending-actions" style={{ marginBottom: '1rem', display: 'flex', gap: '0.5rem', flexWrap: 'wrap', alignItems: 'center', paddingBottom: '1rem', borderBottom: '1px dashed var(--color-border)' }}>
+                                <span style={{ fontSize: '0.8rem', color: 'var(--color-text-secondary)', fontWeight: 600, display: 'flex', alignItems: 'center', marginRight: '0.5rem' }}>
+                                  Detail Belanja Bulan Ini:
+                                </span>
+                                {Array.from(new Set(items.map((h: any) => h.division).filter(Boolean))).map((div: any) => (
+                                  <button key={div} type="button" className="view-spending-btn" title={`Lihat Detail Belanja ${DIVISION_LABELS[div] || div.toUpperCase()}`} onClick={() => fetchSpendingDetail(div, DIVISION_LABELS[div] || div.toUpperCase(), items[0].transactionDate)}>
+                                    <Eye size={14} /> {DIVISION_LABELS[div] || div.toUpperCase()}
+                                  </button>
+                                ))}
                               </div>
-                            ))}</div>}
+                              <div className="history-items-list">
+                                {items.map((h: any) => (
+                                  <div key={h.id} className="history-item">
+                                    <div><div className="hi-title">{h.description} <span className="hi-badge">{h.division}</span></div><div className="hi-date">{h.transactionDate ? h.transactionDate.split('T')[0] : ''}</div></div>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                                      <div className="hi-amount">- EGP {h.amount?.toLocaleString()}</div>
+                                      <button type="button" onClick={() => deleteDistribusi(h.id)} className="delete-btn" title="Hapus"><Trash2 size={16} /></button>
+                                    </div>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>}
                           </div>
                         )
                       })
