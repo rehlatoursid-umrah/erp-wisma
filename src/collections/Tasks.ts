@@ -26,6 +26,7 @@ export const Tasks: CollectionConfig = {
                 { label: '🏠 BPPG', value: 'bppg' },
                 { label: '💰 Bendahara', value: 'bendahara' },
                 { label: '👔 Direktur', value: 'direktur' },
+                { label: '📝 Sekretaris', value: 'sekretaris' },
                 { label: '🧹 Housekeeping', value: 'housekeeping' },
                 { label: '🔧 Maintenance', value: 'maintenance' },
                 { label: '📦 Inventory', value: 'inventory' },

@@ -47,7 +47,7 @@ export async function GET(request: Request) {
         const userMap = new Map(users.docs.map(u => [u.id, u]))
 
         // Group tasks by category (division)
-        const categories = ['bpupd', 'bppg', 'bendahara', 'direktur', 'housekeeping', 'maintenance', 'inventory', 'admin', 'general']
+        const categories = ['bpupd', 'bppg', 'bendahara', 'direktur', 'sekretaris', 'pmik', 'housekeeping', 'maintenance', 'inventory', 'admin', 'general']
         
         const groupedData = categories.reduce((acc, cat) => {
             acc[cat] = {
@@ -118,10 +118,12 @@ function getCategoryTitle(cat: string): string {
         'bppg': '🏠 BPPG',
         'bendahara': '💰 Bendahara',
         'direktur': '👔 Direktur',
+        'sekretaris': '📝 Sekretaris',
         'housekeeping': '🧹 Housekeeping',
         'maintenance': '🔧 Maintenance',
         'inventory': '📦 Inventory',
         'admin': '📝 Admin',
+        'pmik': '📚 PMIK',
     }
     return titles[cat] || cat.toUpperCase()
 }

@@ -4,11 +4,12 @@ import { useState, useEffect } from 'react'
 import Sidebar from '@/components/layout/Sidebar'
 import Header from '@/components/layout/Header'
 import PortalPinGuard from '@/components/auth/PortalPinGuard'
-import { Pencil, Trash2, X } from 'lucide-react'
+import { Pencil, Trash2, X, KanbanSquare } from 'lucide-react'
+import ProkerBoard from '@/components/dashboard/ProkerBoard'
 
 export default function SekretarisPortal() {
   const [sidebarOpen, setSidebarOpen] = useState(false)
-  const [activeTab, setActiveTab] = useState<'beranda' | 'jawaban_piket' | 'arsip_bulanan'>('beranda')
+  const [activeTab, setActiveTab] = useState<'proker' | 'beranda' | 'jawaban_piket' | 'arsip_bulanan'>('proker')
 
   // Piket Tab State
   const [piketData, setPiketData] = useState<any[]>([])
@@ -326,10 +327,22 @@ export default function SekretarisPortal() {
           </div>
 
           <div className="tabs">
+            <button className={`tab ${activeTab === 'proker' ? 'active' : ''}`} onClick={() => setActiveTab('proker')}><KanbanSquare size={16} /> Proker Bulanan</button>
             <button className={`tab ${activeTab === 'beranda' ? 'active' : ''}`} onClick={() => setActiveTab('beranda')}>🏠 Beranda</button>
             <button className={`tab ${activeTab === 'jawaban_piket' ? 'active' : ''}`} onClick={() => setActiveTab('jawaban_piket')}>📋 Jawaban Laporan Piket</button>
             <button className={`tab ${activeTab === 'arsip_bulanan' ? 'active' : ''}`} onClick={() => setActiveTab('arsip_bulanan')}>📁 Arsip Bulanan</button>
           </div>
+
+          {/* ═══════ PROKER BULANAN TAB ═══════ */}
+          {activeTab === 'proker' && (
+            <ProkerBoard 
+              category="sekretaris" 
+              staffList={[
+                { name: 'Ketua Sekretaris', initials: 'KS', color: '#10b981' },
+                { name: 'Staff Sekretaris', initials: 'SS', color: '#8b5cf6' }
+              ]} 
+            />
+          )}
 
           {/* ═══════ BERANDA TAB ═══════ */}
           {activeTab === 'beranda' && (

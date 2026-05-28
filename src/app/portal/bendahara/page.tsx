@@ -5,12 +5,13 @@ import Sidebar from '@/components/layout/Sidebar'
 import Header from '@/components/layout/Header'
 import PortalPinGuard from '@/components/auth/PortalPinGuard'
 import SlipGajiWidget from '@/components/bendahara/SlipGajiWidget'
+import ProkerBoard from '@/components/dashboard/ProkerBoard'
 
-import { Wallet, ArrowDownLeft, TrendingDown, ClipboardCheck, ArrowRight, Activity, PlusCircle, Folder, FolderOpen, ChevronDown, ChevronRight, Trash2, FileText } from 'lucide-react'
+import { Wallet, ArrowDownLeft, TrendingDown, ClipboardCheck, ArrowRight, Activity, PlusCircle, Folder, FolderOpen, ChevronDown, ChevronRight, Trash2, FileText, KanbanSquare } from 'lucide-react'
 
 export default function BendaharaPortal() {
   const [sidebarOpen, setSidebarOpen] = useState(false)
-  const [activeTab, setActiveTab] = useState<'incoming' | 'distribusi' | 'slip_gaji'>('incoming')
+  const [activeTab, setActiveTab] = useState<'proker' | 'incoming' | 'distribusi' | 'slip_gaji'>('proker')
   const [expandedMonths, setExpandedMonths] = useState<Record<string, boolean>>({})
 
   const toggleMonth = (month: string) => {
@@ -199,6 +200,7 @@ export default function BendaharaPortal() {
           <div className="tabs-container">
             <div className="tabs">
               {[
+                { key: 'proker' as const, icon: <KanbanSquare size={18} />, label: 'Proker Bulanan' },
                 { key: 'incoming' as const, icon: <ArrowDownLeft size={18} />, label: 'Incoming Funds' },
                 { key: 'distribusi' as const, icon: <ArrowRight size={18} />, label: 'Distribusi Operasional' },
                 { key: 'slip_gaji' as const, icon: <FileText size={18} />, label: 'Generate Slip Gaji' },
@@ -239,6 +241,17 @@ export default function BendaharaPortal() {
               </div>
             </div>
           </div>
+
+          {/* ═══════ TAB: Proker Bulanan ═══════ */}
+          {activeTab === 'proker' && (
+            <ProkerBoard 
+              category="bendahara" 
+              staffList={[
+                { name: 'Bendahara Umum', initials: 'BU', color: '#10b981' },
+                { name: 'Staff Bendahara', initials: 'SB', color: '#8b5cf6' }
+              ]} 
+            />
+          )}
 
           {/* ═══════ TAB: Incoming Funds ═══════ */}
           {activeTab === 'incoming' && (
