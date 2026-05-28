@@ -340,8 +340,7 @@ export default function SekretarisPortal() {
             <ProkerBoard 
               category="sekretaris" 
               staffList={[
-                { name: 'Ketua Sekretaris', initials: 'KS', color: '#10b981' },
-                { name: 'Staff Sekretaris', initials: 'SS', color: '#8b5cf6' }
+                { name: 'Sekretaris', initials: 'SK', color: '#10b981' }
               ]} 
             />
           )}
