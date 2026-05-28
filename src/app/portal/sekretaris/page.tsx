@@ -321,16 +321,18 @@ export default function SekretarisPortal() {
         <main className="main-content">
           <Header onMenuClick={() => setSidebarOpen(true)} />
 
-          <div className="portal-header">
+          <div className="portal-header" style={{ margin: '0 var(--spacing-lg) var(--spacing-xl)' }}>
             <h1>🗄️ Portal Sekretaris</h1>
             <p>Admin & HR Management</p>
           </div>
 
-          <div className="tabs">
-            <button className={`tab ${activeTab === 'proker' ? 'active' : ''}`} onClick={() => setActiveTab('proker')}><KanbanSquare size={16} /> Proker Bulanan</button>
-            <button className={`tab ${activeTab === 'beranda' ? 'active' : ''}`} onClick={() => setActiveTab('beranda')}>🏠 Beranda</button>
-            <button className={`tab ${activeTab === 'jawaban_piket' ? 'active' : ''}`} onClick={() => setActiveTab('jawaban_piket')}>📋 Jawaban Laporan Piket</button>
-            <button className={`tab ${activeTab === 'arsip_bulanan' ? 'active' : ''}`} onClick={() => setActiveTab('arsip_bulanan')}>📁 Arsip Bulanan</button>
+          <div className="tabs-container">
+            <div className="tabs">
+              <button className={`tab ${activeTab === 'proker' ? 'active' : ''}`} onClick={() => setActiveTab('proker')}><KanbanSquare size={16} /> Proker Bulanan</button>
+              <button className={`tab ${activeTab === 'beranda' ? 'active' : ''}`} onClick={() => setActiveTab('beranda')}>🏠 Beranda</button>
+              <button className={`tab ${activeTab === 'jawaban_piket' ? 'active' : ''}`} onClick={() => setActiveTab('jawaban_piket')}>📋 Jawaban Laporan Piket</button>
+              <button className={`tab ${activeTab === 'arsip_bulanan' ? 'active' : ''}`} onClick={() => setActiveTab('arsip_bulanan')}>📁 Arsip Bulanan</button>
+            </div>
           </div>
 
           {/* ═══════ PROKER BULANAN TAB ═══════ */}
@@ -346,7 +348,7 @@ export default function SekretarisPortal() {
 
           {/* ═══════ BERANDA TAB ═══════ */}
           {activeTab === 'beranda' && (
-            <div className="portal-grid">
+            <div className="portal-grid" style={{ padding: '0 var(--spacing-lg)' }}>
               <div className="card">
                 <h3>📝 Master Data</h3>
                 <p className="card-desc">Kelola data layanan dan pengguna</p>
@@ -382,7 +384,7 @@ export default function SekretarisPortal() {
 
           {/* ═══════ JAWABAN PIKET TAB ═══════ */}
           {activeTab === 'jawaban_piket' && (
-            <div>
+            <div style={{ padding: '0 var(--spacing-lg)' }}>
               {/* Filter Bar */}
               <div style={{ display: 'flex', gap: '12px', marginBottom: '20px', flexWrap: 'wrap', alignItems: 'flex-end' }}>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
@@ -547,7 +549,7 @@ export default function SekretarisPortal() {
 
           {/* ═══════ ARSIP BULANAN TAB ═══════ */}
           {activeTab === 'arsip_bulanan' && (
-            <div>
+            <div style={{ padding: '0 var(--spacing-lg)' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '24px', flexWrap: 'wrap' }}>
                 <h3 style={{ margin: 0, fontSize: '1.1rem' }}>📁 Arsip Rekap Piket Bulanan</h3>
                 <select value={arsipYear} onChange={e => setArsipYear(Number(e.target.value))} style={{ padding: '8px 12px', borderRadius: '8px', border: '1px solid #d1d5db', fontSize: '0.9rem' }}>
@@ -654,28 +656,37 @@ export default function SekretarisPortal() {
 
         <style jsx global>{`
         .dashboard-layout { display: flex; min-height: 100vh; background: var(--color-bg-primary); }
-        .portal-header { margin-bottom: var(--spacing-xl); animation: slideDown 0.4s cubic-bezier(0.4, 0, 0.2, 1); }
-        .portal-header h1 { margin-bottom: var(--spacing-xs); font-size: 2rem; }
+        .portal-header { animation: slideDown 0.4s cubic-bezier(0.4, 0, 0.2, 1); }
+        .portal-header h1 { margin-bottom: var(--spacing-xs); font-size: 2rem; color: var(--color-text-primary); }
         .portal-header p { color: var(--color-text-muted); }
-        .tabs { display: flex; gap: 1rem; margin-bottom: 2rem; flex-wrap: wrap; }
-        .tab { padding: 0.75rem 1.25rem; border: 1px solid #d1d5db; border-radius: 0.5rem; background: white; cursor: pointer; font-size: 0.92rem; transition: all 0.2s; }
-        .tab:hover { border-color: var(--color-primary, #8B4513); }
-        .tab.active { background: var(--color-primary, #8B4513); color: white; border-color: var(--color-primary, #8B4513); }
+        
+        .tabs-container { margin: 0 var(--spacing-lg) 1.5rem; border-bottom: 1.5px solid var(--color-bg-secondary); padding-bottom: 1px; display: flex; overflow-x: auto; scrollbar-width: none; }
+        .tabs-container::-webkit-scrollbar { display: none; }
+        .tabs { display: flex; gap: 8px; }
+        .tab { display: inline-flex; align-items: center; gap: 8px; padding: 12px 18px; border: none; background: transparent; color: var(--color-text-secondary); font-size: 0.92rem; font-weight: 600; cursor: pointer; border-bottom: 3px solid transparent; transition: all 0.2s ease; white-space: nowrap; }
+        .tab:hover { color: var(--color-primary); background: rgba(139, 69, 19, 0.04); border-radius: 8px 8px 0 0; }
+        .tab.active { color: var(--color-primary); border-bottom-color: var(--color-primary); }
+        
         .portal-grid { display: flex; gap: var(--spacing-lg); width: 100%; animation: slideUp 0.4s cubic-bezier(0.4, 0, 0.2, 1); }
         .portal-grid > .card { flex: 1; min-width: 0; }
-        .card { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); border: 1px solid transparent; }
-        .card:hover { transform: translateY(-4px); box-shadow: var(--shadow-lg); border-color: var(--color-primary-light); }
+        
+        .card { background: var(--color-bg-card); border-radius: var(--radius-xl); padding: 24px; box-shadow: var(--shadow-sm); border: 1px solid var(--color-bg-secondary); transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+        .card:hover { transform: translateY(-4px); box-shadow: var(--shadow-md); border-color: var(--color-primary-light); }
+        .card h3 { margin-top: 0; margin-bottom: 4px; font-size: 1.25rem; color: var(--color-text-primary); }
         .card-desc { color: var(--color-text-muted); font-size: 0.9375rem; margin-bottom: var(--spacing-lg); }
+        
         .menu-list { display: flex; flex-direction: column; gap: var(--spacing-md); }
         .menu-item { display: flex; align-items: center; gap: var(--spacing-lg); padding: var(--spacing-lg); background: var(--color-bg-secondary); border-radius: var(--radius-lg); text-decoration: none; color: var(--color-text-primary); transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); font-size: 1rem; }
         .menu-item:hover { background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%); color: white; transform: translateX(8px); box-shadow: var(--shadow-md); }
+        
         .data-table { width: 100%; border-collapse: collapse; }
         .data-table th, .data-table td { padding: var(--spacing-md) var(--spacing-lg); text-align: left; border-bottom: 1px solid rgba(139, 69, 19, 0.1); }
         .data-table tr { transition: all 0.2s ease; }
         .data-table tbody tr:hover { background: var(--color-bg-secondary); }
         .data-table th { font-weight: 600; color: var(--color-text-secondary); font-size: 0.875rem; }
+        
         .log-list { display: flex; flex-direction: column; gap: var(--spacing-md); }
-        .log-item { display: flex; align-items: center; gap: var(--spacing-md); padding: var(--spacing-md); font-size: 0.9375rem; transition: all 0.2s ease; border-radius: var(--radius-md); }
+        .log-item { display: flex; align-items: center; gap: var(--spacing-md); padding: var(--spacing-md); font-size: 0.9375rem; transition: all 0.2s ease; border-radius: var(--radius-md); border: 1px solid var(--color-bg-secondary); }
         .log-item:hover { background: var(--color-bg-secondary); transform: translateX(4px); }
         .log-action { padding: 4px 10px; border-radius: var(--radius-md); font-size: 0.75rem; font-weight: 600; }
         .log-action.edit { background: var(--color-warning-light); color: #854D0E; }
