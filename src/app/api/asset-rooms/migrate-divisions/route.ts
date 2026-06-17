@@ -36,7 +36,7 @@ export async function POST() {
                 },
             })
 
-            results.push({ id: room.id, roomName, floor, oldDiv, newDiv })
+            results.push({ id: String(room.id), roomName, floor, oldDiv, newDiv })
         }
 
         return NextResponse.json({
