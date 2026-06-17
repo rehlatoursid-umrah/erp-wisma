@@ -17,6 +17,72 @@ export const CONDITION_OPTIONS = [
 // Default exchange rate (can be overridden per item)
 export const DEFAULT_EGP_TO_IDR = 4900
 
+// ═══ DIVISION RESPONSIBILITY MAPPING ═══
+
+export const DIVISION_OPTIONS = [
+    { value: 'bppg', label: 'BPPG', color: '#8b4513', bg: '#fef3c7', emoji: '🏠' },
+    { value: 'bpupd', label: 'BPUPD', color: '#1d4ed8', bg: '#dbeafe', emoji: '✈️' },
+    { value: 'bph', label: 'BPH', color: '#7c3aed', bg: '#ede9fe', emoji: '🏛️' },
+    { value: 'pmik', label: 'PMIK', color: '#059669', bg: '#d1fae5', emoji: '📚' },
+] as const
+
+export type DivisionValue = typeof DIVISION_OPTIONS[number]['value']
+
+/**
+ * Default division per floor:
+ * - Lantai 1: BPPG (kecuali Mushola Akhwat & Aula → BPUPD)
+ * - Lantai 2: BPUPD (full)
+ * - Lantai 3: BPUPD (full)
+ * - Lantai 4: BPH (kecuali Gudang BPUPD → BPUPD)
+ * - Lantai 5: PMIK (full)
+ * - Lantai 6: BPPG (full)
+ */
+export const FLOOR_DEFAULT_DIVISION: Record<number, DivisionValue> = {
+    1: 'bppg',
+    2: 'bpupd',
+    3: 'bpupd',
+    4: 'bph',
+    5: 'pmik',
+    6: 'bppg',
+}
+
+/**
+ * Exceptions: room names (lowercase partial match) that override the floor default
+ */
+const DIVISION_EXCEPTIONS: { floor: number; match: string; division: DivisionValue }[] = [
+    // Lantai 1: Mushola Akhwat & Aula → BPUPD
+    { floor: 1, match: 'mushola akhwat', division: 'bpupd' },
+    { floor: 1, match: 'aula', division: 'bpupd' },
+    { floor: 1, match: 'auditorium', division: 'bpupd' },
+    // Lantai 4: Gudang BPUPD → BPUPD
+    { floor: 4, match: 'gudang bpupd', division: 'bpupd' },
+]
+
+/**
+ * Get the responsible division for a room based on floor + room name.
+ * First checks exceptions, then falls back to floor default.
+ */
+export function getResponsibleDivision(floor: number, roomName: string): DivisionValue {
+    const lower = roomName.toLowerCase().trim()
+
+    // Check exceptions first
+    for (const exc of DIVISION_EXCEPTIONS) {
+        if (exc.floor === floor && lower.includes(exc.match)) {
+            return exc.division
+        }
+    }
+
+    // Default by floor
+    return FLOOR_DEFAULT_DIVISION[floor] || 'bppg'
+}
+
+/**
+ * Get division display info (label, color, emoji) by value
+ */
+export function getDivisionInfo(divisionValue: string) {
+    return DIVISION_OPTIONS.find(d => d.value === divisionValue) || DIVISION_OPTIONS[0]
+}
+
 /**
  * Generate inventory code from floor, room code, and sequence number
  * Format: LT[floor]-[ROOMCODE]-[SEQ]

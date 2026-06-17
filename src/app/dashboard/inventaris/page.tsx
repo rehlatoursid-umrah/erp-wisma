@@ -7,10 +7,10 @@ import Header from '@/components/layout/Header'
 import {
   Package, Plus, Search, Filter, Trash2, Edit3, QrCode, Printer,
   ChevronDown, X, Building2, Layers, DollarSign, AlertTriangle,
-  CheckCircle2, ArrowLeft, Loader2, Camera
+  CheckCircle2, ArrowLeft, Loader2, Camera, Shield
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import { FLOORS, CONDITION_OPTIONS, DEFAULT_EGP_TO_IDR } from '@/constants/asset-inventory'
+import { FLOORS, CONDITION_OPTIONS, DEFAULT_EGP_TO_IDR, DIVISION_OPTIONS, getDivisionInfo } from '@/constants/asset-inventory'
 import QRCode from 'qrcode'
 
 // ═══ TYPES ═══
@@ -19,6 +19,7 @@ interface Room {
   floor: number
   roomName: string
   roomCode: string
+  responsibleDivision?: string
 }
 
 interface AssetItem {
@@ -82,6 +83,7 @@ export default function InventarisPage() {
   const [filterFloor, setFilterFloor] = useState<string>('')
   const [filterRoom, setFilterRoom] = useState<string>('')
   const [filterCondition, setFilterCondition] = useState<string>('')
+  const [filterDivision, setFilterDivision] = useState<string>('')
   const [searchQuery, setSearchQuery] = useState('')
 
   // Modals
@@ -265,6 +267,7 @@ export default function InventarisPage() {
   // Print QR label
   const printQR = (item: AssetItem) => {
     const roomData = typeof item.room === 'object' ? item.room : null
+    const divInfo = roomData?.responsibleDivision ? getDivisionInfo(roomData.responsibleDivision) : null
     const w = window.open('', '_blank', 'width=400,height=600')
     if (!w) return
 
@@ -281,12 +284,14 @@ export default function InventarisPage() {
           .qr { margin: 4px 0; }
           .name { font-size: 10px; font-weight: 600; margin: 2px 0; }
           .room { font-size: 9px; color: #666; }
+          .division { font-size: 8px; font-weight: 700; color: ${divInfo?.color || '#666'}; background: ${divInfo?.bg || '#f5f5f5'}; padding: 1px 6px; border-radius: 4px; display: inline-block; margin-top: 2px; }
         </style></head><body onload="window.print()">
         <div class="label">
           <div class="code">${item.inventoryCode}</div>
           <div class="qr"><img src="${dataUrl}" width="140" height="140" /></div>
           <div class="name">${item.itemName}</div>
           <div class="room">${roomData ? `LT${roomData.floor} - ${roomData.roomName}` : ''}</div>
+          ${divInfo ? `<div class="division">PJ: ${divInfo.label}</div>` : ''}
         </div>
         </body></html>
       `)
@@ -382,6 +387,15 @@ export default function InventarisPage() {
                 <option value="">Semua Lantai</option>
                 {FLOORS.map(f => <option key={f.value} value={f.value}>{f.label}</option>)}
               </select>
+              {/* Division filter */}
+              <select
+                value={filterDivision}
+                onChange={e => setFilterDivision(e.target.value)}
+                className="px-3 py-2.5 text-sm rounded-xl border border-slate-200 dark:border-border bg-slate-50 dark:bg-muted font-medium"
+              >
+                <option value="">Semua Divisi</option>
+                {DIVISION_OPTIONS.map(d => <option key={d.value} value={d.value}>{d.emoji} {d.label}</option>)}
+              </select>
               {/* Room filter */}
               <select
                 value={filterRoom}
@@ -460,8 +474,15 @@ export default function InventarisPage() {
                           </span>
                         </td>
                         <td className="px-4 py-3 hidden md:table-cell">
-                          <div className="text-xs font-semibold text-slate-600 dark:text-muted-foreground">LT{item.floor}</div>
-                          <div className="text-xs text-slate-400">{getRoomName(item)}</div>
+                          <div className="text-xs font-semibold text-slate-600 dark:text-muted-foreground">LT{item.floor} — {getRoomName(item)}</div>
+                          {typeof item.room === 'object' && item.room?.responsibleDivision && (() => {
+                            const div = getDivisionInfo(item.room.responsibleDivision)
+                            return (
+                              <span className="inline-flex items-center gap-1 text-[10px] font-bold px-1.5 py-0.5 rounded-md mt-0.5" style={{ background: div.bg, color: div.color }}>
+                                {div.emoji} {div.label}
+                              </span>
+                            )
+                          })()}
                         </td>
                         <td className="px-4 py-3">
                           <div className="flex items-center justify-center gap-1">
@@ -663,17 +684,25 @@ export default function InventarisPage() {
                       <span className="bg-slate-100 dark:bg-muted text-slate-600 px-2 py-0.5 rounded-md text-xs">{floorRooms.length} ruangan</span>
                     </h4>
                     <div className="grid grid-cols-1 gap-1.5">
-                      {floorRooms.map(room => (
+                      {floorRooms.map(room => {
+                        const divInfo = room.responsibleDivision ? getDivisionInfo(room.responsibleDivision) : null
+                        return (
                         <div key={room.id} className="flex items-center justify-between px-3 py-2 rounded-lg bg-slate-50 dark:bg-muted/50 border border-slate-100 dark:border-border">
-                          <div className="flex items-center gap-3">
+                          <div className="flex items-center gap-3 flex-wrap">
                             <span className="font-mono text-xs font-bold text-[#8b4513] bg-amber-50 dark:bg-amber-950/30 px-2 py-0.5 rounded">{room.roomCode}</span>
                             <span className="text-sm font-semibold text-slate-700 dark:text-foreground">{room.roomName}</span>
+                            {divInfo && (
+                              <span className="inline-flex items-center gap-1 text-[10px] font-bold px-1.5 py-0.5 rounded-md" style={{ background: divInfo.bg, color: divInfo.color }}>
+                                {divInfo.emoji} {divInfo.label}
+                              </span>
+                            )}
                           </div>
                           <button onClick={() => handleDeleteRoom(room.id)} className="p-1 rounded hover:bg-red-50 dark:hover:bg-red-950/30 text-slate-400 hover:text-red-500 transition-colors" title="Hapus ruangan">
                             <Trash2 size={14} />
                           </button>
                         </div>
-                      ))}
+                        )
+                      })}
                     </div>
                   </div>
                 )

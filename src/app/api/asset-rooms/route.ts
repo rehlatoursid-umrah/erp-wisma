@@ -1,17 +1,21 @@
 import { getPayload } from 'payload'
 import config from '@payload-config'
 import { NextResponse } from 'next/server'
-import { generateRoomCode } from '@/constants/asset-inventory'
+import { generateRoomCode, getResponsibleDivision } from '@/constants/asset-inventory'
 
 export async function GET(req: Request) {
     const payload = await getPayload({ config })
     const { searchParams } = new URL(req.url)
     const floor = searchParams.get('floor')
+    const division = searchParams.get('division')
 
     try {
         const where: any = {}
         if (floor) {
             where.floor = { equals: Number(floor) }
+        }
+        if (division) {
+            where.responsibleDivision = { equals: division }
         }
 
         const rooms = await payload.find({
@@ -34,7 +38,7 @@ export async function POST(req: Request) {
 
     try {
         const body = await req.json()
-        const { floor, roomName } = body
+        const { floor, roomName, responsibleDivision } = body
 
         if (!floor || !roomName) {
             return NextResponse.json({ error: 'Floor and roomName are required' }, { status: 400 })
@@ -42,6 +46,9 @@ export async function POST(req: Request) {
 
         // Generate room code
         const roomCode = generateRoomCode(roomName)
+
+        // Auto-determine division if not provided
+        const division = responsibleDivision || getResponsibleDivision(Number(floor), roomName)
 
         // Check if code already exists, if so, append floor number
         const existing = await payload.find({
@@ -71,6 +78,7 @@ export async function POST(req: Request) {
                 floor: Number(floor),
                 roomName,
                 roomCode: finalCode,
+                responsibleDivision: division,
             },
         })
 

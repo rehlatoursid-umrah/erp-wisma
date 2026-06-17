@@ -37,5 +37,21 @@ export const AssetRooms: CollectionConfig = {
                 description: 'Kode singkat ruangan (auto-generated, misal: LBY, K101, DPR)',
             },
         },
+        {
+            name: 'responsibleDivision',
+            type: 'select',
+            required: true,
+            label: 'Divisi Penanggung Jawab',
+            options: [
+                { label: '🏠 BPPG', value: 'bppg' },
+                { label: '✈️ BPUPD', value: 'bpupd' },
+                { label: '🏛️ BPH', value: 'bph' },
+                { label: '📚 PMIK', value: 'pmik' },
+            ],
+            defaultValue: 'bppg',
+            admin: {
+                description: 'Divisi yang bertanggung jawab atas inventaris di ruangan ini',
+            },
+        },
     ],
 }
