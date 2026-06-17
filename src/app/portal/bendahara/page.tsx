@@ -210,7 +210,7 @@ export default function BendaharaPortal() {
   }
 
   return (
-    <PortalPinGuard portalName="Bendahara" useOtp otpEndpoint="/api/otp/bendahara">
+    <PortalPinGuard portalName="Bendahara" expectedPin="314314">
       <div className="dashboard-layout">
         <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
 
