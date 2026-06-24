@@ -204,15 +204,6 @@ export default function LoginPage() {
         </div>
       )}
 
-      {/* LOADING OVERLAY (Full Screen) */}
-      {isLoading && (
-        <div className={styles.loadingOverlay}>
-          <div className={styles.loadingCard}>
-            <div className={styles.spinner} />
-            <p className={styles.loadingText}>Membuat sesi pengguna...</p>
-          </div>
-        </div>
-      )}
     </>
   )
 }
