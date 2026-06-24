@@ -2,9 +2,11 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import styles from './login.module.css'
 
 export default function LoginPage() {
+  const router = useRouter()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
@@ -39,9 +41,9 @@ export default function LoginPage() {
       if (res.ok) {
         const data = await res.json()
         if (data?.user?.role === 'pengawas') {
-          window.location.href = '/dashboard/proker-rapat'
+          router.push('/dashboard/proker-rapat')
         } else {
-          window.location.href = '/dashboard'
+          router.push('/dashboard')
         }
       } else {
         setError('Email atau password salah!')

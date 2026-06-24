@@ -120,9 +120,15 @@ export default function DashboardPage() {
   // ═══ LOADING STATE ═══
   if (sessionLoading) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-background gap-4">
-        <Loader2 className="h-10 w-10 animate-spin text-primary" />
-        <p className="text-muted-foreground font-medium text-sm">Memuat sesi pengguna...</p>
+      <div className="flex min-h-screen bg-background">
+        <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+        <main className="lg:ml-[280px] min-h-screen w-full lg:w-[calc(100vw-280px)] max-w-full p-4 lg:p-6 xl:p-8 transition-all flex flex-col">
+          <Header onMenuClick={() => setSidebarOpen(true)} balances={stats.balances} />
+          <div className="flex-1 flex flex-col items-center justify-center gap-4">
+            <Loader2 className="h-10 w-10 animate-spin text-primary" />
+            <p className="text-muted-foreground font-medium text-sm">Menyiapkan dasbor...</p>
+          </div>
+        </main>
       </div>
     )
   }
